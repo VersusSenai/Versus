@@ -5,7 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "migrate": "for file in migrations/*.sql; do mysql -u root -p -h localhost < \"$file\"; done"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
