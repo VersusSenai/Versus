@@ -9,9 +9,12 @@
     "migrate": "for file in migrations/*.sql; do mysql -u root -p -h localhost < \"$file\"; done"
   },
   "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mysql2": "^3.14.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "prisma": "^6.5.0"
   }
 }
