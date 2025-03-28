@@ -1,5 +1,6 @@
 import userService from "../services/userServices.js"
 import express from "express";
+import verifyToken from "../middlewares/authMiddleware.js";
 
 const userRoute = express.Router();
 
@@ -37,7 +38,7 @@ userRoute.post("/", async(req, res)=>{
 })
 
 
-userRoute.put("/:id", async(req,res)=>{
+userRoute.put("/:id", verifyToken ,async(req,res)=>{
     if(req.params.id == null){
         res
         .status(401)
