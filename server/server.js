@@ -9,9 +9,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 
-app.get('/some-route', (req, res) => {
-  res.send('Route works!');
+app.get("/some-route", (req, res) => {
+  res.send("Route works!");
 });
 app.use(router)
 
-app.listen(process.env.PORT, () => { console.log('connect: ', process.env.PORT) });
+app.listen(process.env.PORT, () => {
+  console.log("connect: ", process.env.PORT);
+});
