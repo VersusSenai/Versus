@@ -1,68 +1,70 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&display=swap");
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@import "tailwindcss";
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@theme {
+  /* 🔤 Tipografia */
+  --font-primary: "Inter", sans-serif;
+  --font-secondary: "Rajdhani", sans-serif;
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+  /* 🎨 Cores Base */
+  --color-dark: #0c0c1e;
+  --color-surface: rgba(0, 0, 0, 0.3);
+  --color-primary: #5c4bf5;
+  --color-accent: #7a57ff;
+  --color-text: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.6);
+  --color-input-bg: rgba(255, 255, 255, 0.1);
+  --color-input-border: rgba(255, 255, 255, 0.2);
+  --color-placeholder: rgba(255, 255, 255, 0.5);
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+  /* 📐 Espaçamentos */
+  --size-sm: 8px;
+  --size-md: 16px;
+  --size-lg: 24px;
+  --size-xl: 32px;
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+  /* 📦 Larguras */
+  --width-card: 420px;
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  /* 🔘 Bordas e Sombras */
+  --radius-md: 12px;
+  --shadow-md: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0px 6px 18px rgba(0, 0, 0, 0.3);
+
+  /* 🌀 Animações */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 📏 Breakpoints */
+  --breakpoint-sm: 40rem; /* 640px */
+  --breakpoint-md: 48rem; /* 768px */
+  --breakpoint-lg: 60rem; /* 960px */
+  --breakpoint-xl: 75rem; /* 1200px */
+  --breakpoint-2xl: 87.5rem; /* 1400px */
+  --breakpoint-3xl: 120rem; /* 1920px */
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+@keyframes expandRightToLeft {
+  0% {
+    width: 0;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+  100% {
+    width: 100%;
   }
 }
+
+.animate-underline {
+  animation: expandRightToLeft 2s ease-out forwards;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.1) 0px 20px,  /* Traço maior */
+    transparent 10px 30px               /* Espaço maior */
+  );
+  background-size: 60px 100%; /* Controla espaçamento */
+  position: absolute;
+  left: 0;
+}
+
+
+
+
