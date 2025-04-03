@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.use("/event", eventRoute);
 router.use("/user", userRoute);
-router.use("/login", authRoute);
+router.use("/auth", authRoute);
 router.use("/team", teamRoute)
 
 export default router;
