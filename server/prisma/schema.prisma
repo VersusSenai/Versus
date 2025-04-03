@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id              Int      @id @default(autoincrement())
+  username        String   @db.VarChar(100)
+  email           String   @unique @db.VarChar(100)
+  password        String   @db.VarChar(255)
+  role            Role
+  registeredDate  DateTime @default(now()) @map("registered_date")
+  teams           Team[]
+  eventInscriptions EventInscriptions[]
+  teamUsers       TeamUsers[]  // Adicionando a relação oposta
+}
+
+enum Role {
+  P
+  O
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String  @db.VarChar(250)
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  model       Model
+  status      Status   @default(P)
+  eventInscriptions EventInscriptions[]
+  teamEvents   TeamEvents[]
+  matches      Match[]
+
+}
+
+enum Model {
+  P
+  O
+}
+
+enum Status {
+  E
+  S
+  P
+}
+
+model Team {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(100)
+  ownerId        Int
+  description    String?  @db.VarChar(250)
+  registeredDate DateTime @default(now()) @map("registered_date")
+  owner          User     @relation(fields: [ownerId], references: [id])
+  teamUsers      TeamUsers[]
+  teamEvents     TeamEvents[]
+  firstMatches   Match[] @relation("Match_firstTeam")
+  secondMatches  Match[] @relation("Match_secondTeam")
+}
+
+model EventInscriptions {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  eventId        Int
+  registeredDate DateTime @default(now()) @map("registered_date")
+  status        InscriptionStatus @default(P)
+  role          EventRole @default(P)
+  user          User     @relation(fields: [userId], references: [id])
+  event         Event    @relation(fields: [eventId], references: [id])
+}
+
+enum InscriptionStatus {
+  P
+  C
+  D
+}
+
+enum EventRole{
+  O
+  P
+}
+
+model TeamUsers {
+  id              Int      @id @default(autoincrement())
+  userId          Int @unique
+  teamId          Int
+  inscriptionDate DateTime @default(now()) @map("inscription_date")
+  status         InscriptionStatus @default(P)
+  user           User @relation(fields: [userId], references: [id])
+  team           Team @relation(fields: [teamId], references: [id])
+}
+
+model TeamEvents {
+  id              Int      @id @default(autoincrement())
+  teamId          Int
+  eventId         Int
+  inscriptionDate DateTime @default(now()) @map("inscription_date")
+  status         InscriptionStatus @default(P)
+  team           Team  @relation(fields: [teamId], references: [id])
+  event          Event @relation(fields: [eventId], references: [id])
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  eventId     Int
+  firstTeamId Int
+  secondTeamId Int
+  time        DateTime
+  winnerId    Int?
+  loserId     Int?
+  event       Event @relation(fields: [eventId], references: [id])
+  firstTeam   Team  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam")
+  secondTeam  Team  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam")
+}
