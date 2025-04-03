@@ -64,6 +64,21 @@ const eventService = {
       return e;
     })
   },
+
+  inscribe: async(req) =>{
+    return await prisma.eventInscriptions.create({data:{
+      eventId: parseInt(req.params.id),
+      userId: parseInt(req.body.userId)
+    }})
+  },
+
+  unsubscribe: async(req)=>{
+    return await prisma.eventInscriptions.delete({where:{ id: parseInt(req.params.id)}})
+  },
+
+  getAllInscriptions: async()=>{
+    return await prisma.eventInscriptions.findMany(); 
+  }
 };
 
 export default eventService;
