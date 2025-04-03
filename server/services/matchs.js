@@ -1,7 +1,6 @@
 const connection = require("../config/connection.js");
 
 const matchService = {
-  
   getAll: (callback) => {
     const query = "SELECT * FROM matchs";
     connection.query(query, (err, results) => {
