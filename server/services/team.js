@@ -1,57 +1,46 @@
-const connection = require("../config/connection.js");
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const teamService = {
-  getAll: (callback) => {
-    const query = 'SELECT * FROM team';
-    connection.query(query, (err, result) => {
-      if (err) return callback(err, null);
-      callback(null, result);
-    });
+
+
+  getAll: () => {
+    return prisma.team.findMany()
   },
 
-  getById: (id, callback) => {
-    const query = 'SELECT * FROM team WHERE id = ?';
-    connection.query(query, [id], (err, result) => {
-      if (err) return callback(err, null);
-      if (result.lenght === 0)
-        return callback({ message: "Team não encontrado" }, null);
-      callback(null, result);
-    });
+  getById: (req) => {
+    return prisma.team.findFirst({where: {
+      id: parseInt(req.params.id)
+    }})
+
   },
 
-  create: (teamData, callback) => {
-    const { name, ownerId, description } = teamData;
-    const query =
-      'INSERT INTO team (name, ownerId, description) VALUES (?, ?, ?)';
-    connection.query(query, [name, ownerId, description], (err, result) => {
-      if (err) return callback(err, null);
-      callback(null, {
-        message: "Time criado com sucesso",
-        id: result.insertId,
-      });
-    });
+  create: (req) => {
+    const { name, ownerId, description } = req.body;
+
+    return prisma.team.create({
+    data:{
+      name,
+      description,
+      ownerId: parseInt(ownerId)
+    }}).catch(e=>{
+      return e;
+    })
+    
   },
 
-  update: (id, teamData, callback) => {
-    const { name, ownerId, description } = teamData;
-    const query =
-      'UPDATE team SET name = ?, ownerId = ?, description = ? WHERE id = ?';
-    connection.query(query, [name, ownerId, description, id], (err, result) => {
-      if (err) return callback(err, null);
-      if (result.affectedRows === 0)
-        return callback({ message: "Team não encontrado" }, null);
-      callback(null, results);
-    });
+  update: (req) => {
+    const { name, description } = req.body;
+
+    return prisma.team.update({where: {id: parseInt(req.params.id)},
+      data:{
+        name, description
+  }})
   },
 
-  delete: (id, callback) => {
-    const query = 'DELETE FROM team WHERE id = ?';
-    connection.query(query, [id], (err, result) => {
-      if (err) return callback(err, null);
-      if (result.affectedRows === 0)
-        return callback({ message: "Team não encontrado" }, null);
-      callback(null, { message: "Team deletado com sucesso" });
-    });
+  delete: (req) => {
+    return prisma.team.delete({where: {id: parseInt(req.params.id)}})
   },
 };
 

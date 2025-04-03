@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 
 const authRoute = express.Router();
 
-authRoute.post("/", async (req,res)=>{
+authRoute.post("/login", async (req,res)=>{
 
     const cookieOptions = {
         secure: true,
@@ -16,6 +16,12 @@ authRoute.post("/", async (req,res)=>{
     res
     .cookie("token", await auth.login(req), cookieOptions)
     .json({ message: "token gerado com sucesso"})
+})
+
+authRoute.post("/logout", async (req,res)=>{
+
+  res.cookie("token", null)
+  .json({ message: "logout with success"})
 })
 
 export default authRoute
