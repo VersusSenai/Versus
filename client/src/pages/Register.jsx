@@ -7,49 +7,53 @@ import { toast, ToastContainer } from "react-toastify";
 import Logo from "../assets/logo-branco.svg";
 import api from "../api";
 
-import { useDispatch } from "react-redux";
-import { login } from "../redux/userSlice";
-
 const handleAnimationComplete = () => {
   console.log("Animation completed!");
 };
 
-const Login = () => {
+const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [role] = useState("P");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const handleRegister = async () => {
+    if (!email || !password || !username || !confirmPassword) {
       toast.error("Preencha todos os campos!");
       return;
     }
 
+    if (password !== confirmPassword) {
+      toast.error("As senhas não coincidem!");
+    }
+
     setLoading(true);
     try {
-      console.log("Enviando:", { email, password });
-
-      const response = await api.post("/login", { email, password });
-
-      if (response.data.success) {
-        toast.success("Login bem-sucedido!");
-        localStorage.setItem("token", response.data.token);
-
-        dispatch(login(response.data.user));
-
-
+      const response = await api.post("/user", {
+        email,
+        password,
+        username,
+        role,
+      });
+      if (response.data) {
+        toast.success("Cadastro realizado com sucesso!");
         setTimeout(() => {
-          navigate("/homepage"); // Redireciona para o dashboard após login
+          navigate("/login");
         }, 1500);
       } else {
-        toast.error("Usuário ou senha incorretos!");
+        toast.error(response.message || "Erro ao registrar usuário!");
       }
-    } catch {
-      toast.error("Erro ao conectar ao servidor!");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Erro ao conectar ao servidor!"
+      );
     }
+
     setLoading(false);
   };
 
@@ -100,7 +104,7 @@ const Login = () => {
             htmlFor="email"
             className="text-sm text-[var(--color-muted)] mb-2 w-full text-left"
           >
-            Entrar
+            Criar conta
           </label>
           <input
             id="email"
@@ -108,6 +112,14 @@ const Login = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 mb-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
+          />
+          <input
+            id="username"
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full p-3 mb-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
           />
 
@@ -131,6 +143,27 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Confirm Password Field */}
+          <div className="relative w-full mb-3">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirmar Senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full p-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
+            />
+            <div
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
+            >
+              {showConfirmPassword ? (
+                <FaEyeSlash className="text-xl" />
+              ) : (
+                <FaEye className="text-xl" />
+              )}
+            </div>
+          </div>
+
           {/* Remember Me */}
           <div className="flex items-center w-full mb-4">
             <input type="checkbox" id="remember" className="mr-2" />
@@ -144,17 +177,14 @@ const Login = () => {
 
           {/* Login Button */}
           <button
-            onClick={handleLogin}
+            onClick={handleRegister}
             className="w-full p-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded font-semibold hover:opacity-80"
             disabled={loading}
           >
-            {loading ? "Carregando..." : "Entrar"}
+            {loading ? "Carregando..." : "Registrar-se"}
           </button>
 
-          {/* Forgot Password */}
-          <p onClick={() => {navigate("/")}} className="text-center text-sm mt-3 cursor-pointer hover:underline">
-            Esqueceu a senha?
-          </p>
+    
 
           {/* Social Login */}
           <div className="flex items-center my-4 w-full">
@@ -169,10 +199,10 @@ const Login = () => {
           </div>
 
           {/* Register Link */}
-          <p onClick={() => {navigate("/register")}} className="text-center text-sm text-[var(--color-muted)]">
-            Ainda não tem uma conta?{" "}
+          <p onClick={() => {navigate("/login")}} className="text-center text-sm text-[var(--color-muted)]">
+            Já tem uma conta?{" "}
             <span className="text-[var(--color-primary)] cursor-pointer hover:underline">
-              Cadastre-se
+              Logar-se
             </span>
           </p>
 
@@ -184,7 +214,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Toast Container */}
       {/* Toast Container */}
       <ToastContainer
         position="top-right"
@@ -214,4 +243,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
