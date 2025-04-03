@@ -11,12 +11,10 @@ const userServices = {
             return await prisma.user.findMany()
       },
 
-
     getById: async(req)=>{
        return await prisma.user.findFirst({where: { id: parseInt(req.params.id)}})
 
     },
-    
     create: async (req)=>{
         const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
 
@@ -24,7 +22,7 @@ const userServices = {
             username: req.body.username,
             password: hash,
             email: req.body.email,
-            role: "P"
+            role: req.body.role
 
         }})
     },

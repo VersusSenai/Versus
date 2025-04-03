@@ -26,7 +26,7 @@ enum Role {
 model Event {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(100)
-  description String  @db.VarChar(250)
+  description String?  @db.VarChar(250)
   startDate   DateTime @map("start_date")
   endDate     DateTime @map("end_date")
   model       Model
@@ -67,7 +67,6 @@ model EventInscriptions {
   eventId        Int
   registeredDate DateTime @default(now()) @map("registered_date")
   status        InscriptionStatus @default(P)
-  role          EventRole @default(P)
   user          User     @relation(fields: [userId], references: [id])
   event         Event    @relation(fields: [eventId], references: [id])
 }
@@ -76,11 +75,6 @@ enum InscriptionStatus {
   P
   C
   D
-}
-
-enum EventRole{
-  O
-  P
 }
 
 model TeamUsers {
