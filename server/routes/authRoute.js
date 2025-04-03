@@ -18,4 +18,10 @@ authRoute.post("/", async (req,res)=>{
     .json({ message: "token gerado com sucesso"})
 })
 
+authRoute.post("/", async (req,res)=>{
+
+  res.cookie("token", null)
+  .json({ message: "logout with success"})
+})
+
 export default authRoute
