@@ -1,57 +1,63 @@
-const connection = require("../config/connection.js");
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 const teamService = {
-  getAll: (callback) => {
-    const query = 'SELECT * FROM team';
-    connection.query(query, (err, result) => {
-      if (err) return callback(err, null);
-      callback(null, result);
-    });
+  getAll: async () => {
+    return await prisma.team.findMany();
   },
 
-  getById: (id, callback) => {
-    const query = 'SELECT * FROM team WHERE id = ?';
-    connection.query(query, [id], (err, result) => {
-      if (err) return callback(err, null);
-      if (result.lenght === 0)
-        return callback({ message: "Team não encontrado" }, null);
-      callback(null, result);
+  getById: async (id) => {
+    const team = await prisma.team.findUnique({
+      where: { id: Number(id) },
     });
+
+    if (!team) {
+      throw new Error("Team não encontrado");
+    }
+
+    return team;
   },
 
-  create: (teamData, callback) => {
-    const { name, ownerId, description } = teamData;
-    const query =
-      'INSERT INTO team (name, ownerId, description) VALUES (?, ?, ?)';
-    connection.query(query, [name, ownerId, description], (err, result) => {
-      if (err) return callback(err, null);
-      callback(null, {
-        message: "Time criado com sucesso",
-        id: result.insertId,
+  create: async (teamData) => {
+    const newTeam = await prisma.team.create({
+      data: teamData,
+    });
+
+    return {
+      message: "Time criado com sucesso",
+      id: newTeam.id,
+    };
+  },
+
+  update: async (id, teamData) => {
+    try {
+      const updatedTeam = await prisma.team.update({
+        where: { id: Number(id) },
+        data: teamData,
       });
-    });
+
+      return updatedTeam;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Team não encontrado");
+      }
+      throw err;
+    }
   },
 
-  update: (id, teamData, callback) => {
-    const { name, ownerId, description } = teamData;
-    const query =
-      'UPDATE team SET name = ?, ownerId = ?, description = ? WHERE id = ?';
-    connection.query(query, [name, ownerId, description, id], (err, result) => {
-      if (err) return callback(err, null);
-      if (result.affectedRows === 0)
-        return callback({ message: "Team não encontrado" }, null);
-      callback(null, results);
-    });
-  },
+  delete: async (id) => {
+    try {
+      await prisma.team.delete({
+        where: { id: Number(id) },
+      });
 
-  delete: (id, callback) => {
-    const query = 'DELETE FROM team WHERE id = ?';
-    connection.query(query, [id], (err, result) => {
-      if (err) return callback(err, null);
-      if (result.affectedRows === 0)
-        return callback({ message: "Team não encontrado" }, null);
-      callback(null, { message: "Team deletado com sucesso" });
-    });
+      return { message: "Team deletado com sucesso" };
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Team não encontrado");
+      }
+      throw err;
+    }
   },
 };
 

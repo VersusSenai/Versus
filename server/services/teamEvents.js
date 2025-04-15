@@ -1,59 +1,60 @@
-const connection = require("../config/connection.js");
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 const teamEventsService = {
-  getAll: (callback) => {
-    const query = "SELECT * FROM team_events";
-    connection.query(query, (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results);
+  getAll: async () => {
+    return await prisma.teamEvents.findMany();
+  },
+
+  getByTeamId: async (teamId) => {
+    return await prisma.teamEvents.findMany({
+      where: { teamId: Number(teamId) },
     });
   },
 
-  getByTeamId: (teamId, callback) => {
-    const query = "SELECT * FROM team_events WHERE teamId = ?";
-    connection.query(query, [teamId], (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results);
+  getByEventId: async (eventId) => {
+    return await prisma.teamEvents.findMany({
+      where: { eventId: Number(eventId) },
     });
   },
 
-  getByEventId: (eventId, callback) => {
-    const query = "SELECT * FROM team_events WHERE eventId = ?";
-    connection.query(query, [eventId], (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results);
+  create: async (teamEventData) => {
+    const newTeamEvent = await prisma.teamEvents.create({
+      data: teamEventData,
     });
+
+    return newTeamEvent.id;
   },
 
-  create: (teamEventData, callback) => {
-    const { teamId, eventId, status } = teamEventData;
-    const query =
-      "INSERT INTO team_events (teamId, eventId, status) VALUES (?, ?, ?)";
-    connection.query(query, [teamId, eventId], (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results.insertId);
-    });
+  update: async (id, teamEventData) => {
+    try {
+      const updated = await prisma.teamEvents.update({
+        where: { id: Number(id) },
+        data: teamEventData,
+      });
+
+      return updated;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Evento do time não encontrado");
+      }
+      throw err;
+    }
   },
 
-  update: (id, teamEventData, callback) => {
-    const { status } = teamEventData;
-    const query = "UPDATE team_events SET status = ? WHERE id = ?";
-    connection.query(query, [status, id], (err, results) => {
-      if (err) return callback(err, null);
-      if (results.affectedRows === 0)
-        return callback("Evento do time não encontrado", null);
-      callback(null, results);
-    });
-  },
+  delete: async (id) => {
+    try {
+      const deleted = await prisma.teamEvents.delete({
+        where: { id: Number(id) },
+      });
 
-  delete: (id, callback) => {
-    const query = "DELETE FROM team_events WHERE id = ?";
-    connection.query(query, [id], (err, results) => {
-      if (err) return callback(err, null);
-      if (results.affectedRows === 0)
-        return callback("Evento do time não encontrado", null);
-      callback(null, results);
-    });
+      return deleted;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Evento do time não encontrado");
+      }
+      throw err;
+    }
   },
 };
 

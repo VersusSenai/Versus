@@ -32,7 +32,6 @@ const auth = {
                 id: registeredUser.id,
                 email: registeredUser.email,
             }, 
-            // Secret or Private Key
             process.env.JWT_SECRET,
             // Options
             {
