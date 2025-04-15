@@ -1,62 +1,51 @@
-const connection = require("../config/connection.js");
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 const eventService = {
-  getAll: (callback) => {
-    const query = 'SELECT * FROM events';
-    connection.query(query, (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results);
+  getAll: async () => {
+    return await prisma.event.findMany();
+  },
+
+  getById: async (id) => {
+    return await prisma.event.findUnique({
+      where: { id: Number(id) },
     });
   },
 
-  getById: (id, callback) => {
-    const query = 'SELECT * FROM events WHERE id = ?';
-    connection.query(query, [id], (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results[0]);
+  create: async (eventData) => {
+    const newEvent = await prisma.event.create({
+      data: eventData,
     });
+    return newEvent;
   },
 
-  create: (eventData, callback) => {
-    const { name, description, start_date, end_date, model, status } =
-      eventData;
-    const query =
-      'INSERT INTO events (name, description, start_date, end_date, model, status) VALUES (?, ?, ?, ?, ?, ?)';
-    connection.query(
-      query,
-      [name, description, start_date, end_date, model, status],
-      (err, results) => {
-        if (err) return callback(err, null);
-        callback(null, results.insertId);
+  update: async (id, eventData) => {
+    try {
+      const updatedEvent = await prisma.event.update({
+        where: { id: Number(id) },
+        data: eventData,
+      });
+      return updatedEvent;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Evento não encontrado");
       }
-    );
+      throw err;
+    }
   },
 
-  update: (id, eventData, callback) => {
-    const { name, description, start_date, end_date, model, status } =
-      eventData;
-    const query =
-      'UPDATE events SET name = ?, description = ?, start_date = ?, end_date = ?, model = ?, status = ? WHERE id = ?';
-    connection.query(
-      query,
-      [name, description, start_date, end_date, model, status, id],
-      (err, results) => {
-        if (err) return callback(err, null);
-        if (results.affectedRows === 0)
-          return callback("Evento não encontrado", null);
-        callback(null, results);
+  delete: async (id) => {
+    try {
+      const deletedEvent = await prisma.event.delete({
+        where: { id: Number(id) },
+      });
+      return deletedEvent;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Evento não encontrado");
       }
-    );
-  },
-
-  delete: (id, callback) => {
-    const query = 'DELETE FROM events WHERE id = ?';
-    connection.query(query, [id], (err, results) => {
-      if (err) return callback(err, null);
-      if (results.affectedRows === 0)
-        return callback("Evento não encontrado", null);
-      callback(null, results);
-    });
+      throw err;
+    }
   },
 };
 
