@@ -1,46 +1,64 @@
-import { PrismaClient } from "@prisma/client";
 
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const teamService = {
-
-
-  getAll: () => {
-    return prisma.team.findMany()
+  getAll: async () => {
+    return await prisma.team.findMany();
   },
 
-  getById: (req) => {
-    return prisma.team.findFirst({where: {
-      id: parseInt(req.params.id)
-    }})
+  getById: async (id) => {
+    const team = await prisma.team.findUnique({
+      where: { id: Number(id) },
+    });
 
+    if (!team) {
+      throw new Error("Team não encontrado");
+    }
+
+    return team;
   },
 
-  create: (req) => {
-    const { name, ownerId, description } = req.body;
+  create: async (teamData) => {
+    const newTeam = await prisma.team.create({
+      data: teamData,
+    });
 
-    return prisma.team.create({
-    data:{
-      name,
-      description,
-      ownerId: parseInt(ownerId)
-    }}).catch(e=>{
-      return e;
-    })
-    
+    return {
+      message: "Time criado com sucesso",
+      id: newTeam.id,
+    };
   },
 
-  update: (req) => {
-    const { name, description } = req.body;
+  update: async (id, teamData) => {
+    try {
+      const updatedTeam = await prisma.team.update({
+        where: { id: Number(id) },
+        data: teamData,
+      });
 
-    return prisma.team.update({where: {id: parseInt(req.params.id)},
-      data:{
-        name, description
-  }})
+      return updatedTeam;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Team não encontrado");
+      }
+      throw err;
+    }
   },
 
-  delete: (req) => {
-    return prisma.team.delete({where: {id: parseInt(req.params.id)}})
+  delete: async (id) => {
+    try {
+      await prisma.team.delete({
+        where: { id: Number(id) },
+      });
+
+      return { message: "Team deletado com sucesso" };
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new Error("Team não encontrado");
+      }
+      throw err;
+    }
   },
 };
 

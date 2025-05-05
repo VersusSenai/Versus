@@ -25,7 +25,6 @@ const auth = {
         if (!bcrypt.compareSync(password, registeredUser.password) )
             throw new Error("User email or password invalid") ;
 
-        
 
         if(registeredUser.id){
 

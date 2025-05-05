@@ -35,5 +35,4 @@ authRoute.post("/logout", async (req,res)=>{
 })
 
 
-
 export default authRoute
