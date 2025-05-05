@@ -32,9 +32,11 @@ const Login = () => {
     try {
       console.log("Enviando:", { email, password });
 
-      const response = await api.post("/login", { email, password });
+      const response = await api.post("/auth/login", { email, password }, {
+        withCredentials: true
+      });
 
-      if (response.data.success) {
+      if (response.status = 200) {
         toast.success("Login bem-sucedido!");
         localStorage.setItem("token", response.data.token);
 

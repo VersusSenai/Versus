@@ -13,34 +13,37 @@ const auth = {
             { where: { email }}
         ).catch(
             (err) => {
-                console.log("Error: ", err);
+                throw err;
             }
         );
     
         if (!registeredUser)
-            return res
-                .status(400)
-                .json({message: "Email ou Senha inválidos."})
-    
-        if (!bcrypt.compareSync(password, registeredUser.password) )
-            return res
-                .status(400)
-                .json({message: "Email ou Senha inválidos."})
-        
-        return jwt.sign(
-            {
-                id: registeredUser.id,
-                email: registeredUser.email,
-            }, 
-            // Secret or Private Key
-            process.env.JWT_SECRET,
-            // Options
-            {
-                expiresIn: '1h'
-            }
-        );
+            throw new Error("User not found") ;
 
-    }
+    
+        // Validar a SENHA do Usuário
+        if (!bcrypt.compareSync(password, registeredUser.password) )
+            throw new Error("User email or password invalid") ;
+
+        
+
+        if(registeredUser.id){
+
+            return { token: jwt.sign(
+                {
+                    id: registeredUser.id,
+                    email: registeredUser.email,
+                }, 
+                // Secret or Private Key
+                process.env.JWT_SECRET,
+                // Options
+                {
+                    expiresIn: '1h'
+                }
+            ), username: registeredUser.username, email: registeredUser.email};
+    
+        }
+        }
 
 }
 
