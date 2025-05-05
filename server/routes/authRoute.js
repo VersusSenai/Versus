@@ -13,9 +13,19 @@ authRoute.post("/login", async (req,res)=>{
         expires: dayjs().add(1, "day").toDate(),
       };
 
-    res
-    .cookie("token", await auth.login(req), cookieOptions)
-    .json({ message: "token gerado com sucesso"})
+
+    const resp = await auth.login(req).catch(err =>{
+        res
+        .status(400)
+        .json(err.message)
+    })
+
+    if(resp){
+      res
+      .cookie("token", resp.token, cookieOptions)
+      .json({ message: "token gerado com sucesso", user:{ email: resp.email, username: resp.username}})
+
+    }
 })
 
 authRoute.post("/logout", async (req,res)=>{
@@ -23,5 +33,6 @@ authRoute.post("/logout", async (req,res)=>{
   res.cookie("token", null)
   .json({ message: "logout with success"})
 })
+
 
 export default authRoute

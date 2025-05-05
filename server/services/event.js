@@ -1,3 +1,4 @@
+
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -47,6 +48,14 @@ const eventService = {
       throw err;
     }
   },
+
+  unsubscribe: async(req)=>{
+    return await prisma.eventInscriptions.delete({where:{ id: parseInt(req.params.id)}})
+  },
+
+  getAllInscriptions: async()=>{
+    return await prisma.eventInscriptions.findMany(); 
+  }
 };
 
 export default eventService;

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const matchService = {
+
   getAll: async () => {
     return await prisma.matchs.findMany();
   },
