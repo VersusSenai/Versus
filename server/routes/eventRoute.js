@@ -104,7 +104,7 @@ eventRoute.delete("/:id/inscription",verifyToken ,async(req,res)=>{
     })
 })
 
-eventRoute.get("/inscription/:id", async(req, res)=>{
+eventRoute.get("/:id/inscription", async(req, res)=>{
 
     const data = await eventService.getAllInscriptions(req)
 

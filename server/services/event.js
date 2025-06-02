@@ -19,6 +19,8 @@ const eventService = {
 
     const userData = await serviceUtils.getUserByToken(req);
 
+    console.log(userData)
+
     if(userData.role == "O" || userData.role == "A"){
       const newEvent = await prisma.event.create({
   
@@ -44,6 +46,10 @@ const eventService = {
       userId: userData.id, eventId: parseInt(req.params.id)
     }})
 
+
+    if(userInscription == null && userData.role != "A"){
+      throw new Error("You are not owner of this event")
+    }
     if(userData.role == "A"){
     return await prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
@@ -99,10 +105,10 @@ const eventService = {
       userId: userData.id, eventId: parseInt(req.params.id)
     }})
 
+
+
     if(userData.role == "A"){
     return await prisma.event.delete({where: {id: parseInt(req.params.id)},
-
-      
     })
     }
 
@@ -119,43 +125,51 @@ const eventService = {
 
   unsubscribe: async(req)=>{
       const userData = await serviceUtils.getUserByToken(req);
-    
-      const userInscription = await prisma.eventInscriptions.findFirst({where:{
+      const userInscriptionByToken = await prisma.eventInscriptions.findFirst({where:{
         userId: userData.id, eventId: parseInt(req.params.id)
       }})
 
-      if(!userInscription){
-        throw new Error("User is not inscribed in this tournment")  
+      if(userInscriptionByToken == null && userData.role!= "A"){
+        throw new Error("You are not inscribed in this event")
+        
+      }
+      
+      if((req.body.userId != null && req.body.userId != "") && (userData.role == "A" || userData.role == "O")){
+        
+        const userInscriptionByReqId = await prisma.eventInscriptions.findFirst({where:{
+          userId: parseInt(req.body.userId), eventId: parseInt(req.params.id)
+        }})
+        
+        
+        if(userInscriptionByReqId == null){
+          throw new Error("This user is not inscribed in this event")
+        }    
+        
+        
+        if(userData.role == "A"){
+          console.log("Eu cheguei aqui")
+          await prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}})
+        }
+        
+      if(userData.role == "O" && userInscriptionByToken.role != "O"){
+        console.log("Role do usuário: " +userData.role)
+        console.log("Role do usuário no evento: " + userInscriptionByToken.role)
+        console.log(userData.role == "O" && userInscriptionByToken != "O")
+          throw new Error("This user is not owner of this event")
+      }
+      if(userInscriptionByReqId.userId == userData.id){
+        throw new Error("A owner cannot unsubscribe itself")
+      }      
 
+      if(userInscriptionByToken.role == "O"){
+        await prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}})
+      }
       }
 
-      if(userInscription.role == "O" && parseInt(req.body.userId) == userData.id){
-        throw new Error("Owner user cannot unscribe itself")  
+      if(userData.role == "P" && userInscriptionByToken.userId == userData.id){
+        await prisma.eventInscriptions.delete({where: {id: userInscriptionByToken.id}})
       }
 
-      if(userInscription.role == "O" && req.body.userId == null || req.body.userId == ""){
-        throw new Error("UserId is empty")
-      }
-
-      if(userInscription.role == "O" && parseInt(req.body.userId) != userData.id){
-        await prisma.eventInscriptions.delete({
-          where: {
-            userId_eventId:  {
-              userId:parseInt(req.body.userId), 
-              eventId: parseInt(req.params.id)}
-
-          }
-        })
-      }
-      else{
-        await prisma.eventInscriptions.delete({
-          where: {
-            userId_eventId:
-            {userId: userData.id, eventId: parseInt(req.params.id)}
-
-          }
-        })
-      }
 
     
   },

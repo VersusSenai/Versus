@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from "@prisma/client";
+import 'dotenv/config';
+
 
 const prisma = new PrismaClient()
 
