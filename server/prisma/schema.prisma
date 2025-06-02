@@ -21,6 +21,7 @@ model User {
 enum Role {
   P
   O
+  A
 }
 
 model Event {
@@ -54,7 +55,7 @@ model Team {
   ownerId        Int
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
-  owner          User     @relation(fields: [ownerId], references: [id])
+  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   teamUsers      TeamUsers[]
   teamEvents     TeamEvents[]
   firstMatches   Match[] @relation("Match_firstTeam")
@@ -68,8 +69,8 @@ model EventInscriptions {
   registeredDate DateTime @default(now()) @map("registered_date")
   status        InscriptionStatus @default(P)
   role          EventRole @default(P)
-  user          User     @relation(fields: [userId], references: [id])
-  event         Event    @relation(fields: [eventId], references: [id])
+  user          User     @relation(fields: [userId], references: [id],  onDelete: Cascade)
+  event         Event    @relation(fields: [eventId], references: [id],  onDelete: Cascade)
   @@unique([userId, eventId])
 }
 
@@ -90,8 +91,8 @@ model TeamUsers {
   teamId          Int
   inscriptionDate DateTime @default(now()) @map("inscription_date")
   status         InscriptionStatus @default(P)
-  user           User @relation(fields: [userId], references: [id])
-  team           Team @relation(fields: [teamId], references: [id])
+  user           User @relation(fields: [userId], references: [id],  onDelete: Cascade)
+  team           Team @relation(fields: [teamId], references: [id],  onDelete: Cascade)
 }
 
 model TeamEvents {
@@ -100,8 +101,8 @@ model TeamEvents {
   eventId         Int
   inscriptionDate DateTime @default(now()) @map("inscription_date")
   status         InscriptionStatus @default(P)
-  team           Team  @relation(fields: [teamId], references: [id])
-  event          Event @relation(fields: [eventId], references: [id])
+  team           Team  @relation(fields: [teamId], references: [id],  onDelete: Cascade)
+  event          Event @relation(fields: [eventId], references: [id],  onDelete: Cascade)
 }
 
 model Match {
@@ -112,7 +113,7 @@ model Match {
   time        DateTime
   winnerId    Int?
   loserId     Int?
-  event       Event @relation(fields: [eventId], references: [id])
-  firstTeam   Team  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam")
-  secondTeam  Team  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam")
+  event       Event @relation(fields: [eventId], references: [id],  onDelete: Cascade)
+  firstTeam   Team  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam",  onDelete: Cascade)
+  secondTeam  Team  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam",  onDelete: Cascade)
 }

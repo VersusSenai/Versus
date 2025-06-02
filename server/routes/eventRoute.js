@@ -63,10 +63,16 @@ eventRoute.put("/:id", verifyToken ,async(req,res)=>{
 
 })
 eventRoute.delete("/:id",verifyToken ,async(req,res)=>{
-    await eventService.delete(req)
-    res
-    .status(204)
-    .json({message:"event deleted"})
+    await eventService.delete(req).then(data =>{
+        res
+        .status(204)
+        .json({message:"event deleted"})
+
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
 })
 
 eventRoute.post("/:id/inscription",verifyToken ,async(req,res)=>{
