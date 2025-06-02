@@ -19,21 +19,22 @@ const eventService = {
 
     const userData = await serviceUtils.getUserByToken(req);
 
-    if(userData.role != "O"){
+    if(userData.role == "O" || userData.role == "A"){
+      const newEvent = await prisma.event.create({
+  
+        data: {...req.body, eventInscriptions: {
+          create:[
+            {userId: userData.id, status: "C", role: "O"}
+          ]
+        }},
+      });
+  
+      return newEvent;
+    }else{
       throw new Error("user is not a Event Organizer")
     }
+    
 
-
-    const newEvent = await prisma.event.create({
-
-      data: {...req.body, eventInscriptions: {
-        create:[
-          {userId: userData.id, status: "C", role: "O"}
-        ]
-      }},
-    });
-
-    return newEvent;
   },
 
   update: async (req) => {
@@ -43,17 +44,28 @@ const eventService = {
       userId: userData.id, eventId: parseInt(req.params.id)
     }})
 
-
-    if(userInscription.role != "O"){
-      throw new Error("User is not a Owner of this event")
-    }
-
+    if(userData.role == "A"){
     return await prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
         ...req.body
       }
       
     })
+    }
+
+    if(userInscription.role == "O"){
+    return await prisma.event.update({where: {id: parseInt(req.params.id)},
+      data:{
+        ...req.body
+      }
+      
+    })
+    }else{
+        throw new Error("User is not a Owner of this event")
+
+    }
+    
+
 
   },
 
@@ -81,17 +93,28 @@ const eventService = {
   },
 
   delete: async (req) => {
-    try {
-      const deletedEvent = await prisma.event.delete({
-        where: { id: Number(req.params.id) },
-      });
-      return deletedEvent;
-    } catch (err) {
-      if (err.code === 'P2025') {
-        throw new Error("Evento não encontrado");
-      }
-      throw err;
+    const userData = await serviceUtils.getUserByToken(req);
+
+    const userInscription = await prisma.eventInscriptions.findFirst({where: {
+      userId: userData.id, eventId: parseInt(req.params.id)
+    }})
+
+    if(userData.role == "A"){
+    return await prisma.event.delete({where: {id: parseInt(req.params.id)},
+
+      
+    })
     }
+
+    if(userInscription.role == "O"){
+    return await prisma.event.delete({where: {id: parseInt(req.params.id)},
+
+    })
+    }else{
+        throw new Error("User is not a Owner of this event")
+
+    }
+    
   },
 
   unsubscribe: async(req)=>{
