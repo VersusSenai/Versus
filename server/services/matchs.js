@@ -4,11 +4,11 @@ const prisma = new PrismaClient();
 const matchService = {
 
   getAll: async () => {
-    return await prisma.matchs.findMany();
+    return await prisma.match.findMany();
   },
 
   getById: async (id) => {
-    const match = await prisma.matchs.findUnique({
+    const match = await prisma.match.findUnique({
       where: { id: Number(id) },
     });
 
@@ -20,16 +20,18 @@ const matchService = {
   },
 
   create: async (matchData) => {
-    const { eventId, firstTeamId, secondTeamId, time, winnerId, loserId } = matchData;
+    const { eventId, firstTeamId, secondTeamId, time, winnerId, loserId, firstUserId, secondUserId } = matchData;
 
-    const newMatch = await prisma.matchs.create({
+    const newMatch = await prisma.match.create({
       data: {
-        eventId,
-        firstTeamId,
-        secondTeamId,
-        time,
-        winnerId,
-        loserId,
+          eventId,
+          firstTeamId,
+          secondTeamId,
+          time,
+          winnerId,
+          loserId,
+          firstUserId, 
+          secondUserId
       },
     });
 
@@ -37,10 +39,10 @@ const matchService = {
   },
 
   update: async (id, matchData) => {
-    const { eventId, firstTeamId, secondTeamId, time, winnerId, loserId } = matchData;
+    const { eventId, firstTeamId, secondTeamId, time, winnerId, loserId, firstUserId, secondUserId } = matchData;
 
     try {
-      const updated = await prisma.matchs.update({
+      const updated = await prisma.match.update({
         where: { id: Number(id) },
         data: {
           eventId,
@@ -49,9 +51,10 @@ const matchService = {
           time,
           winnerId,
           loserId,
+          firstUserId, 
+          secondUserId
         },
       });
-
       return updated;
     } catch (err) {
       if (err.code === 'P2025') {
@@ -63,7 +66,7 @@ const matchService = {
 
   delete: async (id) => {
     try {
-      const deleted = await prisma.matchs.delete({
+      const deleted = await prisma.match.delete({
         where: { id: Number(id) },
       });
 
@@ -75,6 +78,8 @@ const matchService = {
       throw err;
     }
   },
+
+
 };
 
 export default matchService;

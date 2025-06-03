@@ -4,6 +4,7 @@ import serviceUtils from './util.js';
 const prisma = new PrismaClient();
 
 const eventService = {
+
   getAll: async (req) => {
 
     return await prisma.event.findMany();
@@ -11,7 +12,10 @@ const eventService = {
 
   getById: async (req) => {
     return await prisma.event.findUnique({
-      where: { id: Number(req.params.id) },
+      where: { id: parseInt(req.params.id) },
+    }).catch(e=>{
+      
+      throw new Error("Event not found");
     });
   },
 
@@ -19,12 +23,14 @@ const eventService = {
 
     const userData = await serviceUtils.getUserByToken(req);
 
-    console.log(userData)
+    if(parseInt(req.body.maxPlayers) %2 !=0){
+      throw new Error("Player quantity must be even")
+    }
 
     if(userData.role == "O" || userData.role == "A"){
       const newEvent = await prisma.event.create({
   
-        data: {...req.body, eventInscriptions: {
+        data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
           create:[
             {userId: userData.id, status: "C", role: "O"}
           ]
@@ -88,12 +94,22 @@ const eventService = {
       throw new Error("User already inscribed")
     }
 
-    return await prisma.eventInscriptions.create({
+    const playersInscribeds = prisma.eventInscriptions.count({where: {eventId: parseInt(req.params.id)}})
+    
+    
+    await prisma.$transaction([
+      prisma.eventInscriptions.create({
       data: {
         userId: userData.id,
         eventId: parseInt(req.params.id)
       }
-    })
+    }),
+      prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
+      maxPlayers: playersInscribeds+1
+    }})
+    
+    ]) 
+      
 
 
   },
@@ -129,6 +145,9 @@ const eventService = {
         userId: userData.id, eventId: parseInt(req.params.id)
       }})
 
+      const playersInscribeds = prisma.eventInscriptions.count({where: {eventId: parseInt(req.params.id)}})
+
+
       if(userInscriptionByToken == null && userData.role!= "A"){
         throw new Error("You are not inscribed in this event")
         
@@ -147,14 +166,16 @@ const eventService = {
         
         
         if(userData.role == "A"){
-          console.log("Eu cheguei aqui")
-          await prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}})
+        await prisma.$transaction([
+         prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}}),
+        prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
+          maxPlayers: playersInscribeds+1
+        }})
+    
+    ]) 
         }
         
       if(userData.role == "O" && userInscriptionByToken.role != "O"){
-        console.log("Role do usuário: " +userData.role)
-        console.log("Role do usuário no evento: " + userInscriptionByToken.role)
-        console.log(userData.role == "O" && userInscriptionByToken != "O")
           throw new Error("This user is not owner of this event")
       }
       if(userInscriptionByReqId.userId == userData.id){
@@ -162,12 +183,23 @@ const eventService = {
       }      
 
       if(userInscriptionByToken.role == "O"){
-        await prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}})
-      }
+        await prisma.$transaction([
+         prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}}),
+        prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
+          maxPlayers: playersInscribeds+1
+        }})
+    
+    ])       }
       }
 
       if(userData.role == "P" && userInscriptionByToken.userId == userData.id){
-        await prisma.eventInscriptions.delete({where: {id: userInscriptionByToken.id}})
+                await prisma.$transaction([
+        await prisma.eventInscriptions.delete({where: {id: userInscriptionByToken.id}}),
+        prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
+          maxPlayers: playersInscribeds+1
+        }})
+    
+    ]) 
       }
 
 
@@ -182,6 +214,73 @@ const eventService = {
         }
       }
     }}); 
+  },
+
+  startEvent: async (req)=>{
+    
+    
+    const userData = await serviceUtils.getUserByToken(req);
+    
+    const inscriptions = await eventService.getAllInscriptions(req);
+    const event = await prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
+    const matchesAlreadyExists = await prisma.match.findMany({where: {eventId: event.id}})
+
+    if(matchesAlreadyExists != null){
+      throw new Error("Event Already started");
+      
+    }
+
+    const ownerInscrition = await prisma.eventInscriptions.findFirst({where: {userId: userData.id}});
+  
+    if(ownerInscrition.role != "O" && userData.role != "A"){
+      throw new Error("You do not own this tournment");
+    }
+
+    const now = new Date();
+    const eventStartDate = event.startDate;
+    const eventId = event.id
+    const total = inscriptions.length-1
+
+    if (now < eventStartDate) {
+      console.log(`Os matches não podem ser gerados antes da data de início do evento (${eventStartDate.toLocaleString()}).`);
+      return;
+    }
+
+    if (total < 2) {
+      console.log('Inscrições insuficientes para gerar matches.');
+      return;
+    }
+
+    if (total % 2 !== 0) {
+      console.log(total)
+      console.log(`Número ímpar de inscrições. É necessário um número par para gerar os matches.`);
+      return;
+    }
+
+        const matches = [];
+        let matchNumber =0;
+    
+    for (let i = 0; i < total; i += 2) {
+      const firstUserId = inscriptions[i].userId;
+      const secondUserId = inscriptions[i + 1].userId;
+      console.log("fui gerado")
+      const match = await prisma.match.create({
+        data: {
+          eventId,
+          matchNumber: matchNumber++,
+          keyNumber: 1,
+          firstUserId,
+          secondUserId,
+          time: new Date(),
+        },
+      }).catch(e=>{
+        throw new Error("Error while creating match");
+        
+      });
+
+      matches.push(match);
+    }
+
   }
 };
 

@@ -7,7 +7,6 @@ const userRoute = express.Router();
 userRoute.get("/", async (req,res)=>{
 
     res.json(await userService.getAll());
-    console.log(userService.getAll())
 
 })
 

@@ -15,7 +15,9 @@ model User {
   registeredDate  DateTime @default(now()) @map("registered_date")
   teams           Team[]
   eventInscriptions EventInscriptions[]
-  teamUsers       TeamUsers[]  // Adicionando a relação oposta
+  teamUsers       TeamUsers[]
+  firstMatches   Match[] @relation("Match_firstUser")
+  secondMatches  Match[] @relation("Match_secondUser")
 }
 
 enum Role {
@@ -109,12 +111,18 @@ model TeamEvents {
 model Match {
   id          Int      @id @default(autoincrement())
   eventId     Int
-  firstTeamId Int
-  secondTeamId Int
-  time        DateTime
+  matchNumber Int
+  keyNumber   Int
+  firstTeamId Int?
+  secondTeamId Int?
+  firstUserId Int?
+  secondUserId Int?
+  time        DateTime?
   winnerId    Int?
   loserId     Int?
   event       Event @relation(fields: [eventId], references: [id],  onDelete: Cascade)
-  firstTeam   Team  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam",  onDelete: Cascade)
-  secondTeam  Team  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam",  onDelete: Cascade)
+  firstTeam   Team?  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam",  onDelete: Cascade)
+  secondTeam  Team?  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam",  onDelete: Cascade)
+  firstUser   User?  @relation(fields: [firstUserId], references: [id], name: "Match_firstUser",  onDelete: Cascade)
+  secondUser  User?  @relation(fields: [secondUserId], references: [id], name: "Match_secondUser",  onDelete: Cascade)
 }

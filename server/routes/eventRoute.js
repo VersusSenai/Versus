@@ -113,4 +113,18 @@ eventRoute.get("/:id/inscription", async(req, res)=>{
     .json(data)
 })
 
+eventRoute.post("/:id/startEvent", async(req,res)=>{
+
+    console.log(req.params.id)
+    await eventService.startEvent(req).then(data=>{
+    return res
+    .status(200)
+    .json(data)
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
+})
+
 export default eventRoute;
