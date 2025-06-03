@@ -5,7 +5,8 @@ import eventService from "../services/event.js"
 const eventRoute = express.Router()
 
 eventRoute.get("/",verifyToken ,async (req,res)=>{
-    const data = await eventService.getAll();
+
+    const data = await eventService.getAll(req);
     
     return res
     .status(200)
@@ -24,16 +25,19 @@ eventRoute.get("/:id",verifyToken ,async(req,res)=>{
 })
 
 eventRoute.post("/",verifyToken ,async(req, res)=>{
-    const data = await eventService.create(req)
 
-    data.id != null? 
-    res
-    .json(data)
-    .status(201)
-    :
-    res
-    .status(400)
-    .json({message: "event not created", data})
+    await eventService.create(req).then(data=>{
+        
+        res
+        .json(data)
+        .status(201)
+    }).catch(e=>{
+            res
+            .status(400)
+            .json({message: e.message})
+
+    })
+
 })
 
 
@@ -43,70 +47,70 @@ eventRoute.put("/:id", verifyToken ,async(req,res)=>{
         .status(401)
         .json({message: "Missing id"})
     }
-    const data = await eventService.update(req);
-    data.id != null? 
-    res
-    .json(data)
-    .status(201)
-    :
-    res
-    .status(400)
-    .json({message: "event not updated", data})
+    const data = await eventService.update(req).then(data=>{
+
+        res
+        .json(data)
+        .status(200)
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+
+    })
 
 
 
 })
 eventRoute.delete("/:id",verifyToken ,async(req,res)=>{
-    await eventService.delete(req)
-    res
-    .status(204)
-    .json({message:"event deleted"})
+    await eventService.delete(req).then(data =>{
+        res
+        .status(204)
+        .json({message:"event deleted"})
+
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
 })
 
 eventRoute.post("/:id/inscription",verifyToken ,async(req,res)=>{
     
-    if(req.params.id == null){
+
+
+    await eventService.inscribe(req).then(data=>{
         res
-        .status(401)
-        .json({message: "Missing id"})
-    }
-    const data = await eventService.inscribe(req);
-    data.id != null? 
-    res
-    .json({message: "Inscription sucessed",data})
-    .status(200)
-    :
-    res
-    .status(400)
-    .json({message: "inscription failed", data})
+        .status(200)
+        .json(data)
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
 })
 
 
-eventRoute.delete("/inscription/:id",verifyToken ,async(req,res)=>{
+eventRoute.delete("/:id/inscription",verifyToken ,async(req,res)=>{
     
-    if(req.params.id == null){
+    await eventService.unsubscribe(req).then((data)=>{
         res
-        .status(401)
-        .json({message: "Missing id"})
-    }
-    const data = await eventService.unsubscribe(req);
-    data.id != null? 
-    res
-    .json({message: "Unsubscription sucessed"})
-    .status(204)
-    :
-    res
-    .status(400)
-    .json({message: "inscription failed", data})
+        .status(204)
+        .json({message: "User unsubscribed"})
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
 })
 
-eventRoute.get("/inscription", async(req, res)=>{
+eventRoute.get("/:id/inscription", async(req, res)=>{
 
-    console.log("data: ")
+    const data = await eventService.getAllInscriptions(req)
 
     return res
     .status(200)
-    .json("data")
+    .json(data)
 })
 
 export default eventRoute;

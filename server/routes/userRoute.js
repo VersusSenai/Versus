@@ -10,6 +10,7 @@ userRoute.get("/", async (req,res)=>{
     console.log(userService.getAll())
 
 })
+
 userRoute.get("/:id", async (req, res)=>{
     const data = await userService.getById(req)
 
@@ -25,40 +26,49 @@ userRoute.get("/:id", async (req, res)=>{
 })
 
 userRoute.post("/", async(req, res)=>{
-    const data = await userService.create(req)
+    await userService.create(req).then(data =>{
 
-    data.id != null? 
-    res
-    .json(data)
-    .status(201)
-    :
-    res
-    .status(400)
-    .json({message: "User not created"})
-})
-
-
-userRoute.put("/:id", verifyToken ,async(req,res)=>{
-    if(req.params.id == null){
         res
-        .status(401)
-        .json({message: "Missing id"})
-    }
-    const data = await userService.update(req);
-    data.id != null? 
-    res
-    .json(data)
-    .status(201)
-    :
-    res
-    .status(400)
-    .json({message: "User not updated"})
+        .json(data)
+        .status(201)
+    }).catch(e =>{
+        res
+        .status(400)
+        .json(e)
 
+    })
+})
 
+userRoute.put("/", verifyToken ,async(req,res)=>{
+    await userService.update(req).then(data=>{
+        
+        res
+        .json(data)
+        .status(200)
+    }).catch(e =>{
+
+        console.log(e)
+        res
+        .status(400)
+        .json(e.message)
+
+    })
 
 })
-userRoute.delete("/:id", async(req,res)=>{
-    await userService.delete(req)
-    res.json({message:"user deleted"}).status(204)
+userRoute.delete("/", async(req,res)=>{
+
+    await userService.delete(req).then(data=>{
+        
+        res
+        .json(data)
+        .status(204)
+    }).catch(e =>{
+
+        console.log(e)
+        res
+        .status(400)
+        .json(e)
+
+    })
 })
 export default userRoute;
