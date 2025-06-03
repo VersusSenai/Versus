@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt"
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client'
+import serviceUtils from "./util.js";
 
 const prisma = new PrismaClient()
 
@@ -13,7 +14,10 @@ const userServices = {
 
 
     getById: async(req)=>{
-       return await prisma.user.findFirst({where: { id: parseInt(req.params.id)}})
+    return await prisma.user.findFirst({where: { id: parseInt(req.params.id)},
+        select:{
+            email: true, username: true, id:true, role: true
+        }})
 
     },
     
@@ -30,20 +34,92 @@ const userServices = {
     },
 
     update: async(req)=>{
-        const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
+        const userData = await serviceUtils.getUserByToken(req);
+
         
-        return await prisma.user.update({where: {id: parseInt(req.params.id)}, 
+        
+        if(userData.role == "A" && (req.body.userId == null || req.body.userId == "")){
+            if(req.body.password){
+            const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
+            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+                data:{
+                    username: req.body.username,
+                    password: hash
+                },
+                select: {
+                    username: true, email: true, role: true, id: true
+                }
+            })
+             }
+            else{
+            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+                data:{
+                    username: req.body.username,
+                },
+                 select: {
+                    username: true, email: true, role: true, id: true
+                }
+            })
+            }
+        }
+        if(userData.role == "P" || userData.role == "O"){
+            if(req.body.password){
+            const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
+            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+                data:{
+                    username: req.body.username,
+                    password: hash
+                },
+                 select: {
+                    username: true, email: true, role: true, id: true
+                }
+            })
+             }
+            else{
+            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+                data:{
+                    username: req.body.username,
+                },
+                 select: {
+                    username: true, email: true, role: true, id: true
+                }
+            })
+            }
+        }
+
+        if(userData.role == "A"){
+            return await prisma.user.update({where: {id: parseInt(req.body.userId)}, 
             data:{
                 username: req.body.username,
-                password: hash
-            }
+                role: req.body.role
+            },
+                 select: {
+                    username: true, email: true, role: true, id: true
+                }
         })
+    }
     
     },
 
-    delete: (req) =>{
+    delete: async (req) =>{
+        const userData = await serviceUtils.getUserByToken(req);
 
-        return prisma.user.delete({where: {id: parseInt(req.params.id)}});
+        console.log(userData)
+        if(userData.role == "A" && (req.body.userId == "" || req.body.userId== null)){
+            
+            console.log("eu cai aqui por algum motivo bizarro")
+            throw new Error("UserId is missing")
+
+        }
+
+        if(userData.role == "A" && req.body.userId){
+            await prisma.user.delete({where: {
+                id: parseInt(req.body.userId)
+            }})
+        }
+        if(userData.role == "O" || userData.role == "P"){
+            await prisma.user.delete({where: {id: userData.id}})
+        }
         
     }
 }
