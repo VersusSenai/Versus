@@ -12,54 +12,95 @@ teamRoute.get("/", async (req,res)=>{
 })
 
 teamRoute.get("/:id", async (req, res)=>{
-    const data = await teamService.getById(req)
+    await teamService.getById(req).then(data=>{
+        res
+        .json(data)
+        .status(200)
 
-    
-    data != null? 
-    res
-    .json(data)
-    .status(200)
-    :
-    res
-    .status(404)
-    .json({message: "Team not found"})
+    }).catch(e=>{
+        res
+        .status(404)
+        .json({message: "Team not found"})
+
+    })
 })
 
 teamRoute.post("/", async(req, res)=>{
-    const data = await teamService.create(req)
+    await teamService.create(req).then(data=>{
+        res
+        .json(data)
+        .status(201)
 
-    data.id != null? 
-    res
-    .json(data)
-    .status(201)
-    :
-    res
-    .status(400)
-    .json({message: "Team not created"})
+    }).catch(e=>{
+        
+            res
+            .status(400)
+            .json(e.message)
+
+    })
 })
 
 
 teamRoute.put("/:id", verifyToken ,async(req,res)=>{
-    if(req.params.id == null){
+    await teamService.update(req).then(data=>{
         res
-        .status(401)
-        .json({message: "Missing id"})
-    }
-    const data = await teamService.update(req);
-    data.id != null? 
-    res
-    .json(data)
-    .status(201)
-    :
-    res
-    .status(400)
-    .json({message: "Team not updated"})
+        .json(data)
+        .status(200)
 
+    }).catch(e=>{
+        
+            res
+            .status(400)
+            .json(e.message)
+
+    })
 
 
 })
 teamRoute.delete("/:id", async(req,res)=>{
-    await teamService.delete(req)
-    res.json({message:"Team deleted"}).status(204)
+    await teamService.delete(req).then(data=>{
+        res
+        .json(data)
+        .status(200)
+
+    }).catch(e=>{
+        
+            res
+            .status(400)
+            .json(e.message)
+
+    })
+})
+
+teamRoute.get("/:id/inscription", async(req,res)=>{
+    await teamService.getAllInscriptions(req).then(data=>{
+        res.
+        status(200)
+        .json({data})
+    })
+
+})
+teamRoute.post("/:id/inscription", async(req,res)=>{
+    await teamService.inscribe(req).then(data=>{
+           res.
+        status(200)
+        .json({data})
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
+})
+
+teamRoute.delete("/:id/inscription", async(req,res)=>{
+    await teamService.unsubscribe(req).then(data=>{
+        res.
+        status(204)
+        .json({message: "Inscrição deletada"})
+    }).catch(e=>{
+        res
+        .status(400)
+        .json(e.message)
+    })
 })
 export default teamRoute;

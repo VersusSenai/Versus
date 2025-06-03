@@ -28,6 +28,7 @@ model Event {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(100)
   description String  @db.VarChar(250)
+  maxPlayers  Int     @db.Int
   startDate   DateTime @map("start_date")
   endDate     DateTime @map("end_date")
   model       Model
