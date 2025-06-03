@@ -1,67 +1,65 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaGoogle, FaGithub, FaEye, FaEyeSlash } from "react-icons/fa";
-import BlurText from "../ui/blocks/TextAnimations/BlurText/BlurText.jsx";
-import Particles from "../ui/blocks/Backgrounds/Particles/Particles.jsx";
-import { toast, ToastContainer } from "react-toastify";
-import Logo from "../assets/logo-branco.svg";
-import api from "../api";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
+import BlurText from '../ui/blocks/TextAnimations/BlurText/BlurText.jsx';
+import Particles from '../ui/blocks/Backgrounds/Particles/Particles.jsx';
+import { toast, ToastContainer } from 'react-toastify';
+import Logo from '../assets/logo-branco.svg';
+import api from '../api';
 
 const handleAnimationComplete = () => {
-  console.log("Animation completed!");
+  console.log('Animation completed!');
 };
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [role] = useState("P");
+  const [role] = useState('P');
   const navigate = useNavigate();
 
   const handleRegister = async () => {
     if (!email || !password || !username || !confirmPassword) {
-      toast.error("Preencha todos os campos!");
+      toast.error('Preencha todos os campos!');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem!");
+      toast.error('As senhas não coincidem!');
     }
 
     setLoading(true);
     try {
-      const response = await api.post("/user", {
+      const response = await api.post('/user', {
         email,
         password,
         username,
         role,
       });
       if (response.data) {
-        toast.success("Cadastro realizado com sucesso!");
+        toast.success('Cadastro realizado com sucesso!');
         setTimeout(() => {
-          navigate("/login");
+          navigate('/login');
         }, 1500);
       } else {
-        toast.error(response.message || "Erro ao registrar usuário!");
+        toast.error(response.message || 'Erro ao registrar usuário!');
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Erro ao conectar ao servidor!"
-      );
+      toast.error(error.response?.data?.message || 'Erro ao conectar ao servidor!');
     }
 
     setLoading(false);
   };
 
   return (
-    <div className="relative w-full h-screen bg-linear-to-t from-[var(--color-dark)] to-[var(--color-accent)] bg-cover bg-no-repeat">
+    <div className="relative w-full h-screen bg-linear-to-t from-[var(--color-dark)] to-[var(--color-2)] bg-cover bg-no-repeat">
       {/* Background */}
       <Particles
-        particleColors={["#ffffff", "#ffffff"]}
+        particleColors={['#ffffff', '#ffffff']}
         particleCount={200}
         particleSpread={10}
         speed={0.1}
@@ -125,7 +123,7 @@ const Register = () => {
 
           <div className="relative w-full mb-3">
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -135,18 +133,14 @@ const Register = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
             >
-              {showPassword ? (
-                <FaEyeSlash className="text-xl" />
-              ) : (
-                <FaEye className="text-xl" />
-              )}
+              {showPassword ? <FaEyeSlash className="text-xl" /> : <FaEye className="text-xl" />}
             </div>
           </div>
 
           {/* Confirm Password Field */}
           <div className="relative w-full mb-3">
             <input
-              type={showConfirmPassword ? "text" : "password"}
+              type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirmar Senha"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -167,10 +161,7 @@ const Register = () => {
           {/* Remember Me */}
           <div className="flex items-center w-full mb-4">
             <input type="checkbox" id="remember" className="mr-2" />
-            <label
-              htmlFor="remember"
-              className="text-sm text-[var(--color-muted)]"
-            >
+            <label htmlFor="remember" className="text-sm text-[var(--color-muted)]">
               Se lembre de mim
             </label>
           </div>
@@ -178,13 +169,11 @@ const Register = () => {
           {/* Login Button */}
           <button
             onClick={handleRegister}
-            className="w-full p-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] rounded font-semibold hover:opacity-80"
+            className="w-full p-3 bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] rounded font-semibold hover:opacity-80"
             disabled={loading}
           >
-            {loading ? "Carregando..." : "Registrar-se"}
+            {loading ? 'Carregando...' : 'Registrar-se'}
           </button>
-
-    
 
           {/* Social Login */}
           <div className="flex items-center my-4 w-full">
@@ -199,11 +188,14 @@ const Register = () => {
           </div>
 
           {/* Register Link */}
-          <p onClick={() => {navigate("/login")}} className="text-center text-sm text-[var(--color-muted)]">
-            Já tem uma conta?{" "}
-            <span className="text-[var(--color-primary)] cursor-pointer hover:underline">
-              Logar-se
-            </span>
+          <p
+            onClick={() => {
+              navigate('/login');
+            }}
+            className="text-center text-sm text-[var(--color-muted)]"
+          >
+            Já tem uma conta?{' '}
+            <span className="text-[var(--color-1)] cursor-pointer hover:underline">Logar-se</span>
           </p>
 
           {/* Terms & Support */}
@@ -227,16 +219,16 @@ const Register = () => {
         pauseOnHover
         theme="dark"
         toastStyle={{
-          background: "var(--color-dark)",
-          color: "var(--color-text)",
-          borderRadius: "12px",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)",
-          padding: "12px 16px",
-          fontSize: "14px",
-          fontFamily: "var(--font-primary)",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
+          background: 'var(--color-dark)',
+          color: 'var(--color-text)',
+          borderRadius: '12px',
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.2)',
+          padding: '12px 16px',
+          fontSize: '14px',
+          fontFamily: 'var(--font-primary)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
         }}
       />
     </div>
