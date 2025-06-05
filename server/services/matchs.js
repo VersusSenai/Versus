@@ -80,13 +80,12 @@ const matchService = {
       throw err;
     }
   },
-  
+
   declareWinner: async( req)=>{
 
     const userData = await serviceUtils.getUserByToken(req);
     const matches =  await prisma.match.findMany({where: {eventId: parseInt(req.params.id)}});;
     const eventInscription = await prisma.eventInscriptions.findFirst({where: {eventId: parseInt(req.params.id), userId: userData.id}})
-    console.log(req.body.winnerId)
     
     const winner = await prisma.user.findFirst({where: {id: parseInt(req.body.winnerId)}})
 
@@ -106,11 +105,11 @@ const matchService = {
       throw new Error("Match Already Decided");
     }
 
-    let loserId;
+    let loserId = 0;
     if(matchToUpdate.firstUserId == parseInt(req.body.winnerId)){
-      loserId = matchToUpdate.secondTeamId
+      loserId = matchToUpdate.secondUserId
     }else{
-      loserId = matchToUpdate.firstTeamId
+      loserId = matchToUpdate.firstUserId
     }
     await prisma.match.update({where: {id: parseInt(req.params.matchId)},data:{
       winnerId: parseInt(req.body.winnerId),
@@ -129,6 +128,7 @@ const matchService = {
         eventId: event.eventId,
         matchNumber: greaterMatch.matchNumber +1 ,
         keyNumber: actualKey,
+        time: new Date(Date.now() + 10 * 60 * 1000),
         firstUser: {
           connect: winner
         },
