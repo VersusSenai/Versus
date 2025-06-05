@@ -38,11 +38,12 @@ const userServices = {
 
         
         
-        if(userData.role == "A" && (req.body.userId == null || req.body.userId == "")){
+        if(userData.role == "A" && (req.body.id == null || req.body.id == "")){
             if(req.body.password){
             const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
             return await prisma.user.update({where: {id: parseInt(userData.id)}, 
                 data:{
+                    email: req.body.email,
                     username: req.body.username,
                     password: hash
                 },
@@ -55,6 +56,8 @@ const userServices = {
             return await prisma.user.update({where: {id: parseInt(userData.id)}, 
                 data:{
                     username: req.body.username,
+                    email: req.body.email,
+
                 },
                  select: {
                     username: true, email: true, role: true, id: true
@@ -88,8 +91,9 @@ const userServices = {
         }
 
         if(userData.role == "A"){
-            return await prisma.user.update({where: {id: parseInt(req.body.userId)}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
             data:{
+                email: req.body.email,
                 username: req.body.username,
                 role: req.body.role
             },

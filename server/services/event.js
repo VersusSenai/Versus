@@ -93,8 +93,6 @@ const eventService = {
     if(isUserAlreadyInscribed){
       throw new Error("User already inscribed")
     }
-
-    const playersInscribeds = prisma.eventInscriptions.count({where: {eventId: parseInt(req.params.id)}})
     
     
     await prisma.$transaction([
@@ -103,10 +101,7 @@ const eventService = {
         userId: userData.id,
         eventId: parseInt(req.params.id)
       }
-    }),
-      prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
-      maxPlayers: playersInscribeds+1
-    }})
+    })
     
     ]) 
       
@@ -184,20 +179,14 @@ const eventService = {
 
       if(userInscriptionByToken.role == "O"){
         await prisma.$transaction([
-         prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}}),
-        prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
-          maxPlayers: playersInscribeds+1
-        }})
+         prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}})
     
     ])       }
       }
 
       if(userData.role == "P" && userInscriptionByToken.userId == userData.id){
                 await prisma.$transaction([
-        await prisma.eventInscriptions.delete({where: {id: userInscriptionByToken.id}}),
-        prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
-          maxPlayers: playersInscribeds+1
-        }})
+        await prisma.eventInscriptions.delete({where: {id: userInscriptionByToken.id}})
     
     ]) 
       }
@@ -220,12 +209,11 @@ const eventService = {
     
     
     const userData = await serviceUtils.getUserByToken(req);
-    
     const inscriptions = await eventService.getAllInscriptions(req);
     const event = await prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
     const matchesAlreadyExists = await prisma.match.findMany({where: {eventId: event.id}})
 
-    if(matchesAlreadyExists != null){
+    if(matchesAlreadyExists[0] != null){
       throw new Error("Event Already started");
       
     }
@@ -240,6 +228,13 @@ const eventService = {
     const eventStartDate = event.startDate;
     const eventId = event.id
     const total = inscriptions.length-1
+
+    const totalRounds = Math.log2(total);
+
+      if (!Number.isInteger(totalRounds)) {
+        throw new Error("O número total de jogadores deve ser uma potência de 2 (ex: 2, 4, 8, 16...)");
+      }
+
 
     if (now < eventStartDate) {
       console.log(`Os matches não podem ser gerados antes da data de início do evento (${eventStartDate.toLocaleString()}).`);
@@ -258,7 +253,7 @@ const eventService = {
     }
 
         const matches = [];
-        let matchNumber =0;
+        let matchNumber =1;
     
     for (let i = 0; i < total; i += 2) {
       const firstUserId = inscriptions[i].userId;
