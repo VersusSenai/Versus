@@ -41,7 +41,7 @@ const auth = {
                 {
                     expiresIn: '1h'
                 }
-            ), username: registeredUser.username, email: registeredUser.email};
+            ), id: registeredUser.id ,username: registeredUser.username, email: registeredUser.email, role: registeredUser.role};
     
         }
         }
