@@ -35,17 +35,16 @@ const userServices = {
 
     update: async(req)=>{
         const userData = await serviceUtils.getUserByToken(req);
-
         
-        
-        if(userData.role == "A" && (req.body.id == null || req.body.id == "")){
+        if(userData.role == "A"){
             if(req.body.password){
             const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
-            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
                 data:{
                     email: req.body.email,
                     username: req.body.username,
-                    password: hash
+                    password: hash,
+                    role: req.body.role
                 },
                 select: {
                     username: true, email: true, role: true, id: true
@@ -53,10 +52,12 @@ const userServices = {
             })
              }
             else{
-            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
                 data:{
                     username: req.body.username,
                     email: req.body.email,
+                    role: req.body.role
+
 
                 },
                  select: {
@@ -89,19 +90,6 @@ const userServices = {
             })
             }
         }
-
-        if(userData.role == "A"){
-            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
-            data:{
-                email: req.body.email,
-                username: req.body.username,
-                role: req.body.role
-            },
-                 select: {
-                    username: true, email: true, role: true, id: true
-                }
-        })
-    }
     
     },
 
@@ -111,7 +99,6 @@ const userServices = {
         console.log(userData)
         if(userData.role == "A" && (req.body.userId == "" || req.body.userId== null)){
             
-            console.log("eu cai aqui por algum motivo bizarro")
             throw new Error("UserId is missing")
 
         }
