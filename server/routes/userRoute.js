@@ -12,7 +12,6 @@ userRoute.get("/", async (req,res)=>{
 
 userRoute.get("/:id", async (req, res)=>{
     const data = await userService.getById(req)
-
     
     data != null? 
     res
