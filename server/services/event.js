@@ -252,31 +252,33 @@ const eventService = {
       return;
     }
 
-        const matches = [];
-        let matchNumber =1;
-    
-    for (let i = 0; i < total; i += 2) {
-      const firstUserId = inscriptions[i].userId;
-      const secondUserId = inscriptions[i + 1].userId;
-      console.log("fui gerado")
-      const match = await prisma.match.create({
-        data: {
-          eventId,
-          matchNumber: matchNumber++,
-          keyNumber: 1,
-          firstUserId,
-          secondUserId,
-          time: new Date(),
-        },
-      }).catch(e=>{
-        throw new Error("Error while creating match");
+      const matches = [];
+      let matchNumber =1;
+      let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
         
-      });
+      for (let i = 0; i < total; i += 2) {
+          const firstUserId = inscriptions[i].userId;
+          const secondUserId = inscriptions[i + 1].userId;
+          
+          const match = await prisma.match.create({
+              data: {
+                  eventId,
+                  matchNumber: matchNumber++,
+                  keyNumber: 1,
+                  firstUserId,
+                  secondUserId,
+                  time: new Date(currentTime),
+              },
+          }).catch(e => {
+              throw new Error("Error while creating match");
+          });
+        
+          matches.push(match);
+          
+          currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
+      }
 
-      matches.push(match);
-    }
-
-  }
+      }
 };
 
 export default eventService;
