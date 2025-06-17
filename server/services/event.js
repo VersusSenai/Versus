@@ -84,6 +84,8 @@ const eventService = {
 
   inscribe: async(req)=>{
     const userData = await serviceUtils.getUserByToken(req);
+    const event = await prisma.event.findFirst({where: {eventId: parseInt(req.params.id)}})
+    const isMultiplayer = event.multiplayer;
 
     const isUserAlreadyInscribed = await prisma.eventInscriptions.findFirst({where: {
         userId: userData.id,
@@ -93,17 +95,35 @@ const eventService = {
     if(isUserAlreadyInscribed){
       throw new Error("User already inscribed")
     }
-    
-    
-    await prisma.$transaction([
-      prisma.eventInscriptions.create({
-      data: {
-        userId: userData.id,
+    const teamId = parseInt(req.body.teamId)
+    if(teamId != null){
+      const team = await prisma.team.findFirst({where: {id: teamId}})
+
+      if(team == null){
+        throw new Error("User does not exists");
+      }
+
+      if(team.ownerId == userData.id){
+        return prisma.eventInscriptions.create({
+          data: {
+        teamId: team.id,
         eventId: parseInt(req.params.id)
       }
     })
     
-    ]) 
+      }
+    }
+    else{
+      
+      return prisma.eventInscriptions.create({
+        data: {
+          userId: userData.id,
+          eventId: parseInt(req.params.id)
+        }
+      })
+
+    }
+    
       
 
 
@@ -133,67 +153,78 @@ const eventService = {
     }
     
   },
+  unsubscribe: async (req) => {
+    const userData = await serviceUtils.getUserByToken(req);
+    const eventId = parseInt(req.params.id);
+    const isAdmin = userData.role === "A";
+    const isOwner = userData.role === "O";
+    const isPlayer = userData.role === "P";
 
-  unsubscribe: async(req)=>{
-      const userData = await serviceUtils.getUserByToken(req);
-      const userInscriptionByToken = await prisma.eventInscriptions.findFirst({where:{
-        userId: userData.id, eventId: parseInt(req.params.id)
-      }})
+    const event = await prisma.event.findFirst({ where: { id: eventId } });
+    if (!event) throw new Error("Event not found");
 
-      const playersInscribeds = prisma.eventInscriptions.count({where: {eventId: parseInt(req.params.id)}})
+    const isMultiplayer = event.multiplayer;
 
+    const userInscriptionByToken = await prisma.eventInscriptions.findFirst({
+      where: isMultiplayer
+        ? { eventId, teamId: userData.teamId }
+        : { eventId, userId: userData.id },
+    });
 
-      if(userInscriptionByToken == null && userData.role!= "A"){
-        throw new Error("You are not inscribed in this event")
-        
+    const playersInscribeds = await prisma.eventInscriptions.count({ where: { eventId } });
+
+    if (!userInscriptionByToken && !isAdmin) {
+      throw new Error("You are not inscribed in this event");
+    }
+
+    const reqId = parseInt(req.body.userId); 
+
+    if (req.body.userId != null && req.body.userId !== "" && (isAdmin || isOwner)) {
+      const userInscriptionByReqId = await prisma.eventInscriptions.findFirst({
+        where: isMultiplayer
+          ? { eventId, teamId: reqId }
+          : { eventId, userId: reqId },
+      });
+
+      if (!userInscriptionByReqId) {
+        throw new Error("This participant is not inscribed in this event");
       }
-      
-      if((req.body.userId != null && req.body.userId != "") && (userData.role == "A" || userData.role == "O")){
-        
-        const userInscriptionByReqId = await prisma.eventInscriptions.findFirst({where:{
-          userId: parseInt(req.body.userId), eventId: parseInt(req.params.id)
-        }})
-        
-        
-        if(userInscriptionByReqId == null){
-          throw new Error("This user is not inscribed in this event")
-        }    
-        
-        
-        if(userData.role == "A"){
-        await prisma.$transaction([
-         prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}}),
-        prisma.event.update({where: {id:  parseInt(req.params.id) }, data:{
-          maxPlayers: playersInscribeds+1
-        }})
-    
-    ]) 
+
+      if (isAdmin) {
+        return await prisma.$transaction([
+          prisma.eventInscriptions.delete({ where: { id: userInscriptionByReqId.id } }),
+          prisma.event.update({
+            where: { id: eventId },
+            data: { maxPlayers: playersInscribeds + 1 },
+          }),
+        ]);
+      }
+
+      if (isOwner) {
+        if (userInscriptionByToken.role !== "O") {
+          throw new Error("You are not the owner of this event");
         }
-        
-      if(userData.role == "O" && userInscriptionByToken.role != "O"){
-          throw new Error("This user is not owner of this event")
+        if (
+          (isMultiplayer && userInscriptionByReqId.teamId === userData.teamId) ||
+          (!isMultiplayer && userInscriptionByReqId.userId === userData.id)
+        ) {
+          throw new Error("An owner cannot unsubscribe itself");
+        }
+
+        return await prisma.eventInscriptions.delete({
+          where: { id: userInscriptionByReqId.id },
+        });
       }
-      if(userInscriptionByReqId.userId == userData.id){
-        throw new Error("A owner cannot unsubscribe itself")
-      }      
+    }
 
-      if(userInscriptionByToken.role == "O"){
-        await prisma.$transaction([
-         prisma.eventInscriptions.delete({where: {id: userInscriptionByReqId.id}})
-    
-    ])       }
-      }
+    if (isPlayer && userInscriptionByToken) {
+      return await prisma.eventInscriptions.delete({
+        where: { id: userInscriptionByToken.id },
+      });
+    }
 
-      if(userData.role == "P" && userInscriptionByToken.userId == userData.id){
-                await prisma.$transaction([
-        await prisma.eventInscriptions.delete({where: {id: userInscriptionByToken.id}})
-    
-    ]) 
-      }
-
-
-    
   },
+
 
   getAllInscriptions: async(req)=>{
     return await prisma.eventInscriptions.findMany({where: {eventId: parseInt(req.params.id) }, include:{
@@ -255,27 +286,54 @@ const eventService = {
       const matches = [];
       let matchNumber =1;
       let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
-        
-      for (let i = 0; i < total; i += 2) {
-          const firstUserId = inscriptions[i].userId;
-          const secondUserId = inscriptions[i + 1].userId;
+      
+      if(event.multiplayer == false){
+        for (let i = 0; i < total; i += 2) {
+            const firstUserId = inscriptions[i].userId;
+            const secondUserId = inscriptions[i + 1].userId;
+                  
+            const match = await prisma.match.create({
+                data: {
+                    eventId,
+                    matchNumber: matchNumber++,
+                    keyNumber: 1,
+                    firstUserId,
+                    secondUserId,
+                    time: new Date(currentTime),
+                },
+            }).catch(e => {
+                throw new Error("Error while creating match");
+            });
           
-          const match = await prisma.match.create({
-              data: {
-                  eventId,
-                  matchNumber: matchNumber++,
-                  keyNumber: 1,
-                  firstUserId,
-                  secondUserId,
-                  time: new Date(currentTime),
-              },
-          }).catch(e => {
-              throw new Error("Error while creating match");
-          });
-        
-          matches.push(match);
+            matches.push(match);
+            
+            currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
+        }
+
+      }else{
+
+        for (let i = 0; i < total; i += 2) {
+            const firstTeamId = inscriptions[i].teamId;
+            const secondTeamId = inscriptions[i + 1].teamId;
+                  
+            const match = await prisma.match.create({
+                data: {
+                    eventId,
+                    matchNumber: matchNumber++,
+                    keyNumber: 1,
+                    firstTeamId,
+                    secondTeamId,
+                    time: new Date(currentTime),
+                },
+            }).catch(e => {
+                throw new Error("Error while creating match");
+            });
           
-          currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
+            matches.push(match);
+            
+            currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
+        }
+
       }
 
       }
