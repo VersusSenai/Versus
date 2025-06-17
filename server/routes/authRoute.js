@@ -19,11 +19,11 @@ authRoute.post("/login", async (req,res)=>{
         .status(400)
         .json(err.message)
     })
-
+    console.log(resp)
     if(resp){
       res
       .cookie("token", resp.token, cookieOptions)
-      .json({ message: "token gerado com sucesso", user:{ email: resp.email, username: resp.username}})
+      .json({ message: "token gerado com sucesso", user:{ email: resp.email, username: resp.username, id: resp.id, role: resp.role}})
 
     }
 })
