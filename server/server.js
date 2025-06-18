@@ -3,7 +3,8 @@ import 'dotenv/config';
 import router from "./routes/router.js";
 import cookieParser from "cookie-parser";
 import cors from "cors"
-
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from "./docs/swagger.js";
 const app = express();
 
 app.use(cookieParser())
@@ -14,6 +15,7 @@ const corsOptions = {
   credentials: true
 };
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(cors(corsOptions));
 
 
