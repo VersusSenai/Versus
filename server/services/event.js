@@ -1,5 +1,5 @@
 
-import { PrismaClient } from '@prisma/client';
+import { EventRole, PrismaClient } from '@prisma/client';
 import serviceUtils from './util.js';
 const prisma = new PrismaClient();
 
@@ -245,13 +245,53 @@ inscribe: async (req) => {
 
 
   getAllInscriptions: async(req)=>{
-    return await prisma.eventInscriptions.findMany({where: {eventId: parseInt(req.params.id) }, include:{
-      user: {
-        select:{
-          username:true, email:true, id:true
-        }
+    const userData = await serviceUtils.getUserByToken(req);
+    const event = await prisma.event.findFirst({where: {id: parseInt(req.params.id)}})
+    const eventInscriptions = await prisma.eventInscriptions.findMany({where: {role: "O"} });
+    let isOwner = false;
+    eventInscriptions.forEach(eventI=>{
+      if(eventI.id == userData.id){
+        isOwner = true;
       }
-    }}); 
+    })
+    if(userData.role == "A"){
+      isOwner = true;
+    }
+    if(!isOwner){
+      throw new Error("Only the owner of this event can make this call");
+    }
+
+    return await prisma.eventInscriptions.findMany({where: {eventId: parseInt(req.params.id), role: "P"},
+  select:{
+    id: true,
+    role: true,
+    user: {
+      select: {
+        id: true,
+        username: true,
+        email: true
+      }
+    }
+  }});
+    
+  },
+
+  getMyInscriptions: async(req)=>{
+      const userData = await serviceUtils.getUserByToken(req);
+
+      return await prisma.eventInscriptions.findMany({where: {userId: userData.id},
+      select:{
+        id:true,
+        role: true,
+        event:{
+          select:{
+            id: true,
+            name: true,
+            description: true,
+
+          }
+        }
+      }})
   },
 
   startEvent: async (req)=>{

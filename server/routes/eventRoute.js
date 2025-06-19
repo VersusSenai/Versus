@@ -254,5 +254,72 @@ eventRoute.post("/:id/start", verifyToken, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+/**
+ * @swagger
+ * /event/{id}/inscriptions:
+ *   get:
+ *     summary: Lista todas as inscrições de um evento
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do evento
+ *     responses:
+ *       200:
+ *         description: Lista de inscrições do evento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       400:
+ *         description: Erro ao buscar inscrições
+ */
+
+eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
+  try {
+    const result = await eventService.getAllInscriptions(req);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+})
+
+/**
+ * @swagger
+ * /event/inscriptions/me:
+ *   get:
+ *     summary: Lista as inscrições do usuário logado
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de inscrições do usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       400:
+ *         description: Erro ao buscar inscrições do usuário
+ */
+
+eventRoute.get("/inscriptions/me", verifyToken, async(req,res)=>{
+   try {
+    const result = await eventService.getMyInscriptions(req);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+})
+
 
 export default eventRoute;
