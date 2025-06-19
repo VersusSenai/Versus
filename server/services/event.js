@@ -93,54 +93,59 @@ const eventService = {
 
 
   },
+inscribe: async (req) => {
+  const userData = await serviceUtils.getUserByToken(req);
 
+  const eventId = parseInt(req.params.id);
+  if (isNaN(eventId)) throw new Error("Invalid event ID");
 
-  inscribe: async(req)=>{
-    const userData = await serviceUtils.getUserByToken(req);
-    const event = await prisma.event.findFirst({where: {eventId: parseInt(req.params.id)}})
-    const isMultiplayer = event.multiplayer;
+  const event = await prisma.event.findFirst({ where: { id: eventId } });
+  if (!event) throw new Error("Event not found");
+  if(event.keysQuantity != null){
+    throw new Error("Event already started");
+  }
 
-    const isUserAlreadyInscribed = await prisma.eventInscriptions.findFirst({where: {
-        userId: userData.id,
-        eventId: parseInt(req.params.id)
-    }})
+  const isUserAlreadyInscribed = await prisma.eventInscriptions.findFirst({
+    where: {
+      userId: userData.id,
+      eventId: eventId,
+    },
+  });
 
-    if(isUserAlreadyInscribed){
-      throw new Error("User already inscribed")
+  if (isUserAlreadyInscribed) {
+    throw new Error("User already inscribed");
+  }
+
+  const teamId = req.body.teamId ? parseInt(req.body.teamId) : null;
+
+  if (teamId != null && !isNaN(teamId)) {
+    const team = await prisma.team.findFirst({ where: { id: teamId } });
+
+    if (!team) {
+      throw new Error("Team does not exist");
     }
-    const teamId = parseInt(req.body.teamId)
-    if(teamId != null){
-      const team = await prisma.team.findFirst({where: {id: teamId}})
 
-      if(team == null){
-        throw new Error("User does not exists");
-      }
-
-      if(team.ownerId == userData.id){
-        return prisma.eventInscriptions.create({
-          data: {
-        teamId: team.id,
-        eventId: parseInt(req.params.id)
-      }
-    })
-    
-      }
-    }
-    else{
-      
+    if (team.ownerId === userData.id) {
       return prisma.eventInscriptions.create({
         data: {
-          userId: userData.id,
-          eventId: parseInt(req.params.id)
-        }
-      })
-
+          teamId: team.id,
+          eventId: eventId,
+        },
+      });
+    } else {
+      throw new Error("You are not the owner of this team");
     }
-    
-      
+  }
 
+  // Caso seja inscrição individual
+  return prisma.eventInscriptions.create({
+    data: {
+      userId: userData.id,
+      eventId: eventId,
+    },
+  });
+},
 
-  },
 
   delete: async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
@@ -276,20 +281,20 @@ const eventService = {
     const totalRounds = Math.log2(total);
 
       if (!Number.isInteger(totalRounds)) {
-        throw new Error("O número total de jogadores deve ser uma potência de 2 (ex: 2, 4, 8, 16...)");
+        throw new Error("The total numbers of players needs to be an perfect square root of 2");
       }
 
 
     if (now < eventStartDate) {
-      throw new Error(`Os matches não podem ser gerados antes da data de início do evento (${eventStartDate.toLocaleString()}).`);
+      throw new Error(`The event cannot start before its startDate: (${eventStartDate.toLocaleString()}).`);
     }
 
     if (total < 2) {
-      throw new Error('Inscrições insuficientes para gerar matches.');
+      throw new Error('Inscriptions not sufficient');
     }
 
     if (total % 2 !== 0) {
-      throw new Error(`Número ímpar de inscrições. É necessário um número par para gerar os matches.`);
+      throw new Error(`The number of inscriptions is odd, and is not sufficient to start the event`);
     }
 
       const matches = [];

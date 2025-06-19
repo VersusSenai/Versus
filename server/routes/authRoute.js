@@ -68,7 +68,7 @@ authRoute.post("/login", async (req, res) => {
     res
       .cookie("token", resp.token, cookieOptions)
       .json({
-        message: "token gerado com sucesso",
+        message: "Token generated",
         user: {
           email: resp.email,
           username: resp.username,

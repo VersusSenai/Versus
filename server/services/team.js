@@ -16,7 +16,7 @@ const teamService = {
     });
 
     if (!team) {
-      throw new Error("Team não encontrado");
+      throw new Error("Team not found");
     }
 
     return team;
