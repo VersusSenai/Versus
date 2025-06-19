@@ -171,7 +171,7 @@ matchRoute.delete("/", async(req,res)=>{
  */
 matchRoute.post("/:id/winner/:matchId", async(req,res)=>{
     await matchService.declareWinner(req).then(data=>{
-        res.status(204).json(data)
+        res.status(200).json(data)
     }).catch(e =>{
         res.status(400).json({ message: e.message })
     })

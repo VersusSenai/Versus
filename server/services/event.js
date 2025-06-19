@@ -23,13 +23,26 @@ const eventService = {
 
     const userData = await serviceUtils.getUserByToken(req);
 
+    const now = new Date();
+
+    if(now > Date.parse(req.body.startDate)){
+      throw new Error("Event start date cannot be before today");
+    }
+    if(Date.parse(req.body.startDate) > Date.parse(req.body.endDate)){
+      throw new Error("Event start date cannot be after endDate");
+    }
     if(parseInt(req.body.maxPlayers) %2 !=0){
       throw new Error("Player quantity must be even")
     }
-
+    if(req.body.multiplayer == "true"){
+      req.body.multiplayer = true
+    }else{
+      req.body.multiplayer = false
+    }
+    
     if(userData.role == "O" || userData.role == "A"){
       const newEvent = await prisma.event.create({
-  
+        
         data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
           create:[
             {userId: userData.id, status: "C", role: "O"}
@@ -268,25 +281,24 @@ const eventService = {
 
 
     if (now < eventStartDate) {
-      console.log(`Os matches não podem ser gerados antes da data de início do evento (${eventStartDate.toLocaleString()}).`);
-      return;
+      throw new Error(`Os matches não podem ser gerados antes da data de início do evento (${eventStartDate.toLocaleString()}).`);
     }
 
     if (total < 2) {
-      console.log('Inscrições insuficientes para gerar matches.');
-      return;
+      throw new Error('Inscrições insuficientes para gerar matches.');
     }
 
     if (total % 2 !== 0) {
-      console.log(total)
-      console.log(`Número ímpar de inscrições. É necessário um número par para gerar os matches.`);
-      return;
+      throw new Error(`Número ímpar de inscrições. É necessário um número par para gerar os matches.`);
     }
 
       const matches = [];
       let matchNumber =1;
       let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
-      
+      await prisma.event.update({where: {id: eventId}, data:{
+        keysQuantity: totalRounds,
+        matchsQuantity: total/2
+      }})      
       if(event.multiplayer == false){
         for (let i = 0; i < total; i += 2) {
             const firstUserId = inscriptions[i].userId;

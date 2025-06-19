@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Minha API com Swagger',
+      title: 'Versus Api',
       version: '1.0.0',
-      description: 'Documentação da API usando Swagger',
+      description: 'Documentação do sistema de torneios Versus',
     },
     servers: [
       {

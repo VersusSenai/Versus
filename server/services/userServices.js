@@ -8,16 +8,33 @@ const prisma = new PrismaClient()
 
 const userServices = {
 
-    getAll: async ()=>{
-            return await prisma.user.findMany()
+    getAll: async (req)=>{
+        const userData = await serviceUtils.getUserByToken(req);
+
+        if(userData.role != "A"){
+            throw new Error("Somente administradores podem realizar essa operação");
+            
+        }
+        
+        return await prisma.user.findMany()
       },
 
 
     getById: async(req)=>{
-    return await prisma.user.findFirst({where: { id: parseInt(req.params.id)},
-        select:{
-            email: true, username: true, id:true, role: true
-        }})
+    const userData = await serviceUtils.getUserByToken(req);
+
+    if(userData.role == "A"){
+        return await prisma.user.findFirst({where: { id: parseInt(req.params.id), status: "A"}})
+    }
+    if(userData.role == "P" || userData.role == "O"){
+
+        return await prisma.user.findFirst({where: { id: parseInt(req.params.id),  status: "A"},
+            select:{
+                email: true, username: true, role: true
+            }})
+    }
+    
+
 
     },
     
@@ -28,7 +45,8 @@ const userServices = {
             username: req.body.username,
             password: hash,
             email: req.body.email,
-            role: "P"
+            role: "P",
+            status: "A"
 
         }})
     },
@@ -39,7 +57,7 @@ const userServices = {
         if(userData.role == "A"){
             if(req.body.password){
             const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
-            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id), status: "A"}, 
                 data:{
                     email: req.body.email,
                     username: req.body.username,
@@ -52,7 +70,7 @@ const userServices = {
             })
              }
             else{
-            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id), status: "A"}, 
                 data:{
                     username: req.body.username,
                     email: req.body.email,
@@ -69,7 +87,7 @@ const userServices = {
         if(userData.role == "P" || userData.role == "O"){
             if(req.body.password){
             const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
-            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+            return await prisma.user.update({where: {id: parseInt(userData.id), status: "A"}, 
                 data:{
                     username: req.body.username,
                     password: hash
@@ -80,7 +98,7 @@ const userServices = {
             })
              }
             else{
-            return await prisma.user.update({where: {id: parseInt(userData.id)}, 
+            return await prisma.user.update({where: {id: parseInt(userData.id), status: "A"}, 
                 data:{
                     username: req.body.username,
                 },
@@ -96,7 +114,6 @@ const userServices = {
     delete: async (req) =>{
         const userData = await serviceUtils.getUserByToken(req);
 
-        console.log(userData)
         if(userData.role == "A" && (req.body.userId == "" || req.body.userId== null)){
             
             throw new Error("UserId is missing")
@@ -104,12 +121,15 @@ const userServices = {
         }
 
         if(userData.role == "A" && req.body.userId){
-            await prisma.user.delete({where: {
-                id: parseInt(req.body.userId)
-            }})
+            await prisma.user.update({where: {
+                id: parseInt(req.body.userId)}, data:{
+                    status: "B"
+                }})
         }
         if(userData.role == "O" || userData.role == "P"){
-            await prisma.user.delete({where: {id: userData.id}})
+            await prisma.user.update({where: {id: userData.id}, data:{
+                    status: "B"
+                }});
         }
         
     }
