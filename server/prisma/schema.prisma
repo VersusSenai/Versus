@@ -16,10 +16,14 @@ model User {
   teams           Team[]
   eventInscriptions EventInscriptions[]
   teamUsers       TeamUsers[]
+  status         UserStatus
   firstMatches   Match[] @relation("Match_firstUser")
   secondMatches  Match[] @relation("Match_secondUser")
 }
-
+enum UserStatus {
+  A
+  D
+}
 enum Role {
   P
   O
@@ -35,6 +39,8 @@ model Event {
   endDate     DateTime @map("end_date")
   model       Model
   status      Status   @default(P)
+  matchsQuantity Int?
+  keysQuantity Int?
   multiplayer Boolean
   eventInscriptions EventInscriptions[]
   matches      Match[]
@@ -66,15 +72,15 @@ model Team {
 
 model EventInscriptions {
   id             Int      @id @default(autoincrement())
-  userId         Int
-  teamId          Int
+  userId         Int?
+  teamId          Int?
   eventId        Int
   registeredDate DateTime @default(now()) @map("registered_date")
   status        InscriptionStatus @default(P)
   role          EventRole @default(P)
-  user          User     @relation(fields: [userId], references: [id],  onDelete: Cascade)
+  user          User?     @relation(fields: [userId], references: [id],  onDelete: Cascade)
   event         Event    @relation(fields: [eventId], references: [id],  onDelete: Cascade)
-  team           Team  @relation(fields: [teamId], references: [id],  onDelete: Cascade)
+  team           Team?  @relation(fields: [teamId], references: [id],  onDelete: Cascade)
   @@unique([userId, eventId])
 }
 

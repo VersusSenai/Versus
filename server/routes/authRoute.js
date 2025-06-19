@@ -6,7 +6,7 @@ const authRoute = express.Router();
 
 /**
  * @swagger
- * /login:
+ * /auth/login:
  *   post:
  *     summary: Realiza login e retorna um token de autenticação via cookie
  *     tags:
@@ -81,7 +81,7 @@ authRoute.post("/login", async (req, res) => {
 
 /**
  * @swagger
- * /logout:
+ * /auth/logout:
  *   post:
  *     summary: Realiza logout do usuário removendo o cookie
  *     tags:

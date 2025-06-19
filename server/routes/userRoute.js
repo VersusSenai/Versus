@@ -13,7 +13,7 @@ const userRoute = express.Router();
 
 /**
  * @swagger
- * /users:
+ * /user:
  *   get:
  *     summary: Retorna todos os usuários
  *     tags: [Usuários]
@@ -22,12 +22,13 @@ const userRoute = express.Router();
  *         description: Lista de usuários
  */
 userRoute.get("/", async (req, res) => {
-  res.json(await userService.getAll());
-});
+  await userService.getAll(req)
+    .then(data => res.status(200).json(data))
+    .catch(e => res.status(400).json(e.message));});
 
 /**
  * @swagger
- * /users/{id}:
+ * /user/{id}:
  *   get:
  *     summary: Retorna um usuário pelo ID
  *     tags: [Usuários]
@@ -53,7 +54,7 @@ userRoute.get("/:id", async (req, res) => {
 
 /**
  * @swagger
- * /users:
+ * /user:
  *   post:
  *     summary: Cria um novo usuário
  *     tags: [Usuários]
@@ -81,7 +82,7 @@ userRoute.post("/", async (req, res) => {
 
 /**
  * @swagger
- * /users:
+ * /user:
  *   put:
  *     summary: Atualiza dados do usuário autenticado
  *     tags: [Usuários]
@@ -110,7 +111,7 @@ userRoute.put("/", verifyToken, async (req, res) => {
 
 /**
  * @swagger
- * /users:
+ * /user:
  *   delete:
  *     summary: Deleta o usuário autenticado
  *     tags: [Usuários]

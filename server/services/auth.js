@@ -18,8 +18,8 @@ const auth = {
                 throw err;
             }
         );
-    
-        if (!registeredUser)
+
+        if (!registeredUser || registeredUser.status == "D")
             throw new Error("User not found") ;
 
     

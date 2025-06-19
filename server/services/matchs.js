@@ -121,6 +121,8 @@ const matchService = {
     const winner = await prisma[isMultiplayer ? "team" : "user"].findFirst({
       where: { id: parseInt(req.body.winnerId) },
     });
+    const winnerId = winner.id;
+
     const totalRounds = Math.log2(totalPlayers);
 
 
@@ -138,18 +140,23 @@ const matchService = {
       loserId = isMultiplayer ? matchToUpdate.firstTeamId : matchToUpdate.firstUserId;
     }
 
+    await prisma.match.update({where:{ id: matchToUpdate.id}, data:{
+      winnerId: winnerId,
+      loserId: loserId
+    }})
     
     let actualKey = findActualKey(totalRounds, totalPlayers, greaterMatch.matchNumber);
-    if(actualKey == -1){
-      throw new Error("Event has ended");
+    if(actualKey == -1 && (greaterMatch.secondUserId != null || greaterMatch.secondTeamId != null)){
+      return {message: "Event has ended", winnerId}
       
     }
+
+
 
   if (
     (isMultiplayer && greaterMatch.secondTeamId != null) ||
     (!isMultiplayer && greaterMatch.secondUserId != null)) {
     const newMatchData = {
-      eventId: event.id,
       matchNumber: greaterMatch.matchNumber + 1,
       keyNumber: actualKey,
       time: new Date(Date.now() + 10 * 60 * 1000),
@@ -161,17 +168,91 @@ const matchService = {
     } else {
       newMatchData.firstUser = { connect: { id: parseInt(req.body.winnerId) } };
     }
+    return await prisma.match.create({
+  data: newMatchData,
+  select: {
+    id: true,
+    event: {
+      select: {
+        id: true,
+        name: true
+      }
+    },
+    firstUser: {
+      select: {
+        id: true,
+        username: true,
+        email: true
+      }
+    },
+    secondUser: {
+      select: {
+        id: true,
+        username: true,
+        email: true
+      }
+    },
+    firstTeam: {
+      select: {
+        id: true,
+        name: true
+      }
+    },
+    secondTeam: {
+      select: {
+        id: true,
+        name: true
+      }
+    }
+  }
+});
 
-    return await prisma.match.create({ data: newMatchData });
   } else {
     const updateData = isMultiplayer
       ? { secondTeamId: parseInt(req.body.winnerId) }
       : { secondUserId: parseInt(req.body.winnerId) };
 
-    return await prisma.match.update({
-      where: { id: greaterMatch.id },
-      data: updateData,
-    });
+   return await prisma.match.update({
+  where: { id: greaterMatch.id },
+  data: updateData,
+  select: {
+    id: true,
+    event: {
+      select: {
+        id: true,
+        name: true
+      }
+    },
+    firstUser: {
+      select: {
+        id: true,
+        username: true,
+        email: true
+      }
+    },
+    secondUser: {
+      select: {
+        id: true,
+        username: true,
+        email: true
+      }
+    },
+        firstTeam: {
+      select: {
+        id: true,
+        name: true
+      }
+    },
+    secondTeam: {
+      select: {
+        id: true,
+        name: true
+      }
+    }
+  }
+});
+
+
   }
 
   }
