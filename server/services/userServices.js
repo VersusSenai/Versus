@@ -12,7 +12,7 @@ const userServices = {
         const userData = await serviceUtils.getUserByToken(req);
 
         if(userData.role != "A"){
-            throw new Error("Somente administradores podem realizar essa operação");
+            throw new Error("Only administrators can call this operation");
             
         }
         
@@ -57,12 +57,13 @@ const userServices = {
         if(userData.role == "A"){
             if(req.body.password){
             const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS))
-            return await prisma.user.update({where: {id: parseInt(req.body.id), status: "A"}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
                 data:{
                     email: req.body.email,
                     username: req.body.username,
                     password: hash,
-                    role: req.body.role
+                    role: req.body.role,
+                    status: req.body.status
                 },
                 select: {
                     username: true, email: true, role: true, id: true
@@ -70,13 +71,12 @@ const userServices = {
             })
              }
             else{
-            return await prisma.user.update({where: {id: parseInt(req.body.id), status: "A"}, 
+            return await prisma.user.update({where: {id: parseInt(req.body.id)}, 
                 data:{
                     username: req.body.username,
                     email: req.body.email,
-                    role: req.body.role
-
-
+                    role: req.body.role,
+                    status: req.body.status
                 },
                  select: {
                     username: true, email: true, role: true, id: true
@@ -123,12 +123,12 @@ const userServices = {
         if(userData.role == "A" && req.body.userId){
             await prisma.user.update({where: {
                 id: parseInt(req.body.userId)}, data:{
-                    status: "B"
+                    status: "D"
                 }})
         }
         if(userData.role == "O" || userData.role == "P"){
             await prisma.user.update({where: {id: userData.id}, data:{
-                    status: "B"
+                    status: "D"
                 }});
         }
         

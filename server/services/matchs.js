@@ -36,7 +36,7 @@ const matchService = {
   }});
 
     if (!match) {
-      throw new Error("Partida não encontrada");
+      throw new Error("Match not found");
     }
 
     return match;
@@ -81,7 +81,7 @@ const matchService = {
       return updated;
     } catch (err) {
       if (err.code === 'P2025') {
-        throw new Error("Partida não encontrada");
+        throw new Error("Match not found");
       }
       throw err;
     }
@@ -96,7 +96,7 @@ const matchService = {
       return deleted;
     } catch (err) {
       if (err.code === 'P2025') {
-        throw new Error("Partida não encontrada");
+        throw new Error("Match not found");
       }
       throw err;
     }
