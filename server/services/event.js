@@ -298,102 +298,143 @@ inscribe: async (req) => {
     
     
     const userData = await serviceUtils.getUserByToken(req);
-    const inscriptions = await eventService.getAllInscriptions(req);
     const event = await prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
+    const inscriptions = await prisma.eventInscriptions.findMany({where:{eventId: event.id, role: "P"}});
     const matchesAlreadyExists = await prisma.match.findMany({where: {eventId: event.id}})
 
     if(matchesAlreadyExists[0] != null){
       throw new Error("Event Already started");
       
     }
-
-    const ownerInscrition = await prisma.eventInscriptions.findFirst({where: {userId: userData.id}});
-  
+    const ownerInscrition = await prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId: event.id}});
+    if(!ownerInscrition){
+      throw new Error("You do not own this tournment");
+    }
     if(ownerInscrition.role != "O" && userData.role != "A"){
       throw new Error("You do not own this tournment");
     }
-
+    
     const now = new Date();
     const eventStartDate = event.startDate;
     const eventId = event.id
-    const total = inscriptions.length-1
-
+    const total = inscriptions.length
+    
     const totalRounds = Math.log2(total);
-
-      if (!Number.isInteger(totalRounds)) {
-        throw new Error("The total numbers of players needs to be an perfect square root of 2");
-      }
-
-
+    
+    if (!Number.isInteger(totalRounds)) {
+      throw new Error("The total numbers of players needs to be an perfect square root of 2");
+    }
+    
+    
     if (now < eventStartDate) {
       throw new Error(`The event cannot start before its startDate: (${eventStartDate.toLocaleString()}).`);
     }
-
+    
     if (total < 2) {
       throw new Error('Inscriptions not sufficient');
     }
-
+    
     if (total % 2 !== 0) {
       throw new Error(`The number of inscriptions is odd, and is not sufficient to start the event`);
     }
+    
+    const matches = [];
+    let matchNumber =1;
+    let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
+    await prisma.event.update({where: {id: eventId}, data:{
+      keysQuantity: totalRounds,
+      matchsQuantity: total/2
+    }})      
+    let Matchs = [];
+    if(event.multiplayer == false){
+      for (let i = 0; i < total; i += 2) {
+        const firstUserId = inscriptions[i].userId;
+        const secondUserId = inscriptions[i + 1].userId;
 
-      const matches = [];
-      let matchNumber =1;
-      let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
-      await prisma.event.update({where: {id: eventId}, data:{
-        keysQuantity: totalRounds,
-        matchsQuantity: total/2
-      }})      
-      if(event.multiplayer == false){
-        for (let i = 0; i < total; i += 2) {
-            const firstUserId = inscriptions[i].userId;
-            const secondUserId = inscriptions[i + 1].userId;
-                  
             const match = await prisma.match.create({
-                data: {
-                    eventId,
-                    matchNumber: matchNumber++,
-                    keyNumber: 1,
-                    firstUserId,
-                    secondUserId,
-                    time: new Date(currentTime),
-                },
-            }).catch(e => {
-                throw new Error("Error while creating match");
-            });
+              data: {
+                eventId,
+                matchNumber: matchNumber++,
+                keyNumber: 1,
+                firstUserId,
+                secondUserId,
+                time: new Date(currentTime),
+              },
+                        select:{
+            firstUser: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
+            },
+            secondUser: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
+            },
+            event: {
+              select: {
+                name: true,
+                id: true
+              }
+            },
+            firstTeam: {
+              select:{
+                id:true,
+                name: true
+              }
+            },
+            secondTeam: {
+               select:{
+                id:true,
+                name: true
+              }
+            },
           
+          
+ 
+              }
+            }).catch(e => {
+              throw new Error(e);
+            });
+            
             matches.push(match);
             
             currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
-        }
-
-      }else{
-
-        for (let i = 0; i < total; i += 2) {
+          }
+          
+        }else{
+          
+          for (let i = 0; i < total; i += 2) {
             const firstTeamId = inscriptions[i].teamId;
             const secondTeamId = inscriptions[i + 1].teamId;
                   
             const match = await prisma.match.create({
-                data: {
-                    eventId,
-                    matchNumber: matchNumber++,
-                    keyNumber: 1,
-                    firstTeamId,
-                    secondTeamId,
-                    time: new Date(currentTime),
-                },
+              data: {
+                eventId,
+                matchNumber: matchNumber++,
+                keyNumber: 1,
+                firstTeamId,
+                secondTeamId,
+                time: new Date(currentTime),
+              },
             }).catch(e => {
-                throw new Error("Error while creating match");
+              throw new Error("Error while creating match");
             });
-          
+            
             matches.push(match);
             
             currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
+          }
+          
         }
-
+        return matches;  
       }
-
-      }
-};
-
-export default eventService;
+      
+    };
+    
+    export default eventService;
+    
