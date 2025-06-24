@@ -147,8 +147,9 @@ const matchService = {
     
     let actualKey = findActualKey(totalRounds, totalPlayers, greaterMatch.matchNumber);
     if(actualKey == -1 && (greaterMatch.secondUserId != null || greaterMatch.secondTeamId != null)){
-      return {message: "Event has ended", winnerId}
+      await prisma.event.update({where: {id:event.id}, data: {winnerUserId: winnerId}})
       
+      return {message: "Event has ended", winnerId}
     }
 
 

@@ -19,6 +19,7 @@ model User {
   status         UserStatus
   firstMatches   Match[] @relation("Match_firstUser")
   secondMatches  Match[] @relation("Match_secondUser")
+  eventsWon       Event[] @relation("UserWinner")
 }
 enum UserStatus {
   A
@@ -44,6 +45,10 @@ model Event {
   multiplayer Boolean
   eventInscriptions EventInscriptions[]
   matches      Match[]
+
+  winnerUserId     Int?
+  winnerUser       User?    @relation("UserWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
+
 }
 
 enum Model {
