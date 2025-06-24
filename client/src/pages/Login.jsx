@@ -47,7 +47,7 @@ const Login = () => {
         dispatch(login(response.data.user));
 
         setTimeout(() => {
-          navigate('/jogadores');
+          navigate('/users');
         }, 1500);
       } else {
         toast.error('Usuário ou senha incorretos!');
@@ -56,6 +56,13 @@ const Login = () => {
       toast.error('Erro ao conectar ao servidor!');
     }
     setLoading(false);
+  };
+
+  const onKeyDownHandler = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleLogin();
+    }
   };
 
   return (
@@ -113,6 +120,7 @@ const Login = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={onKeyDownHandler}
             className="w-full p-3 mb-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
           />
 
@@ -122,8 +130,10 @@ const Login = () => {
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={onKeyDownHandler}
               className="w-full p-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
             />
+
             <div
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"

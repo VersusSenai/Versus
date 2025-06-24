@@ -1,7 +1,6 @@
-import React from "react";
+import React from 'react';
 
-
-const Inscricoes = () => {
+const Inscriptions = () => {
   return (
     <div className="homepage">
       <h1>KKKKKKKKKKKKKKKK</h1>
@@ -9,4 +8,4 @@ const Inscricoes = () => {
   );
 };
 
-export default Inscricoes;
+export default Inscriptions;
