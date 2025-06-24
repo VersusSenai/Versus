@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 
-export default function DataTableTemplate({ data, columns: userColumns, actions = [] }) {
+export default function CustomTable({ data, columns: userColumns, actions = [] }) {
   // Coluna do checkbox para seleção
   const checkboxColumn = {
     id: 'checkbox',
@@ -58,7 +58,9 @@ export default function DataTableTemplate({ data, columns: userColumns, actions 
   // Coluna de ações com dropdown menu dinâmico
   const actionsColumn = {
     id: 'acoes',
+    enableSorting: false,
     enableHiding: false,
+
     cell: ({ row }) => {
       const rowData = row.original;
 
@@ -174,11 +176,21 @@ export default function DataTableTemplate({ data, columns: userColumns, actions 
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="text-white/80 text-left px-4 py-2 whitespace-normal break-words"
+                      className="text-white/80 text-left px-4 py-2 whitespace-normal break-words cursor-pointer select-none"
+                      onClick={header.column.getToggleSortingHandler()}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder ? null : (
+                        <div className="flex items-center gap-1">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getCanSort() &&
+                            ({
+                              asc: <ArrowUpDown className="h-4 w-4 rotate-180" />,
+                              desc: <ArrowUpDown className="h-4 w-4" />,
+                            }[header.column.getIsSorted()] ?? (
+                              <ArrowUpDown className="h-4 w-4 opacity-50" />
+                            ))}
+                        </div>
+                      )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -192,7 +204,13 @@ export default function DataTableTemplate({ data, columns: userColumns, actions 
                       <TableCell
                         key={cell.id}
                         className="px-4 py-2 max-w-[200px] truncate overflow-hidden whitespace-nowrap"
-                        title={String(cell.getValue())}
+                        title={
+                          !['checkbox', 'acoes'].includes(cell.column.id) &&
+                          (typeof cell.getValue() === 'string' ||
+                            typeof cell.getValue() === 'number')
+                            ? String(cell.getValue())
+                            : undefined
+                        }
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
@@ -255,10 +273,85 @@ export default function DataTableTemplate({ data, columns: userColumns, actions 
             {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
           </div>
         </div>
-
         {/* Versão Mobile */}
-        <div className="block sm:hidden">
-          {/* Você pode reusar o MobileCards aqui, adaptando se quiser */}
+        <div className="block sm:hidden max-h-[calc(100dvh-6rem)] h-[100vw] overflow-y-auto space-y-4">
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => {
+              const rowData = row.original;
+              const visibleColumns = table
+                .getAllColumns()
+                .filter((col) => col.getIsVisible() && col.id !== 'checkbox' && col.id !== 'acoes');
+
+              return (
+                <article
+                  key={row.id}
+                  className="bg-[var(--color-dark-light)] rounded-lg p-5 shadow-md border border-white/20"
+                  role="group"
+                  aria-labelledby={`row-${row.id}-title`}
+                >
+                  <header className="flex items-center justify-between mb-4">
+                    <Checkbox
+                      checked={row.getIsSelected()}
+                      onCheckedChange={(value) => row.toggleSelected(!!value)}
+                      aria-label="Selecionar linha"
+                    />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0 text-white">
+                          <span className="sr-only">Abrir menu</span>
+                          <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        {actions.length === 0 ? (
+                          <DropdownMenuItem disabled>Nenhuma ação configurada</DropdownMenuItem>
+                        ) : (
+                          actions.map(({ label, icon: Icon, onClick }, i) => (
+                            <React.Fragment key={i}>
+                              {i > 0 && <DropdownMenuSeparator />}
+                              <DropdownMenuItem
+                                onClick={() => onClick(rowData)}
+                                className="flex items-center gap-2"
+                              >
+                                {Icon && <Icon className="h-4 w-4" />}
+                                {label}
+                              </DropdownMenuItem>
+                            </React.Fragment>
+                          ))
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </header>
+
+                  <dl className="grid grid-cols-1 gap-y-3">
+                    {visibleColumns.map((column) => {
+                      const cell = row.getVisibleCells().find((c) => c.column.id === column.id);
+                      if (!cell) return null;
+                      return (
+                        <div key={column.id} className="flex flex-col">
+                          <dt className="text-xs font-semibold text-white/70 capitalize mb-1">
+                            {column.id}
+                          </dt>
+                          <dd
+                            className="text-sm text-white truncate max-w-full"
+                            title={String(cell.getValue())}
+                          >
+                            {flexRender(
+                              column.columnDef.cell ?? column.columnDef.header,
+                              cell.getContext()
+                            )}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                </article>
+              );
+            })
+          ) : (
+            <p className="text-center py-10 text-white/80">Nenhum resultado encontrado.</p>
+          )}
         </div>
       </div>
     </div>

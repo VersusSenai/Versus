@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { FaHome, FaUsers, FaSignOutAlt } from 'react-icons/fa';
-import { MdSettings, MdOutlineEmojiEvents, MdOutlineAssignment, MdHowToReg } from 'react-icons/md';
+import { FaSignOutAlt } from 'react-icons/fa';
+import { MdOutlineEmojiEvents, MdOutlineAssignment } from 'react-icons/md';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.svg';
@@ -25,7 +25,6 @@ const Navbar = ({ onWidthChange }) => {
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const toggleMobileMenu = () => setShowMobileMenu(!showMobileMenu);
 
-  // Função para logout
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
@@ -33,19 +32,32 @@ const Navbar = ({ onWidthChange }) => {
   };
 
   const links = [
-    { label: 'Usuários', icon: <MdOutlineEmojiEvents />, path: 'users' },
-    { label: 'Torneios', icon: <MdOutlineEmojiEvents />, path: 'torneios' },
-    { label: 'Jogadores', icon: <FaUsers />, path: 'jogadores' },
-    { label: 'Organizadores', icon: <MdHowToReg />, path: 'organizadores' },
-    { label: 'Inscrições', icon: <MdOutlineAssignment />, path: 'inscricoes' },
-    { label: 'Relatórios', icon: <MdOutlineAssignment />, path: 'relatorios' },
-    { label: 'Configurações', icon: <MdSettings />, path: 'configuracoes' },
-    // Remove o logout do array para colocar botão separado
+    { label: 'Usuários', icon: <MdOutlineEmojiEvents />, path: 'users', roles: ['A'] },
+    { label: 'Torneios', icon: <MdOutlineEmojiEvents />, path: 'tournaments', roles: ['A', 'P', 'O'] },
+    { label: 'Criar Torneios', icon: <MdOutlineEmojiEvents />, path: 'createTournaments', roles: ['A', 'P', 'O'] },
+    { label: 'Acompanhar Chaves dos Torneios', icon: <MdOutlineEmojiEvents />, path: 'keysTournaments', roles: ['A', 'P', 'O'] },
+    { label: 'Inscrições', icon: <MdOutlineAssignment />, path: 'inscriptions', roles: ['A', 'P', 'O'] },
   ];
+
+  // Loading simples enquanto user === null (ex: carregando do Redux)
+  if (user === null) {
+    return (
+      <aside
+        className={`hidden md:flex flex-col fixed bg-[#f8f9fa] p-5 min-h-screen z-50 ${
+          isCollapsed ? 'w-20' : 'w-64'
+        }`}
+      >
+        <div className="flex items-center justify-center h-full text-gray-500">Carregando...</div>
+      </aside>
+    );
+  }
+
+  // Filtra links permitidos para o usuário atual
+  const allowedLinks = user ? links.filter((link) => link.roles.includes(user.role)) : [];
 
   const renderLinks = () => (
     <nav className="flex flex-col gap-2">
-      {links.map((link) => {
+      {allowedLinks.map((link) => {
         const isActive = location.pathname === `/${link.path}`;
         return (
           <button
@@ -83,7 +95,9 @@ const Navbar = ({ onWidthChange }) => {
     <>
       {/* Desktop Navbar */}
       <aside
-        className={`hidden md:flex flex-col fixed bg-[#f8f9fa] p-5 min-h-screen z-50 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}
+        className={`hidden md:flex flex-col fixed bg-[#f8f9fa] p-5 min-h-screen z-50 transition-all duration-300 ${
+          isCollapsed ? 'w-20' : 'w-64'
+        }`}
       >
         <div className="flex flex-col items-center mb-8">
           <img
@@ -100,7 +114,7 @@ const Navbar = ({ onWidthChange }) => {
         {renderLinks()}
         <button
           onClick={toggleCollapse}
-          className="absolute bottom-5 left-5 bg-[var(--color-2] text-white p-2 rounded-full"
+          className="absolute bottom-5 left-5 bg-[var(--color-2)] text-white p-2 rounded-full"
           aria-label="Toggle Navbar"
         >
           {isCollapsed ? '>' : '<'}
@@ -132,7 +146,7 @@ const Navbar = ({ onWidthChange }) => {
                 <AiOutlineClose size={28} />
               </button>
             </div>
-            {links.map((link) => {
+            {allowedLinks.map((link) => {
               const isActive = location.pathname === `/${link.path}`;
               return (
                 <button
@@ -141,7 +155,9 @@ const Navbar = ({ onWidthChange }) => {
                     navigate(`/${link.path}`);
                     setShowMobileMenu(false);
                   }}
-                  className={`w-full text-left p-4 border-b border-gray-600 ${isActive ? 'bg-[var(--color-2)] text-white' : ''}`}
+                  className={`w-full text-left p-4 border-b border-gray-600 ${
+                    isActive ? 'bg-[var(--color-2)] text-white' : ''
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-lg">{link.icon}</span>

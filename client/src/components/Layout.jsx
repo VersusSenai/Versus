@@ -32,10 +32,13 @@ const Layout = ({ children }) => {
       </div>
 
       <main
-        style={{ marginLeft: isDesktop ? navbarWidth : 0 }}
-        className="flex-1 transition-[margin-left] duration-300 p-4 relative z-10"
+        style={{
+          marginLeft: isDesktop ? navbarWidth : 0,
+          width: isDesktop ? `calc(100% - ${navbarWidth}px)` : '100%',
+        }}
+        className="transition-[margin-left,width] duration-300 p-4 relative z-10 flex justify-center"
       >
-        {children}
+        <div className="w-full max-w-7xl">{children}</div>
       </main>
     </div>
   );

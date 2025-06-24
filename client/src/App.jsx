@@ -4,16 +4,19 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
-import Torneios from './pages/Torneios';
-import Jogadores from './pages/Jogadores';
+import Tournaments from './pages/Tournaments';
+import CreateTournaments from './pages/CreateTournaments';
+import KeysTournaments from './pages/KeysTournaments';
+import Jogadores from './pages/Players';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { AnimatePresence } from 'framer-motion';
 import PageWrapper from './components/transition/PageTransition';
 import ProtectedRoute from './components/ProtectedRoute';
-import Relatorios from './pages/Relatorios';
 import Users from './pages/Users';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Componente simples para a página 404
 const NotFound = () => (
@@ -37,7 +40,7 @@ const AnimatedRoutes = () => {
         <Route
           path="/users"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['A']}>
               <Layout>
                 <PageWrapper>
                   <Users />
@@ -47,24 +50,39 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/torneios"
+          path="/tournaments"
           element={
             <ProtectedRoute>
               <Layout>
                 <PageWrapper>
-                  <Torneios />
+                  <Tournaments />
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/relatorios"
+          path="/createTournaments"
+          allowedRoles={['A', 'O']}
           element={
             <ProtectedRoute>
               <Layout>
                 <PageWrapper>
-                  <Relatorios />
+                  <CreateTournaments />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/keysTournaments"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageWrapper>
+                  <KeysTournaments />
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
@@ -91,6 +109,17 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <AnimatedRoutes />
       </Router>
     </Provider>
