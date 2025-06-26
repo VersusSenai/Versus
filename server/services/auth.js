@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from "@prisma/client";
+import 'dotenv/config';
+
 
 const prisma = new PrismaClient()
 
@@ -13,34 +15,36 @@ const auth = {
             { where: { email }}
         ).catch(
             (err) => {
-                console.log("Error: ", err);
-            }
-        );
-    
-        if (!registeredUser)
-            return res
-                .status(400)
-                .json({message: "Email ou Senha inválidos."})
-    
-        if (!bcrypt.compareSync(password, registeredUser.password) )
-            return res
-                .status(400)
-                .json({message: "Email ou Senha inválidos."})
-        
-        return jwt.sign(
-            {
-                id: registeredUser.id,
-                email: registeredUser.email,
-            }, 
-            // Secret or Private Key
-            process.env.JWT_SECRET,
-            // Options
-            {
-                expiresIn: '1h'
+                throw err;
             }
         );
 
-    }
+        if (!registeredUser || registeredUser.status == "D")
+            throw new Error("User not found") ;
+
+    
+        // Validar a SENHA do Usuário
+        if (!bcrypt.compareSync(password, registeredUser.password) )
+            throw new Error("User email or password invalid") ;
+
+
+        if(registeredUser.id){
+
+            return { token: jwt.sign(
+                {
+                    id: registeredUser.id,
+                    email: registeredUser.email,
+                }, 
+                // Secret or Private Key
+                process.env.JWT_SECRET,
+                // Options
+                {
+                    expiresIn: '1h'
+                }
+            ), id: registeredUser.id ,username: registeredUser.username, email: registeredUser.email, role: registeredUser.role};
+    
+        }
+        }
 
 }
 

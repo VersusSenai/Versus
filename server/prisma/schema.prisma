@@ -15,25 +15,39 @@ model User {
   registeredDate  DateTime @default(now()) @map("registered_date")
   teams           Team[]
   eventInscriptions EventInscriptions[]
-  teamUsers       TeamUsers[]  // Adicionando a relação oposta
+  teamUsers       TeamUsers[]
+  status         UserStatus
+  firstMatches   Match[] @relation("Match_firstUser")
+  secondMatches  Match[] @relation("Match_secondUser")
+  eventsWon       Event[] @relation("UserWinner")
 }
-
+enum UserStatus {
+  A
+  D
+}
 enum Role {
   P
   O
+  A
 }
 
 model Event {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(100)
   description String  @db.VarChar(250)
+  maxPlayers  Int     @db.Int
   startDate   DateTime @map("start_date")
   endDate     DateTime @map("end_date")
   model       Model
   status      Status   @default(P)
+  matchsQuantity Int?
+  keysQuantity Int?
+  multiplayer Boolean
   eventInscriptions EventInscriptions[]
-  teamEvents   TeamEvents[]
   matches      Match[]
+
+  winnerUserId     Int?
+  winnerUser       User?    @relation("UserWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
 
 }
 
@@ -54,22 +68,25 @@ model Team {
   ownerId        Int
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
-  owner          User     @relation(fields: [ownerId], references: [id])
+  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   teamUsers      TeamUsers[]
-  teamEvents     TeamEvents[]
+  EventInscriptions    EventInscriptions[]
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
 }
 
 model EventInscriptions {
   id             Int      @id @default(autoincrement())
-  userId         Int
+  userId         Int?
+  teamId          Int?
   eventId        Int
   registeredDate DateTime @default(now()) @map("registered_date")
   status        InscriptionStatus @default(P)
   role          EventRole @default(P)
-  user          User     @relation(fields: [userId], references: [id])
-  event         Event    @relation(fields: [eventId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id],  onDelete: Cascade)
+  event         Event    @relation(fields: [eventId], references: [id],  onDelete: Cascade)
+  team           Team?  @relation(fields: [teamId], references: [id],  onDelete: Cascade)
+  @@unique([userId, eventId])
 }
 
 enum InscriptionStatus {
@@ -89,29 +106,25 @@ model TeamUsers {
   teamId          Int
   inscriptionDate DateTime @default(now()) @map("inscription_date")
   status         InscriptionStatus @default(P)
-  user           User @relation(fields: [userId], references: [id])
-  team           Team @relation(fields: [teamId], references: [id])
-}
-
-model TeamEvents {
-  id              Int      @id @default(autoincrement())
-  teamId          Int
-  eventId         Int
-  inscriptionDate DateTime @default(now()) @map("inscription_date")
-  status         InscriptionStatus @default(P)
-  team           Team  @relation(fields: [teamId], references: [id])
-  event          Event @relation(fields: [eventId], references: [id])
+  user           User @relation(fields: [userId], references: [id],  onDelete: Cascade)
+  team           Team @relation(fields: [teamId], references: [id],  onDelete: Cascade)
 }
 
 model Match {
   id          Int      @id @default(autoincrement())
   eventId     Int
-  firstTeamId Int
-  secondTeamId Int
-  time        DateTime
+  matchNumber Int
+  keyNumber   Int
+  firstTeamId Int?
+  secondTeamId Int?
+  firstUserId Int?
+  secondUserId Int?
+  time        DateTime?
   winnerId    Int?
   loserId     Int?
-  event       Event @relation(fields: [eventId], references: [id])
-  firstTeam   Team  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam")
-  secondTeam  Team  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam")
+  event       Event @relation(fields: [eventId], references: [id],  onDelete: Cascade)
+  firstTeam   Team?  @relation(fields: [firstTeamId], references: [id], name: "Match_firstTeam",  onDelete: Cascade)
+  secondTeam  Team?  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam",  onDelete: Cascade)
+  firstUser   User?  @relation(fields: [firstUserId], references: [id], name: "Match_firstUser",  onDelete: Cascade)
+  secondUser  User?  @relation(fields: [secondUserId], references: [id], name: "Match_secondUser",  onDelete: Cascade)
 }
