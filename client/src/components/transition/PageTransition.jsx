@@ -19,7 +19,7 @@ const PageTransition = ({ children }) => (
     animate="animate"
     exit="exit"
     transition={pageTransition}
-    className="h-full"
+    //className="h-full"
   >
     {children}
   </motion.div>

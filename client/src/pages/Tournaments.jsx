@@ -1,7 +1,7 @@
-// src/pages/Tournaments.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import ProfessionalBracket from '../components/Bracket';
+import { useSelector } from 'react-redux';
 
 import {
   Dialog,
@@ -12,13 +12,25 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
+import defaultTournamentImage from '../assets/solo.jpg';
 
 const formatDate = (iso) => new Date(iso).toLocaleString();
 
 const Tag = ({ children }) => (
-  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-3 py-1 rounded-full select-none">
+  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 mb-2 px-3 py-1 rounded-full select-none">
     {children}
   </span>
 );
@@ -31,34 +43,77 @@ export default function Tournaments() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const [filterInscribedOnly, setFilterInscribedOnly] = useState(false);
+  const [filterMode, setFilterMode] = useState('all');
+
+  const user = useSelector((state) => state.user.user);
+
+  // Função que determina o status do evento
+  const getEventStatus = (event, winnerName) => {
+    const now = new Date();
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
+
+    if (winnerName) return 'Finalizado';
+    if (now < start) return 'Não iniciado';
+    if (now >= start && now <= end) return 'Em andamento';
+    if (now > end) return 'Finalizado';
+    return 'Status desconhecido';
+  };
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const [eventsResponse, inscriptionsResponse] = await Promise.all([
-        api.get('/event'),
-        api.get('/event/inscriptions/me'),
-      ]);
-      setEvents(eventsResponse.data);
 
+      const eventsResponse = await api.get('/event');
+
+      // Para cada evento, pegar detalhes completos e nome do vencedor
+      const eventsWithDetails = await Promise.all(
+        eventsResponse.data.map(async (ev) => {
+          try {
+            const detailRes = await api.get(`/event/${ev.id}`);
+            const eventDetail = detailRes.data;
+
+            let winnerName = null;
+            if (eventDetail.winnerUserId) {
+              try {
+                const userRes = await api.get(`/user/${eventDetail.winnerUserId}`);
+                winnerName = userRes.data.username;
+              } catch {
+                winnerName = null;
+              }
+            }
+            return {
+              ...eventDetail,
+              winnerName,
+            };
+          } catch {
+            return ev;
+          }
+        })
+      );
+
+      setEvents(eventsWithDetails);
+
+      const inscriptionsResponse = await api.get('/event/inscriptions/me');
       const userEventIds = new Set(inscriptionsResponse.data.map((i) => i.event.id));
       const inscriptionsMap = {};
       const matchesMap = {};
 
-      for (const event of eventsResponse.data) {
+      for (const event of eventsWithDetails) {
         inscriptionsMap[event.id] = userEventIds.has(event.id);
-
         try {
           const matchResponse = await api.get(`/event/${event.id}/match`);
-          matchesMap[event.id] = matchResponse.data.length > 0;
+          matchesMap[event.id] = matchResponse.data || [];
         } catch {
-          matchesMap[event.id] = false;
+          matchesMap[event.id] = [];
         }
       }
 
       setUserInscriptions(inscriptionsMap);
       setEventMatchesMap(matchesMap);
-    } catch (err) {
-      alert('Failed to fetch events or inscriptions');
+    } catch {
+      alert('Falha ao buscar torneios ou inscrições');
     } finally {
       setLoading(false);
     }
@@ -68,52 +123,85 @@ export default function Tournaments() {
     fetchEvents();
   }, []);
 
-  const handleSubscribe = async (eventId) => {
+  const handleStartEvent = async (eventId) => {
     try {
-      await api.post(`/event/${eventId}/inscribe`);
-      alert('Subscribed successfully!');
+      await api.post(`/event/${eventId}/start`);
+      alert('Evento iniciado!');
       await fetchEvents();
       setDialogOpen(false);
     } catch (err) {
-      alert(err.response?.data?.message || 'Subscription failed');
+      alert(err.response?.data?.message || 'Falha ao iniciar evento');
+    }
+  };
+
+  const handleSubscribe = async (eventId) => {
+    try {
+      await api.post(`/event/${eventId}/inscribe`);
+      alert('Inscrição realizada!');
+      await fetchEvents();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Falha ao inscrever');
     }
   };
 
   const handleUnsubscribe = async (eventId) => {
     try {
-      await api.post(`/event/${eventId}/unsubscribe`, {});
-      alert('Unsubscribed successfully!');
+      await api.post(`/event/${eventId}/unsubscribe`);
+      alert('Inscrição cancelada!');
       await fetchEvents();
-      setDialogOpen(false);
     } catch (err) {
-      alert(err.response?.data?.message || 'Unsubscribe failed');
+      alert(err.response?.data?.message || 'Falha ao cancelar inscrição');
     }
   };
 
-  const handleStartEvent = async (eventId) => {
-    try {
-      await api.post(`/event/${eventId}/start`);
-      alert('Event started!');
-      await fetchEvents();
-      setDialogOpen(false);
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to start event');
-    }
-  };
+  const filteredEvents = events.filter((event) => {
+    if (filterInscribedOnly && !userInscriptions[event.id]) return false;
+    if (filterMode === 'multiplayer' && !event.multiplayer) return false;
+    if (filterMode === 'singleplayer' && event.multiplayer) return false;
+    return true;
+  });
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-8">Available Tournaments</h2>
+      <h2 className="text-4xl font-bold mb-8 text-center text-white">Torneios Disponíveis</h2>
+
+      <div className="flex flex-col sm:flex-row justify-center gap-6 mb-8 text-white">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="filterInscribed">Mostrar só inscritos</Label>
+          <Switch
+            id="filterInscribed"
+            checked={filterInscribedOnly}
+            onCheckedChange={setFilterInscribedOnly}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Label htmlFor="filterMode">Filtrar por modo:</Label>
+          <Select value={filterMode} onValueChange={setFilterMode}>
+            <SelectTrigger className="w-[180px] bg-[var(--color-dark)] border-white/20 text-white">
+              <SelectValue placeholder="Modo" />
+            </SelectTrigger>
+            <SelectContent className="bg-[var(--color-dark)] text-white border-white/20">
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="multiplayer">Multiplayer</SelectItem>
+              <SelectItem value="singleplayer">Singleplayer</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {loading ? (
-        <p>Loading tournaments...</p>
-      ) : events.length === 0 ? (
-        <p>No tournaments found.</p>
+        <p className="text-center text-white/80">Carregando torneios...</p>
+      ) : filteredEvents.length === 0 ? (
+        <p className="text-center text-white/80">Nenhum torneio encontrado.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {events.map((event) => {
+          {filteredEvents.map((event) => {
             const isInscribed = userInscriptions[event.id];
-            const hasMatches = eventMatchesMap[event.id];
+            const matches = eventMatchesMap[event.id] || [];
+            const hasMatches = matches.length > 0;
+            const winnerName = event.winnerName;
+            const eventStatus = getEventStatus(event, winnerName);
 
             return (
               <Dialog
@@ -126,75 +214,102 @@ export default function Tournaments() {
                 }}
               >
                 <DialogTrigger asChild>
-                  <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                    <CardHeader>
+                  <Card className="cursor-pointer pt-0 hover:shadow-lg transition-shadow flex flex-col bg-[var(--color-dark)] text-white border border-white/10 rounded-2xl shadow-md">
+                    <img
+                      src={defaultTournamentImage}
+                      alt="Imagem do torneio"
+                      className="w-full object-cover rounded-t-2xl"
+                    />
+                    <CardHeader className="pt-4 px-4">
                       <CardTitle>{event.name}</CardTitle>
-                      <CardDescription className="text-gray-600">
-                        {event.description || 'No description'}
+                      <CardDescription className="text-white/70">
+                        {event.description || 'Sem descrição'}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="mt-auto px-4 pb-4">
                       <p>
-                        <strong>Status:</strong>{' '}
+                        <strong>Status Inscrição: </strong>
                         {isInscribed ? (
-                          <span className="text-green-600 font-semibold">Subscribed</span>
+                          <span className="text-green-400 font-semibold">Inscrito</span>
                         ) : (
-                          <span className="text-red-600 font-semibold">Not Subscribed</span>
+                          <span className="text-red-400 font-semibold">Não inscrito</span>
                         )}
                       </p>
                       {hasMatches && (
-                        <p className="mt-1 text-sm text-gray-500">Bracket available</p>
+                        <p className="mt-1 text-sm text-white/50">Bracket disponível</p>
                       )}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Tag>Modo: {event.multiplayer ? 'Multiplayer' : 'Singleplayer'}</Tag>
+                        <Tag>Início: {formatDate(event.startDate)}</Tag>
+                        <Tag>Fim: {formatDate(event.endDate)}</Tag>
+                        <Tag>Máx. Jogadores: {event.maxPlayers}</Tag>
+                        <Tag>Status Evento: {eventStatus}</Tag>
+                        {winnerName && <Tag>🏆 Vencedor: {winnerName}</Tag>}
+                      </div>
                     </CardContent>
                   </Card>
                 </DialogTrigger>
 
                 <DialogContent
-                  className="p-6"
+                  className="p-6 bg-[var(--color-dark)] text-white rounded-2xl border border-white/20"
                   style={{
-                    width: 'fit-content',
-                    maxWidth: '75vw',
-                    maxHeight: '95vh',
-                    overflow: 'visible',
+                    maxWidth: '65vw',
+                    maxHeight: '90vh',
+                    overflow: 'auto',
                   }}
                 >
                   <DialogHeader>
                     <DialogTitle>{event.name}</DialogTitle>
-                    <DialogDescription className="mb-4 block">
-                      {event.description || 'No description available.'}
+                    <DialogDescription className="mb-4 block text-white/80">
+                      {event.description || 'Nenhuma descrição disponível.'}
                     </DialogDescription>
                   </DialogHeader>
 
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <Tag>Mode: {event.multiplayer ? 'Multiplayer' : 'Singleplayer'}</Tag>
-                    <Tag>Start: {formatDate(event.startDate)}</Tag>
-                    <Tag>End: {formatDate(event.endDate)}</Tag>
-                    <Tag>Max Players: {event.maxPlayers}</Tag>
+                    <Tag>Modo: {event.multiplayer ? 'Multiplayer' : 'Singleplayer'}</Tag>
+                    <Tag>Início: {formatDate(event.startDate)}</Tag>
+                    <Tag>Fim: {formatDate(event.endDate)}</Tag>
+                    <Tag>Máximo Jogadores: {event.maxPlayers}</Tag>
+                    <Tag>Status Evento: {eventStatus}</Tag>
                   </div>
 
                   <div className="flex gap-2 flex-wrap mb-4">
                     {isInscribed ? (
-                      <Button variant="destructive" onClick={() => handleUnsubscribe(event.id)}>
-                        Leave Event
+                      <Button
+                        className="text-red-200 bg-red-500"
+                        onClick={() => handleUnsubscribe(event.id)}
+                      >
+                        Cancelar Inscrição
                       </Button>
                     ) : (
-                      <Button onClick={() => handleSubscribe(event.id)}>Join Event</Button>
+                      <Button
+                        className="text-green-200 bg-green-500"
+                        onClick={() => handleSubscribe(event.id)}
+                      >
+                        Inscrever-se
+                      </Button>
                     )}
 
-                    <Button variant="secondary" onClick={() => handleStartEvent(event.id)}>
-                      Start Event
-                    </Button>
+                    {user && (user.role === 'A' || user.role === 'O') && (
+                      <Button variant="secondary" onClick={() => handleStartEvent(event.id)}>
+                        Iniciar Torneio
+                      </Button>
+                    )}
                   </div>
 
                   {hasMatches ? (
                     <div
-                      className="border rounded p-4 bg-white"
-                      style={{ overflow: 'visible', minWidth: 1200 }}
+                      className="border-none rounded p-4 bg-[var(--color-dark)]"
+                      style={{
+                        overflowX: 'auto',
+                        maxWidth: '100%',
+                        maxHeight: '50vh',
+                      }}
                     >
                       <ProfessionalBracket eventId={event.id} multiplayer={event.multiplayer} />
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500">No bracket available yet.</p>
+                    <p className="text-center text-white/50">Bracket não disponível ainda.</p>
                   )}
                 </DialogContent>
               </Dialog>

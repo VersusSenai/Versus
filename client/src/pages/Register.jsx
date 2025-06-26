@@ -30,6 +30,7 @@ const Register = () => {
 
     if (password !== confirmPassword) {
       toast.error('As senhas não coincidem!');
+      return;
     }
 
     setLoading(true);
@@ -55,6 +56,13 @@ const Register = () => {
     setLoading(false);
   };
 
+  const onKeyDownHandler = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRegister();
+    }
+  };
+
   return (
     <div className="relative w-full h-screen bg-linear-to-t from-[var(--color-dark)] to-[var(--color-2)] bg-cover bg-no-repeat">
       {/* Background */}
@@ -67,7 +75,7 @@ const Register = () => {
         moveParticlesOnHover={true}
         alphaParticles={false}
         disableRotation={false}
-        className="absolute top-0 left-0 w-full h-full" // Keep particles in a separate layer, but let them move independently
+        className="absolute top-0 left-0 w-full h-full"
       />
 
       {/* Container */}
@@ -75,7 +83,7 @@ const Register = () => {
         {/* Bem-vindo Text */}
         <div className="relative pb-7 text-[var(--color-text)] text-5xl font-bold justify-center xl:text-6xl text-center mb-8 w-full max-w-[450px] xl:max-w-[1000px]">
           <BlurText
-            text="Seja bem-vindo ao Versus!"
+            text="Se registre no Versus!"
             delay={150}
             animateBy="letters"
             direction="bottom"
@@ -83,7 +91,7 @@ const Register = () => {
             className="hidden xl:block xl:w-full xl:justify-center xl:select-none"
           />
           <BlurText
-            text="Bem-vindo!"
+            text="Registre-se!"
             delay={150}
             animateBy="letters"
             direction="bottom"
@@ -93,7 +101,7 @@ const Register = () => {
           <div className="absolute bottom-0 right-0 w-0 h-[5px] animate-underline"></div>
         </div>
 
-        {/* Login Box */}
+        {/* Register Box */}
         <div className="relative pointer-events-auto bg-[var(--color-surface)] p-10 rounded-2xl shadow-lg w-full xl:max-w-[420px] max-w-[400px] text-[var(--color-text)] backdrop-blur-xl flex flex-col items-center">
           <img src={Logo} alt="Logo" className="hidden xl:block w-[120px]" />
 
@@ -110,6 +118,7 @@ const Register = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={onKeyDownHandler}
             className="w-full p-3 mb-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
           />
           <input
@@ -118,6 +127,7 @@ const Register = () => {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={onKeyDownHandler}
             className="w-full p-3 mb-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
           />
 
@@ -127,6 +137,7 @@ const Register = () => {
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={onKeyDownHandler}
               className="w-full p-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
             />
             <div
@@ -144,6 +155,7 @@ const Register = () => {
               placeholder="Confirmar Senha"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              onKeyDown={onKeyDownHandler}
               className="w-full p-3 rounded-xl bg-[var(--color-input-bg)] border border-[var(--color-input-border)] focus:outline-none"
             />
             <div
@@ -166,7 +178,7 @@ const Register = () => {
             </label>
           </div>
 
-          {/* Login Button */}
+          {/* Register Button */}
           <button
             onClick={handleRegister}
             className="w-full p-3 bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] rounded font-semibold hover:opacity-80"
@@ -187,7 +199,7 @@ const Register = () => {
             <FaGithub className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
           </div>
 
-          {/* Register Link */}
+          {/* Login Link */}
           <p
             onClick={() => {
               navigate('/login');

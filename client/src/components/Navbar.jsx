@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FaSignOutAlt } from 'react-icons/fa';
-import { MdOutlineEmojiEvents, MdOutlineAssignment } from 'react-icons/md';
+import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox } from 'react-icons/md';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.svg';
@@ -32,11 +32,19 @@ const Navbar = ({ onWidthChange }) => {
   };
 
   const links = [
-    { label: 'Usuários', icon: <MdOutlineEmojiEvents />, path: 'users', roles: ['A'] },
-    { label: 'Torneios', icon: <MdOutlineEmojiEvents />, path: 'tournaments', roles: ['A', 'P', 'O'] },
-    { label: 'Criar Torneios', icon: <MdOutlineEmojiEvents />, path: 'createTournaments', roles: ['A', 'P', 'O'] },
-    { label: 'Acompanhar Chaves dos Torneios', icon: <MdOutlineEmojiEvents />, path: 'keysTournaments', roles: ['A', 'P', 'O'] },
-    { label: 'Inscrições', icon: <MdOutlineAssignment />, path: 'inscriptions', roles: ['A', 'P', 'O'] },
+    { label: 'Usuários', icon: <MdOutlinePeopleAlt />, path: 'users', roles: ['A'] },
+    {
+      label: 'Torneios',
+      icon: <MdOutlineEmojiEvents />,
+      path: 'tournaments',
+      roles: ['A', 'P', 'O'],
+    },
+    {
+      label: 'Criar Torneios',
+      icon: <MdOutlineAddBox />,
+      path: 'createTournaments',
+      roles: ['A', 'O'],
+    },
   ];
 
   // Loading simples enquanto user === null (ex: carregando do Redux)
@@ -125,69 +133,82 @@ const Navbar = ({ onWidthChange }) => {
       <AnimatePresence>
         {showMobileMenu && (
           <motion.aside
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-0 left-0 w-[70%] h-full bg-[#000300] z-40 text-white p-5 md:hidden"
+            initial={{ x: '-100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '-100%', opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+            className="fixed top-0 left-0 w-[80%] h-full bg-[rgba(0,0,0,0.8)] backdrop-blur-md z-40 text-white p-5 md:hidden shadow-xl"
           >
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <img src={logo} alt="Logo" className="h-10" />
-              {!isCollapsed && user && (
-                <div className="text-sm font-semibold">
-                  Olá,{' '}
-                  <span className="text-[var(--color-2)]">
-                    {user.name || user.username || 'Usuário'}
-                  </span>
-                  !
-                </div>
-              )}
-              <button onClick={toggleMobileMenu} aria-label="Close Menu">
+              <button
+                onClick={toggleMobileMenu}
+                aria-label="Fechar menu"
+                className="text-white hover:text-gray-300"
+              >
                 <AiOutlineClose size={28} />
               </button>
             </div>
-            {allowedLinks.map((link) => {
-              const isActive = location.pathname === `/${link.path}`;
-              return (
-                <button
-                  key={link.label}
-                  onClick={() => {
-                    navigate(`/${link.path}`);
-                    setShowMobileMenu(false);
-                  }}
-                  className={`w-full text-left p-4 border-b border-gray-600 ${
-                    isActive ? 'bg-[var(--color-2)] text-white' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{link.icon}</span>
-                    <span>{link.label}</span>
-                  </div>
-                </button>
-              );
-            })}
-            {/* Botão logout no mobile */}
-            <button
-              onClick={handleLogout}
-              className="w-full text-left p-4 border-b border-gray-600 hover:bg-[var(--color-2)]"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-lg">
+
+            {user && (
+              <div className="mb-6 text-sm font-medium">
+                Olá,{' '}
+                <span className="text-[var(--color-2)]">
+                  {user.name || user.username || 'Usuário'}
+                </span>
+                !
+              </div>
+            )}
+
+            <nav className="flex flex-col gap-2">
+              {allowedLinks.map((link) => {
+                const isActive = location.pathname === `/${link.path}`;
+                return (
+                  <button
+                    key={link.label}
+                    onClick={() => {
+                      navigate(`/${link.path}`);
+                      setShowMobileMenu(false);
+                    }}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left transition-all ${
+                      isActive
+                        ? 'bg-[var(--color-2)] text-white shadow-md'
+                        : 'hover:bg-[rgba(255,255,255,0.1)]'
+                    }`}
+                  >
+                    <span className="text-xl">{link.icon}</span>
+                    <span className="text-base">{link.label}</span>
+                  </button>
+                );
+              })}
+
+              {/* Botão logout no mobile */}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left hover:bg-[rgba(255,255,255,0.1)]"
+              >
+                <span className="text-xl">
                   <FaSignOutAlt />
                 </span>
-                <span>Sair</span>
-              </div>
-            </button>
+                <span className="text-base">Sair</span>
+              </button>
+            </nav>
           </motion.aside>
         )}
       </AnimatePresence>
 
       {/* Mobile Navbar Toggle Button */}
-      <div className="md:hidden fixed top-4 left-4 z-50 text-black">
-        <button onClick={toggleMobileMenu} aria-label="Open Mobile Navbar">
-          {!showMobileMenu && <AiOutlineMenu size={28} />}
-        </button>
-      </div>
+      {!showMobileMenu && (
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={toggleMobileMenu}
+            className="p-2 rounded-full backdrop-blur text-white shadow-md"
+            aria-label="Abrir Menu"
+          >
+            <AiOutlineMenu size={24} />
+          </button>
+        </div>
+      )}
     </>
   );
 };
