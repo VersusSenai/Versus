@@ -6,8 +6,6 @@ import Register from './pages/Register';
 import HomePage from './pages/HomePage';
 import Tournaments from './pages/Tournaments';
 import CreateTournaments from './pages/CreateTournaments';
-import KeysTournaments from './pages/KeysTournaments';
-import Jogadores from './pages/Players';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
@@ -70,19 +68,6 @@ const AnimatedRoutes = () => {
               <Layout>
                 <PageWrapper>
                   <CreateTournaments />
-                </PageWrapper>
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/keysTournaments"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <PageWrapper>
-                  <KeysTournaments />
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>

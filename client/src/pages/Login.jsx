@@ -47,7 +47,7 @@ const Login = () => {
         dispatch(login(response.data.user));
 
         setTimeout(() => {
-          navigate('/users');
+          navigate('/tournaments');
         }, 1500);
       } else {
         toast.error('Usuário ou senha incorretos!');

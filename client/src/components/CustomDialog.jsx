@@ -23,26 +23,36 @@ export default function CustomDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {triggerButton && <div onClick={() => setOpen(true)}>{triggerButton}</div>}
+      {/* Botão que abre o diálogo, se fornecido */}
+      {triggerButton && (
+        <div onClick={() => setOpen(true)} className="inline-block cursor-pointer">
+          {triggerButton}
+        </div>
+      )}
 
-      <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={onSubmit}>
+      <DialogContent
+        className="sm:max-w-[425px] w-full bg-[var(--color-dark)] border border-white/20 rounded-2xl shadow-lg p-6 text-white"
+        style={{ maxHeight: '90vh', overflowY: 'auto' }}
+      >
+        <form onSubmit={onSubmit} className="flex flex-col">
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <DialogTitle className="text-2xl font-semibold">{title}</DialogTitle>
+            <DialogDescription className="text-white/70 mt-1">{description}</DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 mt-4">{children}</div>
+          <div className="mt-6 mb-4 space-y-4">{children}</div>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="flex justify-end gap-3">
             {showCancel && (
               <DialogClose asChild>
-                <Button variant="outline" type="button">
+                <Button type="button" className="text-red-200 bg-red-500 px-6 py-2">
                   Cancelar
                 </Button>
               </DialogClose>
             )}
-            <Button type="submit">{submitText}</Button>
+            <Button type="submit" className="text-green-200 bg-green-500 px-6 py-2">
+              {submitText}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

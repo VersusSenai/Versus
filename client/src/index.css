@@ -177,11 +177,39 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@layer base {
+/*@layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}*/
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-2) var(--color-dark); /* Rosa e trilha leve no Firefox */
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--color-dark);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-2);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-2);
   }
 }
