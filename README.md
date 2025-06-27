@@ -1,6 +1,7 @@
 <a id="readme-top"></a>
  <br /> <div align="center">   <img src="/client/src/assets/logo.svg" align="center" height="160"/>
  <h1 align="center">Desafio UC: Versus</h1><br /> </p> </div> <!-- ABOUT THE PROJECT -->
+
 ## 📌 Sobre o projeto
 
 O sistema Versus é uma plataforma web desenvolvida para o gerenciamento de torneios e eventos de games. Ele permite a criação de torneios, gerenciamento de usuários e times, visualização de rankings, chaveamentos e muito mais. Foi desenvolvido como parte da UC Projeto Aplicado II do curso de Análise e Desenvolvimento de Sistemas do Centro Universitário SENAI Santa Catarina.
