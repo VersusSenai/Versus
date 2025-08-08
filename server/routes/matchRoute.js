@@ -28,7 +28,7 @@ const matchRoute = express.Router();
  *       200:
  *         description: Lista de partidas retornada com sucesso
  */
-matchRoute.get("/:id/match", async (req,res)=>{
+matchRoute.get("/:id/match",verifyToken ,async (req,res)=>{
     return await matchModel.getAll(req).then(r=>{
         res.status(200).json(r)
     })
@@ -53,7 +53,7 @@ matchRoute.get("/:id/match", async (req,res)=>{
  *       404:
  *         description: Partida não encontrada
  */
-matchRoute.get("/:id", async (req, res)=>{
+matchRoute.get("/:id",verifyToken ,async (req, res)=>{
     const data = await matchModel.getById(req)
     data != null? 
       res.status(200).json(data)
@@ -83,7 +83,7 @@ matchRoute.get("/:id", async (req, res)=>{
  *       400:
  *         description: Erro ao criar a partida
  */
-matchRoute.post("/", async(req, res)=>{
+matchRoute.post("/",verifyToken ,async(req, res)=>{
     await matchModel.create(req).then(data =>{
         res.status(201).json(data)
     }).catch(e =>{
@@ -136,7 +136,7 @@ matchRoute.put("/", verifyToken, async(req,res)=>{
  *       400:
  *         description: Erro ao deletar a partida
  */
-matchRoute.delete("/", async(req,res)=>{
+matchRoute.delete("/",verifyToken ,async(req,res)=>{
     await matchModel.delete(req).then(data=>{
         res.status(204).json(data)
     }).catch(e =>{
@@ -169,7 +169,7 @@ matchRoute.delete("/", async(req,res)=>{
  *       400:
  *         description: Erro ao declarar o vencedor
  */
-matchRoute.post("/:id/winner/:matchId", async(req,res)=>{
+matchRoute.post("/:id/winner/:matchId", verifyToken ,async(req,res)=>{
     await matchModel.declareWinner(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{

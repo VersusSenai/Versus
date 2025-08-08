@@ -2,10 +2,10 @@ import { PrismaClient } from "@prisma/client"
 import jwt from "jsonwebtoken"
 const prisma = new PrismaClient();
 
-const serviceUtils = {
+class UtilService {
 
 
-    getUserByToken: async(req)=>{
+    getUserByToken= async(req)=>{
         
             const {token}= req.cookies
 
@@ -27,6 +27,10 @@ const serviceUtils = {
 
     }
 
+    getRoleByToken = async(req)=>{
+        
+    }
+
 }
 
-export default serviceUtils;
+export default new UtilService();

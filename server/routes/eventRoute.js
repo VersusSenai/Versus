@@ -1,6 +1,7 @@
-import eventModel from "../models/EventModel.js"
+import eventModel from "../models/EventModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
+import isOrganizer from "../middlewares/organizerMiddleware.js";
 
 const eventRoute = express.Router();
 
@@ -21,7 +22,7 @@ const eventRoute = express.Router();
  *       200:
  *         description: Lista de eventos
  */
-eventRoute.get("/", async (req, res) => {
+eventRoute.get("/",verifyToken ,async (req, res) => {
   res.json(await eventModel.getAll(req));
 });
 
@@ -43,7 +44,7 @@ eventRoute.get("/", async (req, res) => {
  *       404:
  *         description: Evento não encontrado
  */
-eventRoute.get("/:id", async (req, res) => {
+eventRoute.get("/:id",verifyToken ,async (req, res) => {
   try {
     const event = await eventModel.getById(req);
     res.status(200).json(event);
@@ -77,7 +78,7 @@ eventRoute.get("/:id", async (req, res) => {
  *       400:
  *         description: Erro ao criar evento
  */
-eventRoute.post("/", verifyToken, async (req, res) => {
+eventRoute.post("/", isOrganizer ,verifyToken, async (req, res) => {
   try {
     const event = await eventModel.create(req);
     res.status(201).json(event);
@@ -282,14 +283,14 @@ eventRoute.post("/:id/start", verifyToken, async (req, res) => {
  *         description: Erro ao buscar inscrições
  */
 
-eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
+eventRoute.get("/:id/inscriptions", verifyToken, async (req, res) => {
   try {
     const result = await eventModel.getAllInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-})
+});
 
 /**
  * @swagger
@@ -312,14 +313,13 @@ eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
  *         description: Erro ao buscar inscrições do usuário
  */
 
-eventRoute.get("/inscriptions/me", verifyToken, async(req,res)=>{
-   try {
+eventRoute.get("/inscriptions/me", verifyToken, async (req, res) => {
+  try {
     const result = await eventModel.getMyInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-})
-
+});
 
 export default eventRoute;

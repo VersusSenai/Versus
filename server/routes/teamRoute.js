@@ -21,7 +21,7 @@ const teamRoute = express.Router();
  *       200:
  *         description: Lista de times
  */
-teamRoute.get("/", async (req, res) => {
+teamRoute.get("/",verifyToken ,async (req, res) => {
   const teams = await teamModel.getAll();
   res.json(teams);
 });
@@ -45,7 +45,7 @@ teamRoute.get("/", async (req, res) => {
  *       404:
  *         description: Time não encontrado
  */
-teamRoute.get("/:id", async (req, res) => {
+teamRoute.get("/:id",verifyToken ,async (req, res) => {
   try {
     const team = await teamModel.getById(req);
     res.status(200).json(team);
@@ -245,7 +245,7 @@ teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
  *       200:
  *         description: Lista de usuários inscritos
  */
-teamRoute.get("/:id/inscriptions", async (req, res) => {
+teamRoute.get("/:id/inscriptions",verifyToken ,async (req, res) => {
   const inscriptions = await teamModel.getAllInscriptions(req);
   res.json(inscriptions);
 });

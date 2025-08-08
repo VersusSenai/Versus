@@ -6,9 +6,9 @@ import 'dotenv/config';
 
 const prisma = new PrismaClient()
 
-const auth = {
+class Auth {
     
-    login: async(req)=> {
+    login = async(req)=> {
         const {email, password} = req.body
         
         const registeredUser = await prisma.user.findFirst(
@@ -49,4 +49,4 @@ const auth = {
 }
 
 
-export default auth;
+export default new Auth();

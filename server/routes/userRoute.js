@@ -1,6 +1,7 @@
 import userModel from "../models/UserModel.js"
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
+import isAdmin from "../middlewares/adminMiddleware.js";
 
 const userRoute = express.Router();
 
@@ -21,7 +22,7 @@ const userRoute = express.Router();
  *       200:
  *         description: Lista de usuários
  */
-userRoute.get("/", async (req, res) => {
+userRoute.get("/",verifyToken ,async (req, res) => {
   await userModel.getAll(req)
     .then(data => res.status(200).json(data))
     .catch(e => res.status(400).json(e.message));});
@@ -44,8 +45,7 @@ userRoute.get("/", async (req, res) => {
  *       404:
  *         description: Usuário não encontrado
  */
-userRoute.get("/:id", async (req, res) => {
-  
+userRoute.get("/:id",verifyToken ,async (req, res) => {
   
   await userModel.getById(req).then(data => res.status(200).json(data))
     .catch(e => res.status(404).json(e.message));
@@ -103,6 +103,8 @@ userRoute.post("/", async (req, res) => {
  *         description: Erro na atualização
  */
 userRoute.put("/", verifyToken, async (req, res) => {
+    console.log(req.usuario)
+
   await userModel.update(req)
     .then(data => res.status(200).json(data))
     .catch(e => res.status(400).json(e.message));
@@ -120,8 +122,28 @@ userRoute.put("/", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro ao deletar
  */
-userRoute.delete("/", async (req, res) => {
+userRoute.delete("/", verifyToken ,async (req, res) => {
   await userModel.delete(req)
+    .then(data => res.status(204).json(data))
+    .catch(e => res.status(400).json(e));
+});
+
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   delete:
+ *     summary: Deleta o usuário pelo Id
+ *     tags: [Usuários]
+ *     responses:
+ *       204:
+ *         description: Usuário deletado
+ *       400:
+ *         description: Erro ao deletar
+ */
+userRoute.delete("/:id", isAdmin ,async (req, res) => {
+
+  await userModel.deleteById(req)
     .then(data => res.status(204).json(data))
     .catch(e => res.status(400).json(e));
 });

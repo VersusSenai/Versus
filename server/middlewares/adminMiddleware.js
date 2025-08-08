@@ -3,7 +3,7 @@ import 'dotenv/config';
 import util from '../services/util';
 
 
-const verifyToken = async (req, res, next) => {
+const isAdmin = async (req, res, next) => {
 
     const {token }= req.cookies
 
@@ -16,7 +16,13 @@ const verifyToken = async (req, res, next) => {
             }})
 
     req.user = await util.getUserByToken(req)
-    next()
+    if(req.user.role == "A"){
+        next()
+
+    }else{
+        res.status(401)
+        .json({msg: "User is not a Admin"})
+    }
 };
 
-export default verifyToken;
+export default isAdmin;

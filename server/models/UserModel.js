@@ -10,7 +10,7 @@ class UserModel {
   }
 
   async getAll(req) {
-    const userData = await serviceUtils.getUserByToken(req);
+    const userData = req.user;
 
     if (userData.role != "A") {
       throw new Error("Only administrators can call this operation");
@@ -21,7 +21,7 @@ class UserModel {
 
 
   async getById(req) {
-    const userData = await serviceUtils.getUserByToken(req);
+    const userData = req.user;
 
     if (userData.role == "A") {
       return await this.prisma.user.findFirst({ where: { id: parseInt(req.params.id), status: "A" } });
@@ -54,7 +54,7 @@ class UserModel {
   }
 
   async update(req) {
-    const userData = await serviceUtils.getUserByToken(req);
+    const userData = req.user;
 
     if (userData.role == "A") {
       if (req.body.password) {
@@ -127,30 +127,24 @@ class UserModel {
   }
 
   async delete(req) {
-    const userData = await serviceUtils.getUserByToken(req);
+    const userData = req.user;
 
-    if (userData.role == "A" && (req.body.userId == "" || req.body.userId == null)) {
-      throw new Error("UserId is missing");
-    }
-
-    if (userData.role == "A" && req.body.userId) {
-      await this.prisma.user.update({
-        where: {
-          id: parseInt(req.body.userId)
-        },
-        data: {
-          status: "D"
-        }
-      });
-    }
-    if (userData.role == "O" || userData.role == "P") {
       await this.prisma.user.update({
         where: { id: userData.id },
         data: {
           status: "D"
         }
       });
-    }
+
+  }
+  async deleteById(req) {
+  
+      await this.prisma.user.update({
+        where: { id: parseInt(req.params.id) },
+        data: {
+          status: "D"
+        }
+      });
 
   }
 }
