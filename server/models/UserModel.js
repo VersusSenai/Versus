@@ -55,9 +55,8 @@ class UserModel {
 
   async update(req) {
     const userData = req.user;
-
-    if (userData.role == "A") {
-      if (req.body.password) {
+    console.log(req.user)
+    if((userData.id == req.body.id && req.body.password) || userData.role == "A"){
         const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS));
         return await this.prisma.user.update({
           where: { id: parseInt(req.body.id) },
@@ -75,12 +74,12 @@ class UserModel {
             id: true
           }
         });
-      } else {
+    }else if((userData.id == req.id.id && req.body.password == null) || userData.role == "A"){
         return await this.prisma.user.update({
           where: { id: parseInt(req.body.id) },
           data: {
-            username: req.body.username,
             email: req.body.email,
+            username: req.body.username,
             role: req.body.role,
             status: req.body.status
           },
@@ -91,39 +90,10 @@ class UserModel {
             id: true
           }
         });
-      }
     }
-    if (userData.role == "P" || userData.role == "O") {
-      if (req.body.password) {
-        const hash = bcrypt.hashSync(req.body.password, parseInt(process.env.SALT_ROUNDS));
-        return await this.prisma.user.update({
-          where: { id: parseInt(userData.id), status: "A" },
-          data: {
-            username: req.body.username,
-            password: hash
-          },
-          select: {
-            username: true,
-            email: true,
-            role: true,
-            id: true
-          }
-        });
-      } else {
-        return await this.prisma.user.update({
-          where: { id: parseInt(userData.id), status: "A" },
-          data: {
-            username: req.body.username,
-          },
-          select: {
-            username: true,
-            email: true,
-            role: true,
-            id: true
-          }
-        });
-      }
-    }
+
+
+
   }
 
   async delete(req) {

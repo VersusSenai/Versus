@@ -52,31 +52,13 @@ class EventModel {
   };
 
   update = async (req) => {
-    const userData = await serviceUtils.getUserByToken(req);
-    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {
-      userId: userData.id, eventId: parseInt(req.params.id)
-    }})
 
-    if(userInscription == null && userData.role != "A"){
-      throw new Error("You are not owner of this event")
-    }
-    if(userData.role == "A"){
     return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
         ...req.body
       }
     })
-    }
 
-    if(userInscription.role == "O"){
-    return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
-      data:{
-        ...req.body
-      }
-    })
-    }else{
-      throw new Error("User is not a Owner of this event")
-    }
   };
 
   inscribe = async (req) => {

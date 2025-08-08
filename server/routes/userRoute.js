@@ -135,6 +135,12 @@ userRoute.delete("/", verifyToken ,async (req, res) => {
  *   delete:
  *     summary: Deleta o usuário pelo Id
  *     tags: [Usuários]
+  *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       204:
  *         description: Usuário deletado

@@ -16,7 +16,14 @@ const isEventOwner = async (req, res, next) => {
             }})
 
     req.user = await util.getUserByToken(req)
-    if(req.user.role == "A"){
+    
+    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {
+          userId: req.user.id, eventId: parseInt(req.params.id)
+    }})
+    
+    
+    
+    if(req.user.role == "A" || userInscription.role == "O"){
         next()
 
     }else{

@@ -2,6 +2,7 @@ import eventModel from "../models/EventModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isOrganizer from "../middlewares/organizerMiddleware.js";
+import isEventOwner from "../middlewares/eventOwnerMiddleware.js";
 
 const eventRoute = express.Router();
 
@@ -117,7 +118,7 @@ eventRoute.post("/", isOrganizer ,verifyToken, async (req, res) => {
  *       400:
  *         description: Erro na atualização
  */
-eventRoute.put("/:id", verifyToken, async (req, res) => {
+eventRoute.put("/:id", isEventOwner, async (req, res) => {
   try {
     const updated = await eventModel.update(req);
     res.status(200).json(updated);
