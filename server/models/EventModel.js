@@ -1,28 +1,25 @@
-
 import { EventRole, PrismaClient } from '@prisma/client';
-import serviceUtils from './util.js';
-const prisma = new PrismaClient();
+import serviceUtils from '../services/util.js';
 
-const eventService = {
+class EventModel {
+  constructor() {
+    this.prisma = new PrismaClient();
+  }
 
-  getAll: async (req) => {
+  getAll = async (req) => {
+    return await this.prisma.event.findMany();
+  };
 
-    return await prisma.event.findMany();
-  },
-
-  getById: async (req) => {
-    return await prisma.event.findUnique({
+  getById = async (req) => {
+    return await this.prisma.event.findUnique({
       where: { id: parseInt(req.params.id) },
     }).catch(e=>{
-      
       throw new Error("Event not found");
     });
-  },
+  };
 
-  create: async (req) => {
-
+  create = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
-
     const now = new Date();
 
     if(now > Date.parse(req.body.startDate)){
@@ -41,155 +38,138 @@ const eventService = {
     }
     
     if(userData.role == "O" || userData.role == "A"){
-      const newEvent = await prisma.event.create({
-        
+      const newEvent = await this.prisma.event.create({
         data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
           create:[
             {userId: userData.id, status: "C", role: "O"}
           ]
         }},
       });
-  
       return newEvent;
     }else{
       throw new Error("user is not a Event Organizer")
     }
-    
+  };
 
-  },
-
-  update: async (req) => {
+  update = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
-
-    const userInscription = await prisma.eventInscriptions.findFirst({where: {
+    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {
       userId: userData.id, eventId: parseInt(req.params.id)
     }})
-
 
     if(userInscription == null && userData.role != "A"){
       throw new Error("You are not owner of this event")
     }
     if(userData.role == "A"){
-    return await prisma.event.update({where: {id: parseInt(req.params.id)},
+    return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
         ...req.body
       }
-      
     })
     }
 
     if(userInscription.role == "O"){
-    return await prisma.event.update({where: {id: parseInt(req.params.id)},
+    return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
         ...req.body
       }
-      
     })
     }else{
-        throw new Error("User is not a Owner of this event")
-
+      throw new Error("User is not a Owner of this event")
     }
-    
+  };
 
+  inscribe = async (req) => {
+    const userData = await serviceUtils.getUserByToken(req);
+    const eventId = parseInt(req.params.id);
+    if (isNaN(eventId)) throw new Error("Invalid event ID");
 
-  },
-inscribe: async (req) => {
-  const userData = await serviceUtils.getUserByToken(req);
-
-  const eventId = parseInt(req.params.id);
-  if (isNaN(eventId)) throw new Error("Invalid event ID");
-
-  const event = await prisma.event.findFirst({ where: { id: eventId } });
-  if (!event) throw new Error("Event not found");
-  if(event.keysQuantity != null){
-    throw new Error("Event already started");
-  }
-
-  const isUserAlreadyInscribed = await prisma.eventInscriptions.findFirst({
-    where: {
-      userId: userData.id,
-      eventId: eventId,
-    },
-  });
-
-  if (isUserAlreadyInscribed) {
-    throw new Error("User already inscribed");
-  }
-
-  const teamId = req.body.teamId ? parseInt(req.body.teamId) : null;
-
-  if (teamId != null && !isNaN(teamId)) {
-    const team = await prisma.team.findFirst({ where: { id: teamId } });
-
-    if (!team) {
-      throw new Error("Team does not exist");
+    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+    if (!event) throw new Error("Event not found");
+    if(event.keysQuantity != null){
+      throw new Error("Event already started");
     }
 
-    if (team.ownerId === userData.id) {
-      return prisma.eventInscriptions.create({
-        data: {
-          teamId: team.id,
-          eventId: eventId,
-        },
-      });
-    } else {
-      throw new Error("You are not the owner of this team");
+    const isUserAlreadyInscribed = await this.prisma.eventInscriptions.findFirst({
+      where: {
+        userId: userData.id,
+        eventId: eventId,
+      },
+    });
+
+    if (isUserAlreadyInscribed) {
+      throw new Error("User already inscribed");
     }
-  }
 
-  // Caso seja inscrição individual
-  return prisma.eventInscriptions.create({
-    data: {
-      userId: userData.id,
-      eventId: eventId,
-    },
-  });
-},
+    const teamId = req.body.teamId ? parseInt(req.body.teamId) : null;
 
+    if (teamId != null && !isNaN(teamId)) {
+      const team = await this.prisma.team.findFirst({ where: { id: teamId } });
 
-  delete: async (req) => {
+      if (!team) {
+        throw new Error("Team does not exist");
+      }
+
+      if (team.ownerId === userData.id) {
+        return this.prisma.eventInscriptions.create({
+          data: {
+            teamId: team.id,
+            eventId: eventId,
+          },
+        });
+      } else {
+        throw new Error("You are not the owner of this team");
+      }
+    }
+
+    // Caso seja inscrição individual
+    return this.prisma.eventInscriptions.create({
+      data: {
+        userId: userData.id,
+        eventId: eventId,
+      },
+    });
+  };
+
+  delete = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
 
-    const userInscription = await prisma.eventInscriptions.findFirst({where: {
+    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {
       userId: userData.id, eventId: parseInt(req.params.id)
     }})
 
-
-
     if(userData.role == "A"){
-    return await prisma.event.delete({where: {id: parseInt(req.params.id)},
-    })
+      return await this.prisma.event.delete({where: {id: parseInt(req.params.id)},
+      })
     }
 
     if(userInscription.role == "O"){
-    return await prisma.event.delete({where: {id: parseInt(req.params.id)},
-
-    })
+      return await this.prisma.event.delete({where: {id: parseInt(req.params.id)},
+      })
     }else{
         throw new Error("User is not a Owner of this event")
-
     }
-    
-  },
-  unsubscribe: async (req) => {
+  };
+
+  unsubscribe = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
     const eventId = parseInt(req.params.id);
     const isAdmin = userData.role === "A";
     const isOwner = userData.role === "O";
     const isPlayer = userData.role === "P";
 
-    const event = await prisma.event.findFirst({ where: { id: eventId } });
+    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
     if (!event) throw new Error("Event not found");
 
     const isMultiplayer = event.multiplayer;
 
-    const userInscriptionByToken = await prisma.eventInscriptions.findFirst({
+    const userInscriptionByToken = await this.prisma.eventInscriptions.findFirst({
       where: isMultiplayer
         ? { eventId, teamId: userData.teamId }
         : { eventId, userId: userData.id },
     });
 
-    const playersInscribeds = await prisma.eventInscriptions.count({ where: { eventId } });
+    const playersInscribeds = await this.prisma.eventInscriptions.count({ where: { eventId } });
 
     if (!userInscriptionByToken && !isAdmin) {
       throw new Error("You are not inscribed in this event");
@@ -198,7 +178,7 @@ inscribe: async (req) => {
     const reqId = parseInt(req.body.userId); 
 
     if (req.body.userId != null && req.body.userId !== "" && (isAdmin || isOwner)) {
-      const userInscriptionByReqId = await prisma.eventInscriptions.findFirst({
+      const userInscriptionByReqId = await this.prisma.eventInscriptions.findFirst({
         where: isMultiplayer
           ? { eventId, teamId: reqId }
           : { eventId, userId: reqId },
@@ -209,9 +189,9 @@ inscribe: async (req) => {
       }
 
       if (isAdmin) {
-        return await prisma.$transaction([
-          prisma.eventInscriptions.delete({ where: { id: userInscriptionByReqId.id } }),
-          prisma.event.update({
+        return await this.prisma.$transaction([
+          this.prisma.eventInscriptions.delete({ where: { id: userInscriptionByReqId.id } }),
+          this.prisma.event.update({
             where: { id: eventId },
             data: { maxPlayers: playersInscribeds + 1 },
           }),
@@ -229,25 +209,23 @@ inscribe: async (req) => {
           throw new Error("An owner cannot unsubscribe itself");
         }
 
-        return await prisma.eventInscriptions.delete({
+        return await this.prisma.eventInscriptions.delete({
           where: { id: userInscriptionByReqId.id },
         });
       }
     }
 
     if (isPlayer && userInscriptionByToken) {
-      return await prisma.eventInscriptions.delete({
+      return await this.prisma.eventInscriptions.delete({
         where: { id: userInscriptionByToken.id },
       });
     }
+  };
 
-  },
-
-
-  getAllInscriptions: async(req)=>{
+  getAllInscriptions = async(req)=>{
     const userData = await serviceUtils.getUserByToken(req);
-    const event = await prisma.event.findFirst({where: {id: parseInt(req.params.id)}})
-    const eventInscriptions = await prisma.eventInscriptions.findMany({where: {role: "O"} });
+    const event = await this.prisma.event.findFirst({where: {id: parseInt(req.params.id)}})
+    const eventInscriptions = await this.prisma.eventInscriptions.findMany({where: {role: "O"} });
     let isOwner = false;
     eventInscriptions.forEach(eventI=>{
       if(eventI.id == userData.id){
@@ -261,25 +239,25 @@ inscribe: async (req) => {
       throw new Error("Only the owner of this event can make this call");
     }
 
-    return await prisma.eventInscriptions.findMany({where: {eventId: parseInt(req.params.id), role: "P"},
-  select:{
-    id: true,
-    role: true,
-    user: {
-      select: {
+    return await this.prisma.eventInscriptions.findMany({where: {eventId: parseInt(req.params.id), role: "P"},
+      select:{
         id: true,
-        username: true,
-        email: true
+        role: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
+        }
       }
-    }
-  }});
-    
-  },
+    });
+  };
 
-  getMyInscriptions: async(req)=>{
-      const userData = await serviceUtils.getUserByToken(req);
+  getMyInscriptions = async(req)=>{
+    const userData = await serviceUtils.getUserByToken(req);
 
-      return await prisma.eventInscriptions.findMany({where: {userId: userData.id},
+    return await this.prisma.eventInscriptions.findMany({where: {userId: userData.id},
       select:{
         id:true,
         role: true,
@@ -288,25 +266,22 @@ inscribe: async (req) => {
             id: true,
             name: true,
             description: true,
-
           }
         }
-      }})
-  },
+      }
+    })
+  };
 
-  startEvent: async (req)=>{
-    
-    
+  startEvent = async (req)=>{
     const userData = await serviceUtils.getUserByToken(req);
-    const event = await prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
-    const inscriptions = await prisma.eventInscriptions.findMany({where:{eventId: event.id, role: "P"}});
-    const matchesAlreadyExists = await prisma.match.findMany({where: {eventId: event.id}})
+    const event = await this.prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
+    const inscriptions = await this.prisma.eventInscriptions.findMany({where:{eventId: event.id, role: "P"}});
+    const matchesAlreadyExists = await this.prisma.match.findMany({where: {eventId: event.id}})
 
     if(matchesAlreadyExists[0] != null){
       throw new Error("Event Already started");
-      
     }
-    const ownerInscrition = await prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId: event.id}});
+    const ownerInscrition = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId: event.id}});
     if(!ownerInscrition){
       throw new Error("You do not own this tournment");
     }
@@ -341,26 +316,26 @@ inscribe: async (req) => {
     const matches = [];
     let matchNumber =1;
     let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
-    await prisma.event.update({where: {id: eventId}, data:{
+    await this.prisma.event.update({where: {id: eventId}, data:{
       keysQuantity: totalRounds,
       matchsQuantity: total/2
-    }})      
+    }})      
     let Matchs = [];
     if(event.multiplayer == false){
       for (let i = 0; i < total; i += 2) {
         const firstUserId = inscriptions[i].userId;
         const secondUserId = inscriptions[i + 1].userId;
 
-            const match = await prisma.match.create({
-              data: {
-                eventId,
-                matchNumber: matchNumber++,
-                keyNumber: 1,
-                firstUserId,
-                secondUserId,
-                time: new Date(currentTime),
-              },
-                        select:{
+        const match = await this.prisma.match.create({
+          data: {
+            eventId,
+            matchNumber: matchNumber++,
+            keyNumber: 1,
+            firstUserId,
+            secondUserId,
+            time: new Date(currentTime),
+          },
+          select:{
             firstUser: {
               select: {
                 id: true,
@@ -388,53 +363,40 @@ inscribe: async (req) => {
               }
             },
             secondTeam: {
-               select:{
+              select:{
                 id:true,
                 name: true
               }
             },
-          
-          
- 
-              }
-            }).catch(e => {
-              throw new Error(e);
-            });
-            
-            matches.push(match);
-            
-            currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
           }
-          
-        }else{
-          
-          for (let i = 0; i < total; i += 2) {
-            const firstTeamId = inscriptions[i].teamId;
-            const secondTeamId = inscriptions[i + 1].teamId;
-                  
-            const match = await prisma.match.create({
-              data: {
-                eventId,
-                matchNumber: matchNumber++,
-                keyNumber: 1,
-                firstTeamId,
-                secondTeamId,
-                time: new Date(currentTime),
-              },
-            }).catch(e => {
-              throw new Error("Error while creating match");
-            });
-            
-            matches.push(match);
-            
-            currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
-          }
-          
-        }
-        return matches;  
+        }).catch(e => {
+          throw new Error(e);
+        });
+        matches.push(match);
+        currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
       }
-      
-    };
-    
-    export default eventService;
-    
+    }else{
+      for (let i = 0; i < total; i += 2) {
+        const firstTeamId = inscriptions[i].teamId;
+        const secondTeamId = inscriptions[i + 1].teamId;
+        const match = await this.prisma.match.create({
+          data: {
+            eventId,
+            matchNumber: matchNumber++,
+            keyNumber: 1,
+            firstTeamId,
+            secondTeamId,
+            time: new Date(currentTime),
+          },
+        }).catch(e => {
+          throw new Error("Error while creating match");
+        });
+        matches.push(match);
+        currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
+      }
+    }
+    return matches;
+  };
+};
+
+export default new EventModel();

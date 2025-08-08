@@ -1,4 +1,4 @@
-import matchService from "../services/matchs.js";
+import matchModel from "../models/MatchModel.js"
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 
@@ -29,7 +29,7 @@ const matchRoute = express.Router();
  *         description: Lista de partidas retornada com sucesso
  */
 matchRoute.get("/:id/match", async (req,res)=>{
-    return await matchService.getAll(req).then(r=>{
+    return await matchModel.getAll(req).then(r=>{
         res.status(200).json(r)
     })
 });
@@ -54,7 +54,7 @@ matchRoute.get("/:id/match", async (req,res)=>{
  *         description: Partida não encontrada
  */
 matchRoute.get("/:id", async (req, res)=>{
-    const data = await matchService.getById(req)
+    const data = await matchModel.getById(req)
     data != null? 
       res.status(200).json(data)
     :
@@ -84,7 +84,7 @@ matchRoute.get("/:id", async (req, res)=>{
  *         description: Erro ao criar a partida
  */
 matchRoute.post("/", async(req, res)=>{
-    await matchService.create(req).then(data =>{
+    await matchModel.create(req).then(data =>{
         res.status(201).json(data)
     }).catch(e =>{
         res.status(400).json(e)
@@ -117,7 +117,7 @@ matchRoute.post("/", async(req, res)=>{
  *         description: Acesso negado
  */
 matchRoute.put("/", verifyToken, async(req,res)=>{
-    await matchService.update(req).then(data=>{
+    await matchModel.update(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
         res.status(400).json(e.message)
@@ -137,7 +137,7 @@ matchRoute.put("/", verifyToken, async(req,res)=>{
  *         description: Erro ao deletar a partida
  */
 matchRoute.delete("/", async(req,res)=>{
-    await matchService.delete(req).then(data=>{
+    await matchModel.delete(req).then(data=>{
         res.status(204).json(data)
     }).catch(e =>{
         res.status(400).json(e)
@@ -170,7 +170,7 @@ matchRoute.delete("/", async(req,res)=>{
  *         description: Erro ao declarar o vencedor
  */
 matchRoute.post("/:id/winner/:matchId", async(req,res)=>{
-    await matchService.declareWinner(req).then(data=>{
+    await matchModel.declareWinner(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
         res.status(400).json({ message: e.message })

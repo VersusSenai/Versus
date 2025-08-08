@@ -1,4 +1,4 @@
-import eventService from "../services/event.js"
+import eventModel from "../models/EventModel.js"
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 
@@ -22,7 +22,7 @@ const eventRoute = express.Router();
  *         description: Lista de eventos
  */
 eventRoute.get("/", async (req, res) => {
-  res.json(await eventService.getAll(req));
+  res.json(await eventModel.getAll(req));
 });
 
 /**
@@ -45,7 +45,7 @@ eventRoute.get("/", async (req, res) => {
  */
 eventRoute.get("/:id", async (req, res) => {
   try {
-    const event = await eventService.getById(req);
+    const event = await eventModel.getById(req);
     res.status(200).json(event);
   } catch (err) {
     res.status(404).json({ message: err.message });
@@ -79,7 +79,7 @@ eventRoute.get("/:id", async (req, res) => {
  */
 eventRoute.post("/", verifyToken, async (req, res) => {
   try {
-    const event = await eventService.create(req);
+    const event = await eventModel.create(req);
     res.status(201).json(event);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -118,7 +118,7 @@ eventRoute.post("/", verifyToken, async (req, res) => {
  */
 eventRoute.put("/:id", verifyToken, async (req, res) => {
   try {
-    const updated = await eventService.update(req);
+    const updated = await eventModel.update(req);
     res.status(200).json(updated);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -147,7 +147,7 @@ eventRoute.put("/:id", verifyToken, async (req, res) => {
  */
 eventRoute.delete("/:id", verifyToken, async (req, res) => {
   try {
-    await eventService.delete(req);
+    await eventModel.delete(req);
     res.status(204).end();
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -183,7 +183,7 @@ eventRoute.delete("/:id", verifyToken, async (req, res) => {
  */
 eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
   try {
-    const result = await eventService.inscribe(req);
+    const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -219,7 +219,7 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  */
 eventRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
   try {
-    const result = await eventService.unsubscribe(req);
+    const result = await eventModel.unsubscribe(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -248,7 +248,7 @@ eventRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
  */
 eventRoute.post("/:id/start", verifyToken, async (req, res) => {
   try {
-    const result = await eventService.startEvent(req);
+    const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -284,7 +284,7 @@ eventRoute.post("/:id/start", verifyToken, async (req, res) => {
 
 eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
   try {
-    const result = await eventService.getAllInscriptions(req);
+    const result = await eventModel.getAllInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -314,7 +314,7 @@ eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
 
 eventRoute.get("/inscriptions/me", verifyToken, async(req,res)=>{
    try {
-    const result = await eventService.getMyInscriptions(req);
+    const result = await eventModel.getMyInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });

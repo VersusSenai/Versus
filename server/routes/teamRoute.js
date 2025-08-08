@@ -1,5 +1,5 @@
 import express from "express";
-import teamService from "../services/team.js";
+import teamModel from "../models/TeamModel.js";
 import verifyToken from "../middlewares/authMiddleware.js";
 
 const teamRoute = express.Router();
@@ -22,7 +22,7 @@ const teamRoute = express.Router();
  *         description: Lista de times
  */
 teamRoute.get("/", async (req, res) => {
-  const teams = await teamService.getAll();
+  const teams = await teamModel.getAll();
   res.json(teams);
 });
 
@@ -47,7 +47,7 @@ teamRoute.get("/", async (req, res) => {
  */
 teamRoute.get("/:id", async (req, res) => {
   try {
-    const team = await teamService.getById(req);
+    const team = await teamModel.getById(req);
     res.status(200).json(team);
   } catch (err) {
     res.status(404).json({ message: err.message });
@@ -79,7 +79,7 @@ teamRoute.get("/:id", async (req, res) => {
  */
 teamRoute.post("/", verifyToken, async (req, res) => {
   try {
-    const team = await teamService.create(req);
+    const team = await teamModel.create(req);
     res.status(201).json(team);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -120,7 +120,7 @@ teamRoute.post("/", verifyToken, async (req, res) => {
  */
 teamRoute.put("/:id", verifyToken, async (req, res) => {
   try {
-    const updated = await teamService.update(req);
+    const updated = await teamModel.update(req);
     res.status(200).json(updated);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -152,7 +152,7 @@ teamRoute.put("/:id", verifyToken, async (req, res) => {
  */
 teamRoute.delete("/:id", verifyToken, async (req, res) => {
   try {
-    await teamService.delete(req);
+    await teamModel.delete(req);
     res.status(204).end();
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -182,7 +182,7 @@ teamRoute.delete("/:id", verifyToken, async (req, res) => {
  */
 teamRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
   try {
-    const resp = await teamService.inscribe(req);
+    const resp = await teamModel.inscribe(req);
     res.status(200).json(resp);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -221,7 +221,7 @@ teamRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  */
 teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
   try {
-    const resp = await teamService.unsubscribe(req);
+    const resp = await teamModel.unsubscribe(req);
     res.status(200).json(resp);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -246,7 +246,7 @@ teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
  *         description: Lista de usuários inscritos
  */
 teamRoute.get("/:id/inscriptions", async (req, res) => {
-  const inscriptions = await teamService.getAllInscriptions(req);
+  const inscriptions = await teamModel.getAllInscriptions(req);
   res.json(inscriptions);
 });
 

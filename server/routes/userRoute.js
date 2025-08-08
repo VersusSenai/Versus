@@ -1,4 +1,4 @@
-import userService from "../services/userServices.js"
+import userModel from "../models/UserModel.js"
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 
@@ -22,7 +22,7 @@ const userRoute = express.Router();
  *         description: Lista de usuários
  */
 userRoute.get("/", async (req, res) => {
-  await userService.getAll(req)
+  await userModel.getAll(req)
     .then(data => res.status(200).json(data))
     .catch(e => res.status(400).json(e.message));});
 
@@ -45,11 +45,10 @@ userRoute.get("/", async (req, res) => {
  *         description: Usuário não encontrado
  */
 userRoute.get("/:id", async (req, res) => {
-  const data = await userService.getById(req);
-
-  data != null
-    ? res.status(200).json(data)
-    : res.status(404).json({ message: "User not found" });
+  
+  
+  await userModel.getById(req).then(data => res.status(200).json(data))
+    .catch(e => res.status(404).json(e.message));
 });
 
 /**
@@ -75,7 +74,7 @@ userRoute.get("/:id", async (req, res) => {
  *         description: Erro na criação
  */
 userRoute.post("/", async (req, res) => {
-  await userService.create(req)
+  await userModel.create(req)
     .then(data => res.status(201).json(data))
     .catch(e => res.status(400).json(e));
 });
@@ -104,7 +103,7 @@ userRoute.post("/", async (req, res) => {
  *         description: Erro na atualização
  */
 userRoute.put("/", verifyToken, async (req, res) => {
-  await userService.update(req)
+  await userModel.update(req)
     .then(data => res.status(200).json(data))
     .catch(e => res.status(400).json(e.message));
 });
@@ -122,7 +121,7 @@ userRoute.put("/", verifyToken, async (req, res) => {
  *         description: Erro ao deletar
  */
 userRoute.delete("/", async (req, res) => {
-  await userService.delete(req)
+  await userModel.delete(req)
     .then(data => res.status(204).json(data))
     .catch(e => res.status(400).json(e));
 });

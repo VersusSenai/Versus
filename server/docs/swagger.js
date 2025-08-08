@@ -31,5 +31,7 @@ const options = {
   apis: ['./routes/*.js'], // Caminho para suas rotas com Swagger
 };
 
+
+
 const swaggerSpec = swaggerJSDoc(options);
 export default swaggerSpec;
