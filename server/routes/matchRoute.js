@@ -143,25 +143,79 @@ matchRoute.delete("/",verifyToken ,async(req,res)=>{
         res.status(400).json(e)
     })
 });
-
 /**
  * @swagger
  * /event/winner/{id}:
  *   post:
- *     summary: Declara o vencedor de uma partida
+ *     summary: Declara o vencedor de uma partida (apenas dono do evento ou admin)
  *     tags: [Partidas]
+ *     security:
+ *       - organizerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
- *           type: string
+ *           type: integer
  *         description: ID da partida
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - winnerId
+ *             properties:
+ *               winnerId:
+ *                 type: integer
+ *                 description: ID do usuário ou time vencedor
+ *                 example: 5
  *     responses:
- *       204:
+ *       200:
  *         description: Vencedor declarado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "event has ended"
  *       400:
  *         description: Erro ao declarar o vencedor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User is not owner of this event"
+ *       403:
+ *         description: Acesso não autorizado
+ *       404:
+ *         description: Partida não encontrada
+ *     description: |
+ *       Este endpoint permite ao organizador do evento declarar o vencedor de uma partida.
+ *       O sistema automaticamente:
+ *       - Atualiza o status dos participantes (vencedor/perdedor)
+ *       - Avança o vencedor para a próxima fase do torneio
+ *       - Se for a final, marca o evento como concluído
+ *       
+ *       Fluxos possíveis:
+ *       1. Se for a partida final:
+ *          - Marca o vencedor como campeão (status W)
+ *          - Marca o perdedor como vice (status L)
+ *          - Retorna mensagem "event has ended"
+ *       
+ *       2. Se houver vaga na próxima chave:
+ *          - Insere o vencedor na próxima partida
+ *          - Retorna os detalhes da próxima partida
+ *       
+ *       3. Se não houver vaga na próxima chave:
+ *          - Cria uma nova partida com o vencedor
+ *          - Retorna os detalhes da nova partida
  */
 matchRoute.post("/winner/:id", verifyToken ,async(req,res)=>{
     await matchModel.declareWinner(req).then(data=>{
