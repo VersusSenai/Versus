@@ -1,6 +1,7 @@
-import eventService from "../services/event.js"
+import eventModel from "../models/EventModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
+import isOrganizer from "../middlewares/organizerMiddleware.js";
 
 const eventRoute = express.Router();
 
@@ -8,7 +9,7 @@ const eventRoute = express.Router();
  * @swagger
  * tags:
  *   name: Eventos
- *   description: Gerenciamento de eventos
+ *   description: Endpoints para gerenciamento de torneios/eventos
  */
 
 /**
@@ -20,32 +21,43 @@ const eventRoute = express.Router();
  *     responses:
  *       200:
  *         description: Lista de eventos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
  */
-eventRoute.get("/", async (req, res) => {
-  res.json(await eventService.getAll(req));
+eventRoute.get("/", verifyToken, async (req, res) => {
+  res.json(await eventModel.getAll(req));
 });
 
 /**
  * @swagger
  * /event/{id}:
  *   get:
- *     summary: Retorna um evento pelo ID
+ *     summary: Obtém detalhes de um evento específico
  *     tags: [Eventos]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID do evento
  *     responses:
  *       200:
- *         description: Evento encontrado
+ *         description: Detalhes do evento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
  *       404:
  *         description: Evento não encontrado
  */
-eventRoute.get("/:id", async (req, res) => {
+eventRoute.get("/:id", verifyToken, async (req, res) => {
   try {
-    const event = await eventService.getById(req);
+    const event = await eventModel.getById(req);
     res.status(200).json(event);
   } catch (err) {
     res.status(404).json({ message: err.message });
@@ -56,30 +68,60 @@ eventRoute.get("/:id", async (req, res) => {
  * @swagger
  * /event:
  *   post:
- *     summary: Cria um novo evento
+ *     summary: Cria um novo evento (apenas Organizadores/Admins)
  *     tags: [Eventos]
  *     security:
- *       - cookieAuth: []
+ *       - organizerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             example:
- *               name: "Campeonato de Verão"
- *               startDate: "2025-07-01T10:00:00.000Z"
- *               maxPlayers: 8
- *               multiplayer: true
+ *             required:
+ *               - name
+ *               - startDate
+ *               - maxPlayers
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Torneio de Inverno"
+ *               description:
+ *                 type: string
+ *                 example: "Torneio sazonal de inverno"
+ *               maxPlayers:
+ *                 type: integer
+ *                 example: 8
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-07-01T10:00:00Z"
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-07-02T18:00:00Z"
+ *               model:
+ *                 type: string
+ *                 enum: [P, O]
+ *                 example: "P"
+ *               multiplayer:
+ *                 type: boolean
+ *                 example: true
  *     responses:
  *       201:
  *         description: Evento criado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
  *       400:
- *         description: Erro ao criar evento
+ *         description: Erro na validação dos dados
+ *       403:
+ *         description: Acesso não autorizado
  */
-eventRoute.post("/", verifyToken, async (req, res) => {
+eventRoute.post("/", isOrganizer, async (req, res) => {
   try {
-    const event = await eventService.create(req);
+    const event = await eventModel.create(req);
     res.status(201).json(event);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -90,35 +132,38 @@ eventRoute.post("/", verifyToken, async (req, res) => {
  * @swagger
  * /event/{id}:
  *   put:
- *     summary: Atualiza um evento
+ *     summary: Atualiza um evento (apenas dono ou admin)
  *     tags: [Eventos]
  *     security:
- *       - cookieAuth: []
+ *       - organizerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID do evento
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             example:
- *               name: "Campeonato Atualizado"
- *               startDate: "2025-07-05T12:00:00.000Z"
- *               maxPlayers: 16
+ *             $ref: '#/components/schemas/Event'
  *     responses:
  *       200:
  *         description: Evento atualizado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
  *       400:
  *         description: Erro na atualização
+ *       403:
+ *         description: Acesso não autorizado
  */
-eventRoute.put("/:id", verifyToken, async (req, res) => {
+eventRoute.put("/:id", isOrganizer, async (req, res) => {
   try {
-    const updated = await eventService.update(req);
+    const updated = await eventModel.update(req);
     res.status(200).json(updated);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -129,25 +174,28 @@ eventRoute.put("/:id", verifyToken, async (req, res) => {
  * @swagger
  * /event/{id}:
  *   delete:
- *     summary: Remove um evento
+ *     summary: Remove um evento (apenas dono ou admin)
  *     tags: [Eventos]
  *     security:
- *       - cookieAuth: []
+ *       - organizerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID do evento
  *     responses:
  *       204:
- *         description: Evento deletado
+ *         description: Evento removido com sucesso
  *       400:
- *         description: Erro na deleção
+ *         description: Erro ao remover evento
+ *       403:
+ *         description: Acesso não autorizado
  */
-eventRoute.delete("/:id", verifyToken, async (req, res) => {
+eventRoute.delete("/:id", isOrganizer, async (req, res) => {
   try {
-    await eventService.delete(req);
+    await eventModel.delete(req);
     res.status(204).end();
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -163,27 +211,37 @@ eventRoute.delete("/:id", verifyToken, async (req, res) => {
  *     security:
  *       - cookieAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID do evento
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             example:
- *               teamId: 3
+ *             properties:
+ *               teamId:
+ *                 type: integer
+ *                 description: ID do time (para eventos multiplayer)
+ *                 example: 3
  *     responses:
  *       200:
- *         description: Inscrição realizada
+ *         description: Inscrição realizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EventInscription'
  *       400:
  *         description: Erro na inscrição
+ *       403:
+ *         description: Evento já iniciado ou usuário já inscrito
  */
 eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
   try {
-    const result = await eventService.inscribe(req);
+    const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -193,33 +251,67 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
 /**
  * @swagger
  * /event/{id}/unsubscribe:
- *   post:
- *     summary: Remove a inscrição do usuário (ou de outro se for admin/organizador)
+ *   delete:
+ *     summary: Remove a própria inscrição do usuário no evento
  *     tags: [Eventos]
  *     security:
  *       - cookieAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             example:
- *               userId: 7
+ *         description: ID do evento
  *     responses:
  *       200:
- *         description: Inscrição removida
+ *         description: Inscrição removida com sucesso
  *       400:
  *         description: Erro ao remover inscrição
+ *       403:
+ *         description: Evento já iniciado ou usuário não inscrito
  */
-eventRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
+eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res) => {
   try {
-    const result = await eventService.unsubscribe(req);
+    const result = await eventModel.unsubscribe(req);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /event/{id}/unsubscribe/{userId}:
+ *   delete:
+ *     summary: Remove a inscrição de um usuário (apenas dono do evento ou admin)
+ *     tags: [Eventos]
+ *     security:
+ *       - organizerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do evento
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do usuário a ser removido
+ *     responses:
+ *       200:
+ *         description: Inscrição removida com sucesso
+ *       400:
+ *         description: Erro ao remover inscrição
+ *       403:
+ *         description: Acesso não autorizado ou evento já iniciado
+ */
+eventRoute.delete("/:id/unsubscribe/:userId", verifyToken, async (req, res) => {
+  try {
+    const result = await eventModel.unsubscribeByUserId(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -230,66 +322,77 @@ eventRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
  * @swagger
  * /event/{id}/start:
  *   post:
- *     summary: Inicia o evento e gera os confrontos
+ *     summary: Inicia o evento e gera os confrontos (apenas dono ou admin)
  *     tags: [Eventos]
  *     security:
- *       - cookieAuth: []
+ *       - organizerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Confrontos gerados
- *       400:
- *         description: Erro ao iniciar evento
- */
-eventRoute.post("/:id/start", verifyToken, async (req, res) => {
-  try {
-    const result = await eventService.startEvent(req);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-/**
- * @swagger
- * /event/{id}/inscriptions:
- *   get:
- *     summary: Lista todas as inscrições de um evento
- *     tags: [Eventos]
- *     security:
- *       - cookieAuth: []
- *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
  *         description: ID do evento
  *     responses:
  *       200:
- *         description: Lista de inscrições do evento
+ *         description: Confrontos gerados com sucesso
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 type: object
+ *                 $ref: '#/components/schemas/Match'
  *       400:
- *         description: Erro ao buscar inscrições
+ *         description: Erro ao iniciar evento
+ *       403:
+ *         description: Acesso não autorizado
  */
-
-eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
+eventRoute.post("/:id/start", isOrganizer, async (req, res) => {
   try {
-    const result = await eventService.getAllInscriptions(req);
+    const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-})
+});
+
+/**
+ * @swagger
+ * /event/{id}/inscriptions:
+ *   get:
+ *     summary: Lista todas as inscrições de um evento (apenas dono ou admin)
+ *     tags: [Eventos]
+ *     security:
+ *       - organizerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do evento
+ *     responses:
+ *       200:
+ *         description: Lista de inscrições
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/EventInscription'
+ *       400:
+ *         description: Erro ao buscar inscrições
+ *       403:
+ *         description: Acesso não autorizado
+ */
+eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res) => {
+  try {
+    const result = await eventModel.getAllInscriptions(req);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
 /**
  * @swagger
@@ -307,19 +410,17 @@ eventRoute.get("/:id/inscriptions", verifyToken, async(req,res)=>{
  *             schema:
  *               type: array
  *               items:
- *                 type: object
+ *                 $ref: '#/components/schemas/EventInscription'
  *       400:
- *         description: Erro ao buscar inscrições do usuário
+ *         description: Erro ao buscar inscrições
  */
-
-eventRoute.get("/inscriptions/me", verifyToken, async(req,res)=>{
-   try {
-    const result = await eventService.getMyInscriptions(req);
+eventRoute.get("/inscriptions/me", verifyToken, async (req, res) => {
+  try {
+    const result = await eventModel.getMyInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-})
-
+});
 
 export default eventRoute;

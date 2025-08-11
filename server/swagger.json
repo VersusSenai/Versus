@@ -1,0 +1,1019 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Versus Api",
+    "version": "1.0.0",
+    "description": "Documentação do sistema de torneios Versus"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "token"
+      }
+    }
+  },
+  "security": [
+    {
+      "cookieAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Realiza login e retorna um token de autenticação via cookie",
+        "tags": [
+          "Autenticação"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "usuario@email.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "senha123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token gerado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "token gerado com sucesso"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro de autenticação"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Realiza logout do usuário removendo o cookie",
+        "tags": [
+          "Autenticação"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "logout with success"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/event": {
+      "get": {
+        "summary": "Lista todos os eventos",
+        "tags": [
+          "Eventos"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de eventos"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria um novo evento",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "Campeonato de Verão",
+                  "startDate": "2025-07-01T10:00:00.000Z",
+                  "maxPlayers": 8,
+                  "multiplayer": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Evento criado com sucesso"
+          },
+          "400": {
+            "description": "Erro ao criar evento"
+          }
+        }
+      }
+    },
+    "/event/{id}": {
+      "get": {
+        "summary": "Retorna um evento pelo ID",
+        "tags": [
+          "Eventos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evento encontrado"
+          },
+          "404": {
+            "description": "Evento não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualiza um evento",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "Campeonato Atualizado",
+                  "startDate": "2025-07-05T12:00:00.000Z",
+                  "maxPlayers": 16
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evento atualizado"
+          },
+          "400": {
+            "description": "Erro na atualização"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove um evento",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Evento deletado"
+          },
+          "400": {
+            "description": "Erro na deleção"
+          }
+        }
+      }
+    },
+    "/event/{id}/inscribe": {
+      "post": {
+        "summary": "Inscreve o usuário logado no evento",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "teamId": 3
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inscrição realizada"
+          },
+          "400": {
+            "description": "Erro na inscrição"
+          }
+        }
+      }
+    },
+    "/event/{id}/unsubscribe": {
+      "post": {
+        "summary": "Remove a inscrição do usuário (ou de outro se for admin/organizador)",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "userId": 7
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inscrição removida"
+          },
+          "400": {
+            "description": "Erro ao remover inscrição"
+          }
+        }
+      }
+    },
+    "/event/{id}/start": {
+      "post": {
+        "summary": "Inicia o evento e gera os confrontos",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confrontos gerados"
+          },
+          "400": {
+            "description": "Erro ao iniciar evento"
+          }
+        }
+      }
+    },
+    "/event/{id}/inscriptions": {
+      "get": {
+        "summary": "Lista todas as inscrições de um evento",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID do evento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de inscrições do evento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro ao buscar inscrições"
+          }
+        }
+      }
+    },
+    "/event/inscriptions/me": {
+      "get": {
+        "summary": "Lista as inscrições do usuário logado",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de inscrições do usuário",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro ao buscar inscrições do usuário"
+          }
+        }
+      }
+    },
+    "/event/{id}/match": {
+      "get": {
+        "summary": "Retorna todas as partidas de um evento",
+        "tags": [
+          "Partidas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID do evento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidas retornada com sucesso"
+          }
+        }
+      }
+    },
+    "/event/match/{id}": {
+      "get": {
+        "summary": "Retorna uma partida pelo ID",
+        "tags": [
+          "Partidas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID da partida"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partida encontrada"
+          },
+          "404": {
+            "description": "Partida não encontrada"
+          }
+        }
+      }
+    },
+    "/event/match": {
+      "post": {
+        "summary": "Cria uma nova partida",
+        "tags": [
+          "Partidas"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "teamA": "123",
+                  "teamB": "456",
+                  "eventId": "789"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Partida criada com sucesso"
+          },
+          "400": {
+            "description": "Erro ao criar a partida"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualiza uma partida",
+        "tags": [
+          "Partidas"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "id": "match123",
+                  "status": "completed"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Partida atualizada com sucesso"
+          },
+          "400": {
+            "description": "Erro ao atualizar a partida"
+          },
+          "403": {
+            "description": "Acesso negado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deleta uma partida",
+        "tags": [
+          "Partidas"
+        ],
+        "responses": {
+          "204": {
+            "description": "Partida deletada com sucesso"
+          },
+          "400": {
+            "description": "Erro ao deletar a partida"
+          }
+        }
+      }
+    },
+    "/event/{id}/winner/{matchId}": {
+      "post": {
+        "summary": "Declara o vencedor de uma partida",
+        "tags": [
+          "Partidas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID do evento"
+          },
+          {
+            "name": "matchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID da partida"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Vencedor declarado com sucesso"
+          },
+          "400": {
+            "description": "Erro ao declarar o vencedor"
+          }
+        }
+      }
+    },
+    "/team": {
+      "get": {
+        "summary": "Lista todos os times",
+        "tags": [
+          "Times"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de times"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria um novo time",
+        "tags": [
+          "Times"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "Time Alpha",
+                  "description": "Time para competição local"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Time criado com sucesso"
+          },
+          "400": {
+            "description": "Erro ao criar time"
+          }
+        }
+      }
+    },
+    "/team/{id}": {
+      "get": {
+        "summary": "Retorna um time pelo ID",
+        "tags": [
+          "Times"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do time",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time encontrado"
+          },
+          "404": {
+            "description": "Time não encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualiza um time pelo ID",
+        "tags": [
+          "Times"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do time",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "Time Alpha Atualizado",
+                  "description": "Descrição atualizada"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Time atualizado"
+          },
+          "400": {
+            "description": "Erro na atualização"
+          },
+          "403": {
+            "description": "Sem permissão para editar"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deleta um time pelo ID",
+        "tags": [
+          "Times"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do time",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Time deletado com sucesso"
+          },
+          "400": {
+            "description": "Erro ao deletar"
+          },
+          "403": {
+            "description": "Sem permissão para deletar"
+          }
+        }
+      }
+    },
+    "/team/{id}/inscribe": {
+      "post": {
+        "summary": "Inscreve o usuário logado no time",
+        "tags": [
+          "Times"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do time",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário inscrito no time"
+          },
+          "400": {
+            "description": "Erro ao inscrever"
+          }
+        }
+      }
+    },
+    "/team/{id}/unsubscribe": {
+      "post": {
+        "summary": "Remove inscrição do usuário no time",
+        "tags": [
+          "Times"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do time",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "userId": 5
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inscrição removida"
+          },
+          "400": {
+            "description": "Erro ao remover inscrição"
+          },
+          "403": {
+            "description": "Sem permissão para remover inscrição de outro usuário"
+          }
+        }
+      }
+    },
+    "/team/{id}/inscriptions": {
+      "get": {
+        "summary": "Lista todos os usuários inscritos no time",
+        "tags": [
+          "Times"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do time",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuários inscritos"
+          }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "summary": "Retorna todos os usuários",
+        "tags": [
+          "Usuários"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuários"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria um novo usuário",
+        "tags": [
+          "Usuários"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "username": "joao",
+                  "email": "joao@email.com",
+                  "password": "123456"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado"
+          },
+          "400": {
+            "description": "Erro na criação"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualiza dados do usuário autenticado",
+        "tags": [
+          "Usuários"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "username": "joaoatualizado",
+                  "email": "joao@novoemail.com"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado"
+          },
+          "400": {
+            "description": "Erro na atualização"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deleta o usuário autenticado",
+        "tags": [
+          "Usuários"
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuário deletado"
+          },
+          "400": {
+            "description": "Erro ao deletar"
+          }
+        }
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "summary": "Retorna um usuário pelo ID",
+        "tags": [
+          "Usuários"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário encontrado"
+          },
+          "404": {
+            "description": "Usuário não encontrado"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Eventos",
+      "description": "Gerenciamento de eventos"
+    },
+    {
+      "name": "Partidas",
+      "description": "Endpoints relacionados a partidas (matchs)"
+    },
+    {
+      "name": "Times",
+      "description": "Gerenciamento de times"
+    },
+    {
+      "name": "Usuários",
+      "description": "Endpoints para gerenciamento de usuários"
+    }
+  ]
+}

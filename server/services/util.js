@@ -2,10 +2,10 @@ import { PrismaClient } from "@prisma/client"
 import jwt from "jsonwebtoken"
 const prisma = new PrismaClient();
 
-const serviceUtils = {
+class UtilService {
 
 
-    getUserByToken: async(req)=>{
+    getUserByToken= async(req)=>{
         
             const {token}= req.cookies
 
@@ -19,7 +19,7 @@ const serviceUtils = {
 
            return await prisma.user.findUnique({where: {id: data.id}, select:{
           
-                username:true, email:true, id:true, role:true
+                username:true, email:true, id:true, role:true, password: true
             
            }}).catch(e =>{
             throw Exception("User does not exists")
@@ -29,4 +29,4 @@ const serviceUtils = {
 
 }
 
-export default serviceUtils;
+export default new UtilService();

@@ -1,4 +1,4 @@
-import matchService from "../services/matchs.js";
+import matchModel from "../models/MatchModel.js"
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 
@@ -28,8 +28,8 @@ const matchRoute = express.Router();
  *       200:
  *         description: Lista de partidas retornada com sucesso
  */
-matchRoute.get("/:id/match", async (req,res)=>{
-    return await matchService.getAll(req).then(r=>{
+matchRoute.get("/:id/match",verifyToken ,async (req,res)=>{
+    return await matchModel.getAll(req).then(r=>{
         res.status(200).json(r)
     })
 });
@@ -53,8 +53,8 @@ matchRoute.get("/:id/match", async (req,res)=>{
  *       404:
  *         description: Partida não encontrada
  */
-matchRoute.get("/:id", async (req, res)=>{
-    const data = await matchService.getById(req)
+matchRoute.get("/:id",verifyToken ,async (req, res)=>{
+    const data = await matchModel.getById(req)
     data != null? 
       res.status(200).json(data)
     :
@@ -83,8 +83,8 @@ matchRoute.get("/:id", async (req, res)=>{
  *       400:
  *         description: Erro ao criar a partida
  */
-matchRoute.post("/", async(req, res)=>{
-    await matchService.create(req).then(data =>{
+matchRoute.post("/",verifyToken ,async(req, res)=>{
+    await matchModel.create(req).then(data =>{
         res.status(201).json(data)
     }).catch(e =>{
         res.status(400).json(e)
@@ -117,7 +117,7 @@ matchRoute.post("/", async(req, res)=>{
  *         description: Acesso negado
  */
 matchRoute.put("/", verifyToken, async(req,res)=>{
-    await matchService.update(req).then(data=>{
+    await matchModel.update(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
         res.status(400).json(e.message)
@@ -136,41 +136,89 @@ matchRoute.put("/", verifyToken, async(req,res)=>{
  *       400:
  *         description: Erro ao deletar a partida
  */
-matchRoute.delete("/", async(req,res)=>{
-    await matchService.delete(req).then(data=>{
+matchRoute.delete("/",verifyToken ,async(req,res)=>{
+    await matchModel.delete(req).then(data=>{
         res.status(204).json(data)
     }).catch(e =>{
         res.status(400).json(e)
     })
 });
-
 /**
  * @swagger
- * /event/{id}/winner/{matchId}:
+ * /event/winner/{id}:
  *   post:
- *     summary: Declara o vencedor de uma partida
+ *     summary: Declara o vencedor de uma partida (apenas dono do evento ou admin)
  *     tags: [Partidas]
+ *     security:
+ *       - organizerAuth: []
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
  *         schema:
- *           type: string
- *         description: ID do evento
- *       - name: matchId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
+ *           type: integer
  *         description: ID da partida
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - winnerId
+ *             properties:
+ *               winnerId:
+ *                 type: integer
+ *                 description: ID do usuário ou time vencedor
+ *                 example: 5
  *     responses:
- *       204:
+ *       200:
  *         description: Vencedor declarado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "event has ended"
  *       400:
  *         description: Erro ao declarar o vencedor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User is not owner of this event"
+ *       403:
+ *         description: Acesso não autorizado
+ *       404:
+ *         description: Partida não encontrada
+ *     description: |
+ *       Este endpoint permite ao organizador do evento declarar o vencedor de uma partida.
+ *       O sistema automaticamente:
+ *       - Atualiza o status dos participantes (vencedor/perdedor)
+ *       - Avança o vencedor para a próxima fase do torneio
+ *       - Se for a final, marca o evento como concluído
+ *       
+ *       Fluxos possíveis:
+ *       1. Se for a partida final:
+ *          - Marca o vencedor como campeão (status W)
+ *          - Marca o perdedor como vice (status L)
+ *          - Retorna mensagem "event has ended"
+ *       
+ *       2. Se houver vaga na próxima chave:
+ *          - Insere o vencedor na próxima partida
+ *          - Retorna os detalhes da próxima partida
+ *       
+ *       3. Se não houver vaga na próxima chave:
+ *          - Cria uma nova partida com o vencedor
+ *          - Retorna os detalhes da nova partida
  */
-matchRoute.post("/:id/winner/:matchId", async(req,res)=>{
-    await matchService.declareWinner(req).then(data=>{
+matchRoute.post("/winner/:id", verifyToken ,async(req,res)=>{
+    await matchModel.declareWinner(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
         res.status(400).json({ message: e.message })
