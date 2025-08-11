@@ -2,6 +2,7 @@ import { EventRole, PrismaClient } from '@prisma/client';
 import serviceUtils from '../services/util.js';
 
 class EventModel {
+  
   constructor() {
     this.prisma = new PrismaClient();
   }
@@ -9,6 +10,7 @@ class EventModel {
   getAll = async (req) => {
     return await this.prisma.event.findMany();
   };
+
 
   getById = async (req) => {
     return await this.prisma.event.findUnique({
@@ -263,6 +265,7 @@ class EventModel {
     if(matchesAlreadyExists[0] != null){
       throw new Error("Event Already started");
     }
+
     const ownerInscrition = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId: event.id}});
     if(!ownerInscrition){
       throw new Error("You do not own this tournment");
@@ -291,9 +294,6 @@ class EventModel {
       throw new Error('Inscriptions not sufficient');
     }
     
-    if (total % 2 !== 0) {
-      throw new Error(`The number of inscriptions is odd, and is not sufficient to start the event`);
-    }
     
     const matches = [];
     let matchNumber =1;
@@ -302,6 +302,7 @@ class EventModel {
       keysQuantity: totalRounds,
       matchsQuantity: total/2
     }})      
+
     let Matchs = [];
     if(event.multiplayer == false){
       for (let i = 0; i < total; i += 2) {
@@ -379,6 +380,15 @@ class EventModel {
     }
     return matches;
   };
+
+  //verifica se o usuario é dono do evento
+  isUserOwner = async (userId, eventId)=>{
+      
+    const ownerInscrition = await this.prisma.eventInscriptions.findFirst({where: {userId: userId, eventId: eventId, role: "O"}});
+
+    return ownerInscrition? true: false;
+  }
+
 };
 
 export default new EventModel();

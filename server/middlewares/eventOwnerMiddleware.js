@@ -5,7 +5,7 @@ import util from '../services/util';
 
 const isEventOwner = async (req, res, next) => {
 
-    const {token }= req.cookies
+    const {token}= req.cookies
 
     await jwt.verify(
         token,

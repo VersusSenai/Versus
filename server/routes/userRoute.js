@@ -81,6 +81,43 @@ userRoute.post("/", async (req, res) => {
 
 /**
  * @swagger
+ * /user/{id}:
+ *   put:
+ *     summary: Atualiza dados do usuário por id Apenas Admin
+ *     tags: [Administradores]
+*     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               username: "joaoatualizado"
+ *               email: "joao@novoemail.com"
+ *     responses:
+ *       200:
+ *         description: Usuário atualizado
+ *       400:
+ *         description: Erro na atualização
+ */
+userRoute.put("/:id", isAdmin, async (req, res) => {
+
+  await userModel.updateById(req)
+    .then(data => res.status(200).json(data))
+    .catch(e => res.status(400).json(e.message));
+
+});
+
+/**
+ * @swagger
  * /user:
  *   put:
  *     summary: Atualiza dados do usuário autenticado
@@ -103,11 +140,11 @@ userRoute.post("/", async (req, res) => {
  *         description: Erro na atualização
  */
 userRoute.put("/", verifyToken, async (req, res) => {
-    console.log(req.usuario)
 
   await userModel.update(req)
     .then(data => res.status(200).json(data))
     .catch(e => res.status(400).json(e.message));
+
 });
 
 /**
@@ -133,8 +170,8 @@ userRoute.delete("/", verifyToken ,async (req, res) => {
  * @swagger
  * /user/{id}:
  *   delete:
- *     summary: Deleta o usuário pelo Id
- *     tags: [Usuários]
+ *     summary: Deleta o usuário pelo por id Apenas Admin
+ *     tags: [Administradores]
   *     parameters:
  *       - name: id
  *         in: path
