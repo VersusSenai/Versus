@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import serviceUtils from '../services/util';
+import eventModel from './EventModel.js';
 
 class MatchModel {
   
@@ -119,186 +120,169 @@ class MatchModel {
 
   declareWinner = async (req) => {
 
-    const userData = await serviceUtils.getUserByToken(req);
-    const matches = await this.prisma.match.findMany({ where: { eventId: parseInt(req.params.id) } });;
-    const eventInscription = await this.prisma.eventInscriptions.findFirst({ where: { eventId: parseInt(req.params.id), userId: userData.id } })
+    const userData = req.user;
+    const match = await this.prisma.match.findFirst({where: {id: parseInt(req.params.id)}, include: {event: true}})
+    const eventId = match.event.id;
+    const isUserOwner = eventModel.isUserOwner(userData, match.event.id)
 
-    const matchToUpdate = await this.prisma.match.findFirst({ where: { id: parseInt(req.params.matchId) } })
-    const greaterMatch = this.findCurrentMatch(matches);
-
-    const event = await this.prisma.event.findFirst({ where: { id: greaterMatch.eventId } })
-    const totalPlayers = await this.prisma.eventInscriptions.count({ where: { eventId: event.id, role: 'P' } })
-
-    const isMultiplayer = event.multiplayer;
-    const winner = await this.prisma[isMultiplayer ? "team" : "user"].findFirst({
-      where: { id: parseInt(req.body.winnerId) },
-    });
-    const winnerId = winner.id;
-
-    const totalRounds = Math.log2(totalPlayers);
-
-
-    if (userData.role != "A" && userData.role != "O" && eventInscription.role != "O") {
-      throw new Error("you do not have permission to this");
+    if(!isUserOwner){
+      throw new Error("User is not owner of this event");
     }
-    if (matchToUpdate.winnerId != null) {
-      throw new Error("Match Already Decided");
+    if(!match.secondUserId){
+      throw new Error("This Match have only 1 player")
     }
-
-    let loserId = 0;
-    if (matchToUpdate.firstUserId === winnerId || matchToUpdate.firstTeamId === winnerId) {
-      loserId = isMultiplayer ? matchToUpdate.secondTeamId : matchToUpdate.secondUserId;
-    } else {
-      loserId = isMultiplayer ? matchToUpdate.firstTeamId : matchToUpdate.firstUserId;
-    }
-
-    await this.prisma.match.update({
-      where: { id: matchToUpdate.id },
-      data: {
-        winnerId: winnerId,
-        loserId: loserId
+    
+    const winnerId = parseInt(req.body.winnerId)
+    let loserId;
+    
+    if(!match.event.multiplayer){
+      if(winnerId == match.firstUserId){
+        loserId = match.secondUserId;
+      }else if(winnerId == match.secondUserId){
+        loserId = match.firstUserId;
+      }else{
+        throw new Error("Wrong WinnerId");
       }
-    })
+    }else{
+      if(winnerId == match.firstTeamId){
+        loserId = match.secondTeamId;
+      }else if(winnerId == match.secondTeamId){
+        loserId = match.firstTeamId;
+      }else{
+        throw new Error("Wrong WinnerId");
+        
+      }
+    }
+    
+    if(match.winnerId){
+      throw new Error("Match Already decided");
+      
+    }
+      
+    const inscriptions = await this.prisma.eventInscriptions.findMany({where:{eventId: match.event.id, role: "P"}});
 
-    let actualKey = this.findActualKey(totalRounds, totalPlayers, greaterMatch.matchNumber);
-    if (actualKey == -1 && (greaterMatch.secondUserId != null || greaterMatch.secondTeamId != null)) {
-      await this.prisma.event.update({ where: { id: event.id }, data: { winnerUserId: winnerId } })
+    const total = inscriptions.length
+    
+    const maxKeys = Math.log2(total);
 
-      return { message: "Event has ended", winnerId }
+    if(match.keyNumber == maxKeys){
+      if(!match.event.multiplayer){
+        this.prisma.$transaction(async(tx)=>{
+          
+          await tx.match.update({where: {id: match.id}, data:{
+            winnerId,loserId
+          }})
+
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+            status: "W"
+          }})
+  
+  
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+            status: "L"
+          }})
+  
+        })
+
+      }else{
+        
+        this.prisma.$transaction(async(tx)=>{
+          await tx.match.update({where: {id: match.id}, data:{
+            winnerId,loserId
+          }})
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+            status: "W"
+          }})
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+            status: "L"
+          }})
+          
+        })    
+      }
+      
+      return {msg: "event has ended"}
+
     }
 
+    const pendingMatchInActualKey = await this.prisma.match.findFirst({where: {eventId: match.event.id, secondUserId: null, secondTeamId: null, keyNumber: match.keyNumber+1}})
+
+    if(pendingMatchInActualKey ){
+      if(!match.event.multiplayer){
+        return this.prisma.$transaction(async (tx)=>{
 
 
-    if (
-      (isMultiplayer && greaterMatch.secondTeamId != null) ||
-      (!isMultiplayer && greaterMatch.secondUserId != null)) {
-      const newMatchData = {
-        matchNumber: greaterMatch.matchNumber + 1,
-        keyNumber: actualKey,
-        time: new Date(Date.now() + 10 * 60 * 1000),
-        event: { connect: { id: event.id } },
-      };
+          await tx.match.update({where: {id: match.id}, data:{
+            winnerId, loserId
+          }})
 
-      if (isMultiplayer) {
-        newMatchData.firstTeam = { connect: { id: parseInt(req.body.winnerId) } };
-      } else {
-        newMatchData.firstUser = { connect: { id: parseInt(req.body.winnerId) } };
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+            status: "L"
+          }})
+
+          return await tx.match.update({where:{ id: pendingMatchInActualKey.id}, data:{
+            secondUserId: winnerId          
+          }})
+        })
+     
+      }else{
+
+        return this.prisma.$transaction(async (tx)=>{
+          await tx.match.update({where: {id: match.id}, data:{
+            winnerId, loserId
+          }})
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+            status: "L"
+          }})
+
+          return await tx.match.update({where:{ id: pendingMatchInActualKey.id}, data:{
+            secondTeamId: winnerId          
+          }})
+        })
+
       }
-      return await this.prisma.match.create({
-        data: newMatchData,
-        select: {
-          id: true,
-          event: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          firstUser: {
-            select: {
-              id: true,
-              username: true,
-              email: true
-            }
-          },
-          secondUser: {
-            select: {
-              id: true,
-              username: true,
-              email: true
-            }
-          },
-          firstTeam: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          secondTeam: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
-      });
+    }else{
+      if(!match.event.multiplayer){
+        return this.prisma.$transaction(async (tx)=>{
 
-    } else {
-      const updateData = isMultiplayer
-        ? { secondTeamId: parseInt(req.body.winnerId) }
-        : { secondUserId: parseInt(req.body.winnerId) };
+          await tx.match.update({where: {id: match.id}, data:{
+            winnerId, loserId
+          }})
+          
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+            status: "L"
+          }})
 
-      return await this.prisma.match.update({
-        where: { id: greaterMatch.id },
-        data: updateData,
-        select: {
-          id: true,
-          event: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          firstUser: {
-            select: {
-              id: true,
-              username: true,
-              email: true
-            }
-          },
-          secondUser: {
-            select: {
-              id: true,
-              username: true,
-              email: true
-            }
-          },
-          firstTeam: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          secondTeam: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
-      });
+          return tx.prisma.match.create({data:{
+              eventId: match.event.id,
+              keyNumber: (match.keyNumber+1),
+              firstUserId: winnerId
+          }})
+        })
+        
+      }else{
+
+        return this.prisma.$transaction(async (tx)=>{
+          await tx.match.update({where: {id: match.id}, data:{
+            winnerId, loserId
+          }})
+
+          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+            status: "L"
+          }})
+
+          
+          return await tx.match.create({data:{
+              eventId: match.event.id,
+              keyNumber: (match.keyNumber+1),
+              firstTeamId: winnerId
+          }})
+        })
+
+      }
     }
   };
 
-  findCurrentMatch = (matches) => {
-    let matchNumber = 0;
-    let maior;
-    let i = 0
-    for (i; i < matches.length; i++) {
-      if (matches[i].matchNumber > matchNumber) {
-        matchNumber = matches[i].matchNumber
-        maior = matches[i];
-      }
-    }
-    return maior
-  }
 
-  findActualKey = (totalRounds, totalPlayers, matchNumber) => {
-    const matchIndex = matchNumber
-    let matchesSoFar = 0;
-
-    for (let round = 1; round <= totalRounds; round++) {
-      const matchesThisRound = totalPlayers / Math.pow(2, round);
-
-      if (matchIndex < matchesSoFar + matchesThisRound) {
-        return round;
-      }
-
-      matchesSoFar += matchesThisRound;
-    }
-
-    return -1;
-  }
 }
 
 export default new MatchModel();

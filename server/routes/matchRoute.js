@@ -146,18 +146,12 @@ matchRoute.delete("/",verifyToken ,async(req,res)=>{
 
 /**
  * @swagger
- * /event/{id}/winner/{matchId}:
+ * /event/winner/{id}:
  *   post:
  *     summary: Declara o vencedor de uma partida
  *     tags: [Partidas]
  *     parameters:
  *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do evento
- *       - name: matchId
  *         in: path
  *         required: true
  *         schema:
@@ -169,7 +163,7 @@ matchRoute.delete("/",verifyToken ,async(req,res)=>{
  *       400:
  *         description: Erro ao declarar o vencedor
  */
-matchRoute.post("/:id/winner/:matchId", verifyToken ,async(req,res)=>{
+matchRoute.post("/winner/:id", verifyToken ,async(req,res)=>{
     await matchModel.declareWinner(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{

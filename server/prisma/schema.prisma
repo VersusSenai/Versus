@@ -128,7 +128,6 @@ model TeamUsers {
 model Match {
   id          Int      @id @default(autoincrement())
   eventId     Int
-  matchNumber Int
   keyNumber   Int
   firstTeamId Int?
   secondTeamId Int?

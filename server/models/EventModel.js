@@ -292,7 +292,6 @@ class EventModel {
     
     
     const matches = [];
-    let matchNumber =1;
     let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
     await this.prisma.event.update({where: {id: eventId}, data:{
       keysQuantity: totalRounds,
@@ -308,7 +307,6 @@ class EventModel {
         const match = await this.prisma.match.create({
           data: {
             eventId,
-            matchNumber: matchNumber++,
             keyNumber: 1,
             firstUserId,
             secondUserId,
