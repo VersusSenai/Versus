@@ -143,6 +143,12 @@ class TeamModel {
       }
     });
   };
+
+  isTeamOwner = async (user, teamId)=>{
+    const isTeamOwner = await this.prisma.teamUsers.findFirst({where: {userId: user.id, teamId, role: "O"}})
+
+    
+  }
 }
 
 export default new TeamModel();

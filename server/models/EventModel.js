@@ -103,6 +103,8 @@ class EventModel {
           data: {
             teamId: team.id,
             eventId: eventId,
+            role: "P",
+            status: "O"
           },
         });
       } else {
@@ -115,6 +117,8 @@ class EventModel {
       data: {
         userId: userData.id,
         eventId: eventId,
+        role: "P",
+        status: "O"
       },
     });
 
@@ -150,7 +154,7 @@ class EventModel {
     }
 
     if(userInscription != null && userInscription.role == "P"){
-      await this.prisma.eventInscriptions.delete({where: {id: userInscription.id}})
+      await this.prisma.eventInscriptions.update({where: {id: userInscription.id}, data:{role: "R"}})
     }else{
       throw new Error("Owner cannot unsubscribe himself");
       
@@ -159,7 +163,6 @@ class EventModel {
   };
 
   unsubscribeByUserId = async (req) => {
-    const userData = req.user;
     const eventId = parseInt(req.params.id);
     const userId = parseInt(req.params.userId);
     const teamId = parseInt(req.params.teamId);
@@ -186,7 +189,7 @@ class EventModel {
 
       }
       if(teamInscription != null && teamInscription.role == "P"){
-        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}})
+        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}, data:{role: "R"}})
       }else{
         throw new Error("Owner cannot unsubscribe himself");
         
@@ -200,7 +203,7 @@ class EventModel {
 
     }
     if(userInscription != null && userInscription.role == "P"){
-      await this.prisma.eventInscriptions.delete({where: {id: userInscription.id}})
+      await this.prisma.eventInscriptions.delete({where: {id: userInscription.id}, data:{role: "R"} })
     }else{
       throw new Error("Owner cannot unsubscribe himself");
       
@@ -210,17 +213,8 @@ class EventModel {
 
   getAllInscriptions = async(req)=>{
     const userData = await serviceUtils.getUserByToken(req);
-    const event = await this.prisma.event.findFirst({where: {id: parseInt(req.params.id)}})
-    const eventInscriptions = await this.prisma.eventInscriptions.findMany({where: {role: "O"} });
-    let isOwner = false;
-    eventInscriptions.forEach(eventI=>{
-      if(eventI.id == userData.id){
-        isOwner = true;
-      }
-    })
-    if(userData.role == "A"){
-      isOwner = true;
-    }
+    const isOwner = this.isUserOwner(req.user, parseInt(req.params.id));
+
     if(!isOwner){
       throw new Error("Only the owner of this event can make this call");
     }

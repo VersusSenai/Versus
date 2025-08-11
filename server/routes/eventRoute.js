@@ -183,7 +183,7 @@ eventRoute.delete("/:id", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro na inscrição
  */
-eventRoute.delete("/:id/inscribe", verifyToken, async (req, res) => {
+eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
   try {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
@@ -258,7 +258,7 @@ eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro ao remover inscrição
  */
-eventRoute.post("/:id/unsubscribe/:userId", verifyToken, async (req, res) => {
+eventRoute.delete("/:id/unsubscribe/:userId", verifyToken, async (req, res) => {
   try {
     const result = await eventModel.unsubscribeByUserId(req);
     res.status(200).json(result);
@@ -323,7 +323,7 @@ eventRoute.post("/:id/start", verifyToken, async (req, res) => {
  *         description: Erro ao buscar inscrições
  */
 
-eventRoute.get("/:id/inscriptions", verifyToken, async (req, res) => {
+eventRoute.get("/:id/inscriptions", isOrganizer ,verifyToken, async (req, res) => {
   try {
     const result = await eventModel.getAllInscriptions(req);
     res.status(200).json(result);

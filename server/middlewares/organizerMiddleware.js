@@ -21,7 +21,7 @@ const isOrganizer = async (req, res, next) => {
 
     }else{
         res.status(401)
-        .json({msg: "User is not a Admin"})
+        .json({msg: "User is not a Event Organizer"})
     }
 };
 
