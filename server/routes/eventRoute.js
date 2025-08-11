@@ -183,7 +183,7 @@ eventRoute.delete("/:id", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro na inscrição
  */
-eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
+eventRoute.delete("/:id/inscribe", verifyToken, async (req, res) => {
   try {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
@@ -194,7 +194,7 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
 
 /**
  * @swagger
- * /event/{id}/unsubscribe:
+ * /event/{id}/unsubscribe/{userId}:
  *   post:
  *     summary: Remove a inscrição do usuário (ou de outro se for admin/organizador)
  *     tags: [Eventos]
@@ -202,6 +202,45 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  *       - cookieAuth: []
  *     parameters:
  *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Inscrição removida
+ *       400:
+ *         description: Erro ao remover inscrição
+ */
+eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res) => {
+  try {
+    const result = await eventModel.unsubscribe(req);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /event/{id}/unsubscribe/{userId}:
+ *   post:
+ *     summary: Remove a inscrição do usuário por Id (apenas admin ou dono do evento)
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: userId
  *         in: path
  *         required: true
  *         schema:
@@ -219,9 +258,9 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro ao remover inscrição
  */
-eventRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
+eventRoute.post("/:id/unsubscribe/:userId", verifyToken, async (req, res) => {
   try {
-    const result = await eventModel.unsubscribe(req);
+    const result = await eventModel.unsubscribeByUserId(req);
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });

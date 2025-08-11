@@ -27,10 +27,6 @@ class UtilService {
 
     }
 
-    getRoleByToken = async(req)=>{
-        
-    }
-
 }
 
 export default new UtilService();

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import serviceUtils from '../services/util';
 
 class MatchModel {
+  
   constructor() {
     this.prisma = new PrismaClient();
   }

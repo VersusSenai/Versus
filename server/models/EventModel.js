@@ -39,21 +39,24 @@ class EventModel {
       req.body.multiplayer = false
     }
     
-    if(userData.role == "O" || userData.role == "A"){
-      const newEvent = await this.prisma.event.create({
-        data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
-          create:[
-            {userId: userData.id, status: "C", role: "O"}
-          ]
-        }},
-      });
-      return newEvent;
-    }else{
-      throw new Error("user is not a Event Organizer")
-    }
+    const newEvent = await this.prisma.event.create({
+      data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
+        create:[
+          {userId: userData.id, status: "C", role: "O"}
+        ]
+      }},
+    });
+    
+    return newEvent;
+
+
   };
 
   update = async (req) => {
+    const isUserOwner = this.isUserOwner(req.user, parseInt(req.params.id))
+    if(!isUserOwner){
+      throw new Error("Only the owner of this event can update it");
+    }
 
     return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
@@ -64,11 +67,12 @@ class EventModel {
   };
 
   inscribe = async (req) => {
-    const userData = await serviceUtils.getUserByToken(req);
+
+    const userData = req.user;
     const eventId = parseInt(req.params.id);
-    if (isNaN(eventId)) throw new Error("Invalid event ID");
 
     const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+
     if (!event) throw new Error("Event not found");
     if(event.keysQuantity != null){
       throw new Error("Event already started");
@@ -113,97 +117,95 @@ class EventModel {
         eventId: eventId,
       },
     });
+
   };
 
   delete = async (req) => {
-    const userData = await serviceUtils.getUserByToken(req);
 
-    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {
-      userId: userData.id, eventId: parseInt(req.params.id)
-    }})
+    const isUserOwner = this.isUserOwner(req.user, parseInt(req.params.id));
 
-    if(userData.role == "A"){
-      return await this.prisma.event.delete({where: {id: parseInt(req.params.id)},
-      })
+    if(!isUserOwner){
+      throw new Error("User is not owner of this event");
     }
 
-    if(userInscription.role == "O"){
-      return await this.prisma.event.delete({where: {id: parseInt(req.params.id)},
-      })
-    }else{
-        throw new Error("User is not a Owner of this event")
-    }
-  };
+    return await this.prisma.event.delete({where: {id: parseInt(req.params.id)}});
+
+  }
 
   unsubscribe = async (req) => {
-    const userData = await serviceUtils.getUserByToken(req);
+    const userData = req.user;
     const eventId = parseInt(req.params.id);
-    const isAdmin = userData.role === "A";
-    const isOwner = userData.role === "O";
-    const isPlayer = userData.role === "P";
 
     const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+
     if (!event) throw new Error("Event not found");
-
-    const isMultiplayer = event.multiplayer;
-
-    const userInscriptionByToken = await this.prisma.eventInscriptions.findFirst({
-      where: isMultiplayer
-        ? { eventId, teamId: userData.teamId }
-        : { eventId, userId: userData.id },
-    });
-
-    const playersInscribeds = await this.prisma.eventInscriptions.count({ where: { eventId } });
-
-    if (!userInscriptionByToken && !isAdmin) {
-      throw new Error("You are not inscribed in this event");
+    if(event.keysQuantity != null){
+      throw new Error("Event already started");
     }
 
-    const reqId = parseInt(req.body.userId); 
+    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId}})
+    if(!userInscription){
+      throw new Error("User not inscribed");
 
-    if (req.body.userId != null && req.body.userId !== "" && (isAdmin || isOwner)) {
-      const userInscriptionByReqId = await this.prisma.eventInscriptions.findFirst({
-        where: isMultiplayer
-          ? { eventId, teamId: reqId }
-          : { eventId, userId: reqId },
-      });
-
-      if (!userInscriptionByReqId) {
-        throw new Error("This participant is not inscribed in this event");
-      }
-
-      if (isAdmin) {
-        return await this.prisma.$transaction([
-          this.prisma.eventInscriptions.delete({ where: { id: userInscriptionByReqId.id } }),
-          this.prisma.event.update({
-            where: { id: eventId },
-            data: { maxPlayers: playersInscribeds + 1 },
-          }),
-        ]);
-      }
-
-      if (isOwner) {
-        if (userInscriptionByToken.role !== "O") {
-          throw new Error("You are not the owner of this event");
-        }
-        if (
-          (isMultiplayer && userInscriptionByReqId.teamId === userData.teamId) ||
-          (!isMultiplayer && userInscriptionByReqId.userId === userData.id)
-        ) {
-          throw new Error("An owner cannot unsubscribe itself");
-        }
-
-        return await this.prisma.eventInscriptions.delete({
-          where: { id: userInscriptionByReqId.id },
-        });
-      }
     }
 
-    if (isPlayer && userInscriptionByToken) {
-      return await this.prisma.eventInscriptions.delete({
-        where: { id: userInscriptionByToken.id },
-      });
+    if(userInscription != null && userInscription.role == "P"){
+      await this.prisma.eventInscriptions.delete({where: {id: userInscription.id}})
+    }else{
+      throw new Error("Owner cannot unsubscribe himself");
+      
     }
+
+  };
+
+  unsubscribeByUserId = async (req) => {
+    const userData = req.user;
+    const eventId = parseInt(req.params.id);
+    const userId = parseInt(req.params.userId);
+    const teamId = parseInt(req.params.teamId);
+
+    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+
+    if (!event) throw new Error("Event not found");
+    if(event.keysQuantity != null){
+      throw new Error("Event already started");
+    }
+
+    const isUserOwner = this.isUserOwner(req.user, eventId);
+
+    if(!isUserOwner){
+      throw new Error("User is not Owner of this event");
+      
+    }
+
+    if(!isNaN(teamId) && teamId!= null){
+      const teamInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userId, eventId}})
+  
+      if(!teamInscription){
+      throw new Error("Team not inscribed");
+
+      }
+      if(teamInscription != null && teamInscription.role == "P"){
+        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}})
+      }else{
+        throw new Error("Owner cannot unsubscribe himself");
+        
+      }
+
+    }
+    const userInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userId, eventId}})
+    
+    if(!userInscription){
+      throw new Error("User not inscribed");
+
+    }
+    if(userInscription != null && userInscription.role == "P"){
+      await this.prisma.eventInscriptions.delete({where: {id: userInscription.id}})
+    }else{
+      throw new Error("Owner cannot unsubscribe himself");
+      
+    }
+
   };
 
   getAllInscriptions = async(req)=>{
@@ -381,12 +383,16 @@ class EventModel {
     return matches;
   };
 
-  //verifica se o usuario é dono do evento
-  isUserOwner = async (userId, eventId)=>{
+  //verifica se o user é dono do evento
+  isUserOwner = async (user, eventId)=>{
       
-    const ownerInscrition = await this.prisma.eventInscriptions.findFirst({where: {userId: userId, eventId: eventId, role: "O"}});
+    const ownerInscrition = await this.prisma.eventInscriptions.findFirst({where: {userId: user.id, eventId: eventId, role: "O"}});
 
-    return ownerInscrition? true: false;
+    if(ownerInscrition || user.role == "A"){
+      return true
+    }else{
+      return false
+    }
   }
 
 };
