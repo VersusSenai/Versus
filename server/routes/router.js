@@ -11,5 +11,4 @@ router.use("/event", eventRoute);
 router.use("/user", userRoute);
 router.use("/auth", authRoute);
 router.use("/team", teamRoute)
-
 export default router;

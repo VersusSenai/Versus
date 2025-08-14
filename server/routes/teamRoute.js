@@ -45,12 +45,12 @@ teamRoute.get("/",verifyToken ,async (req, res) => {
  *       404:
  *         description: Time não encontrado
  */
-teamRoute.get("/:id",verifyToken ,async (req, res) => {
+teamRoute.get("/:id",verifyToken ,async (req, res,next) => {
   try {
     const team = await teamModel.getById(req);
     res.status(200).json(team);
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -77,12 +77,12 @@ teamRoute.get("/:id",verifyToken ,async (req, res) => {
  *       400:
  *         description: Erro ao criar time
  */
-teamRoute.post("/", verifyToken, async (req, res) => {
+teamRoute.post("/", verifyToken, async (req, res, next) => {
   try {
     const team = await teamModel.create(req);
     res.status(201).json(team);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -118,12 +118,12 @@ teamRoute.post("/", verifyToken, async (req, res) => {
  *       403:
  *         description: Sem permissão para editar
  */
-teamRoute.put("/:id", verifyToken, async (req, res) => {
+teamRoute.put("/:id", verifyToken, async (req, res, next) => {
   try {
     const updated = await teamModel.update(req);
     res.status(200).json(updated);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -150,12 +150,12 @@ teamRoute.put("/:id", verifyToken, async (req, res) => {
  *       403:
  *         description: Sem permissão para deletar
  */
-teamRoute.delete("/:id", verifyToken, async (req, res) => {
+teamRoute.delete("/:id", verifyToken, async (req, res, next) => {
   try {
     await teamModel.delete(req);
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -180,12 +180,12 @@ teamRoute.delete("/:id", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro ao inscrever
  */
-teamRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
+teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
   try {
     const resp = await teamModel.inscribe(req);
     res.status(200).json(resp);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -219,12 +219,12 @@ teamRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  *       403:
  *         description: Sem permissão para remover inscrição de outro usuário
  */
-teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
+teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res, next) => {
   try {
     const resp = await teamModel.unsubscribe(req);
     res.status(200).json(resp);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -245,7 +245,7 @@ teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
  *       200:
  *         description: Lista de usuários inscritos
  */
-teamRoute.get("/:id/inscriptions",verifyToken ,async (req, res) => {
+teamRoute.get("/:id/inscriptions",verifyToken ,async (req, res, next) => {
   const inscriptions = await teamModel.getAllInscriptions(req);
   res.json(inscriptions);
 });
