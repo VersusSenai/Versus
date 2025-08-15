@@ -2,6 +2,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from "@prisma/client";
 import 'dotenv/config';
+import DataBaseException from '../exceptions/DataBaseException';
+import NotFoundException from '../exceptions/NotFoundException';
+import BadRequestException from '../exceptions/BadRequestException';
 
 
 const prisma = new PrismaClient()
@@ -15,17 +18,18 @@ class Auth {
             { where: { email }}
         ).catch(
             (err) => {
-                throw err;
+                throw new DataBaseException("Internal Server Error");
+                ;
             }
         );
 
         if (!registeredUser || registeredUser.status == "D")
-            throw new Error("User not found") ;
+            throw new NotFoundException("User not found") ;
 
     
         // Validar a SENHA do Usuário
         if (!bcrypt.compareSync(password, registeredUser.password) )
-            throw new Error("User email or password invalid") ;
+            throw new BadRequestException("User email or password invalid") ;
 
 
         if(registeredUser.id){

@@ -217,11 +217,11 @@ matchRoute.delete("/",verifyToken ,async(req,res)=>{
  *          - Cria uma nova partida com o vencedor
  *          - Retorna os detalhes da nova partida
  */
-matchRoute.post("/winner/:id", verifyToken ,async(req,res)=>{
+matchRoute.post("/winner/:id", verifyToken ,async(req,res, next)=>{
     await matchModel.declareWinner(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
-        res.status(400).json({ message: e.message })
+        next(e)
     })
 });
 

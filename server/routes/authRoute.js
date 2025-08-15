@@ -52,7 +52,7 @@ const authRoute = express.Router();
  *       400:
  *         description: Erro de autenticação
  */
-authRoute.post("/login", async (req, res) => {
+authRoute.post("/login", async (req, res, next) => {
   const cookieOptions = {
     secure: true,
     httpOnly: true,
@@ -61,7 +61,7 @@ authRoute.post("/login", async (req, res) => {
   };
 
   const resp = await auth.login(req).catch((err) => {
-    res.status(400).json(err.message);
+    next(err)
   });
 
   if (resp) {

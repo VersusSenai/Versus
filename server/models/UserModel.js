@@ -113,7 +113,11 @@ class UserModel {
 
         throw new ConflictException("Email or Username already in use");
 
-      }else{
+      }
+      else if (err.code === 'P2025') {
+        throw new NotFoundException("Match not found");
+      }
+      else{
         throw new DataBaseException("Error while updating user");
         
       }
@@ -158,7 +162,12 @@ class UserModel {
 
         throw new ConflictException("Email or Username already in use");
 
-      }else{
+      }
+      else if (err.code === 'P2025') {
+        throw new NotFoundException("Match not found");
+      }
+      
+      else{
         throw new DataBaseException("Error while updating user");
         
       }
