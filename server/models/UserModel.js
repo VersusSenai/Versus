@@ -64,6 +64,7 @@ class UserModel {
         status: "A",
       },
     }).then(r=>{
+
       return r
     }).catch(err=>{
       if(err.code == "P2002"){
