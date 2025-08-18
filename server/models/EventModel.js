@@ -90,6 +90,10 @@ class EventModel {
     if(event.keysQuantity != null){
       throw new ConflictException("Event already started");
     }
+    if(event.private){
+      throw new NotAllowedException("You need to get invited to inscribe in a Private Tournment");
+      
+    }
 
     if (event.multiplayer == true){
       const teamId = req.body.id ? parseInt(req.body.id) : null;
