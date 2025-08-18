@@ -44,14 +44,9 @@ class EventModel {
       throw new BadRequestException("Player quantity must be even")
     }
 
-    if(req.body.multiplayer == "true"){
-      req.body.multiplayer = true
-    }else{
-      req.body.multiplayer = false
-    }
     
     const newEvent = await this.prisma.event.create({
-      data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
+      data: {...req.body ,maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
         create:[
           {userId: userData.id, status: "C", role: "O", status: 'O'}
         ]
@@ -116,9 +111,13 @@ class EventModel {
           if (isTeamAlreadyInscribed) {
             throw new ConflictException("Team already inscribed");
           }
+          const userTeamInscription = await this.prisma.teamUsers.findFirst({where:{
+            teamId: team.id, userId: userData.id
+          }})
 
 
-          if (team.ownerId === userData.id) {
+
+          if (userTeamInscription.role == "O") {
             return this.prisma.eventInscriptions.create({
               data: {
                 teamId: team.id,
@@ -300,6 +299,11 @@ class EventModel {
   startEvent = async (req)=>{
     const userData = await serviceUtils.getUserByToken(req);
     const event = await this.prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
+    
+    if(!event){
+      throw new NotFoundException("Event not Found");      
+    }
+
     const inscriptions = await this.prisma.eventInscriptions.findMany({where:{eventId: event.id, role: "P"}});
     const matchesAlreadyExists = await this.prisma.match.findMany({where: {eventId: event.id}})
 
@@ -401,7 +405,6 @@ class EventModel {
         const match = await this.prisma.match.create({
           data: {
             eventId,
-            matchNumber: matchNumber++,
             keyNumber: 1,
             firstTeamId,
             secondTeamId,

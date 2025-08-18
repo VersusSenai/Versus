@@ -133,7 +133,7 @@ class MatchModel {
     if(!isUserOwner){
       throw new ConflictException("User is not owner of this event");
     }
-    if(!match.secondUserId){
+    if(!match.secondUserId && !match.secondTeamId){
       throw new ConflictException("This Match have only 1 player")
     }
     
@@ -200,10 +200,10 @@ class MatchModel {
           await tx.match.update({where: {id: match.id}, data:{
             winnerId,loserId
           }})
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+          await tx.eventInscriptions.update({where: {teamId_eventId: {teamId: loserId, eventId}}, data:{
             status: "L"
           }})
-          return await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+          return await tx.eventInscriptions.update({where: {team_eventId: {teamId: winnerId, eventId}}, data:{
             status: "W"
           }})
           
@@ -244,7 +244,7 @@ class MatchModel {
           await tx.match.update({where: {id: match.id}, data:{
             winnerId, loserId
           }})
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+          await tx.eventInscriptions.update({where: {teamId_eventId: {teamId: loserId, eventId}}, data:{
             status: "L"
           }})
 
@@ -285,7 +285,7 @@ class MatchModel {
             winnerId, loserId
           }})
 
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
+          await tx.eventInscriptions.update({where: {teamId_eventId: {teamId: loserId, eventId}}, data:{
             status: "L"
           }})
 

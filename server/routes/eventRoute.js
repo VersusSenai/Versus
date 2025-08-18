@@ -352,7 +352,9 @@ eventRoute.post("/:id/start", isOrganizer, async (req, res, next) => {
     const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
+    // next(err)
+        console.log(err)
+
   }
 });
 
