@@ -14,7 +14,6 @@ model User {
   password        String   @db.VarChar(255)
   role            Role
   registeredDate  DateTime @default(now()) @map("registered_date")
-  teams           Team[]
   eventInscriptions EventInscriptions[]
   teamUsers       TeamUsers[]
   status         UserStatus
@@ -69,7 +68,6 @@ model Team {
   ownerId        Int
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
-  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   teamUsers      TeamUsers[]
   EventInscriptions    EventInscriptions[]
   firstMatches   Match[] @relation("Match_firstTeam")
@@ -88,6 +86,7 @@ model EventInscriptions {
   event         Event    @relation(fields: [eventId], references: [id],  onDelete: Cascade)
   team           Team?  @relation(fields: [teamId], references: [id],  onDelete: Cascade)
   @@unique([userId, eventId])
+  @@unique([teamId, eventId])
 }
 
 enum InscriptionStatus {
@@ -109,10 +108,19 @@ enum EventRole{
 }
 
 enum TeamInscription{
+  //Okay
+  O
+  //Banned
+  B
+}
+
+enum TeamRole{
   //Admin
-  A
-  //User
-  U
+  A 
+  // Owner
+  O 
+  // Player
+  P
 }
 
 model TeamUsers {
@@ -120,10 +128,12 @@ model TeamUsers {
   userId          Int @unique
   teamId          Int
   inscriptionDate DateTime @default(now()) @map("inscription_date")
-  status         TeamInscription @default(U)
+  status         TeamInscription @default(O)
+  role            TeamRole @default(P)
   user           User @relation(fields: [userId], references: [id],  onDelete: Cascade)
   team           Team @relation(fields: [teamId], references: [id],  onDelete: Cascade)
 }
+
 
 model Match {
   id          Int      @id @default(autoincrement())

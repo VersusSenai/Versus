@@ -227,6 +227,94 @@ teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res, next) => {
     next(err)
   }
 });
+/**
+ * @swagger
+ * /team/{id}/unsubscribe/{userId}:
+ *   post:
+ *     summary: Remove inscrição do usuário no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: userId
+ *         in: path
+ *         description: ID do usuário a ser removido
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               userId: 5
+ *     responses:
+ *       200:
+ *         description: Inscrição removida
+ *       400:
+ *         description: Erro ao remover inscrição
+ *       403:
+ *         description: Sem permissão para remover inscrição de outro usuário
+ */
+teamRoute.post("/:id/unsubscribe/:userId", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.unsubscribeById(req);
+    res.status(200).json(resp);
+  } catch (err) {
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /team/{id}/update/{userId}:
+ *   post:
+ *     summary: Atualiza inscrição do usuário no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: userId
+ *         in: path
+ *         description: ID do usuário a ser removido
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               userId: 5
+ *     responses:
+ *       200:
+ *         description: Inscrição removida
+ *       400:
+ *         description: Erro ao remover inscrição
+ *       403:
+ *         description: Sem permissão para remover inscrição de outro usuário
+ */
+teamRoute.put("/:id/update/:userId", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.updateUserInscription(req);
+    res.status(200).json(resp);
+  } catch (err) {
+    next(err)
+  }
+});
 
 /**
  * @swagger
