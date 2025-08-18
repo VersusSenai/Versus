@@ -28,7 +28,7 @@ const eventRoute = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Event'
  */
-eventRoute.get("/", verifyToken, async (req, res) => {
+eventRoute.get("/", verifyToken, async (req, res, next) => {
   res.json(await eventModel.getAll(req));
 });
 
@@ -55,12 +55,12 @@ eventRoute.get("/", verifyToken, async (req, res) => {
  *       404:
  *         description: Evento não encontrado
  */
-eventRoute.get("/:id", verifyToken, async (req, res) => {
+eventRoute.get("/:id", verifyToken, async (req, res, next) => {
   try {
     const event = await eventModel.getById(req);
     res.status(200).json(event);
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -119,12 +119,12 @@ eventRoute.get("/:id", verifyToken, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.post("/", isOrganizer, async (req, res) => {
+eventRoute.post("/", isOrganizer, async (req, res, next) => {
   try {
     const event = await eventModel.create(req);
     res.status(201).json(event);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -161,12 +161,12 @@ eventRoute.post("/", isOrganizer, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.put("/:id", isOrganizer, async (req, res) => {
+eventRoute.put("/:id", isOrganizer, async (req, res, next) => {
   try {
     const updated = await eventModel.update(req);
     res.status(200).json(updated);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -193,7 +193,7 @@ eventRoute.put("/:id", isOrganizer, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.delete("/:id", isOrganizer, async (req, res) => {
+eventRoute.delete("/:id", isOrganizer, async (req, res, next) => {
   try {
     await eventModel.delete(req);
     res.status(204).end();
@@ -239,12 +239,12 @@ eventRoute.delete("/:id", isOrganizer, async (req, res) => {
  *       403:
  *         description: Evento já iniciado ou usuário já inscrito
  */
-eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
+eventRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
   try {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -271,12 +271,12 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  *       403:
  *         description: Evento já iniciado ou usuário não inscrito
  */
-eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res) => {
+eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res, next) => {
   try {
     const result = await eventModel.unsubscribe(req);
     res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -309,12 +309,12 @@ eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado ou evento já iniciado
  */
-eventRoute.delete("/:id/unsubscribe/:userId", verifyToken, async (req, res) => {
+eventRoute.delete("/:id/unsubscribe/:userId", verifyToken, async (req, res, next) => {
   try {
     const result = await eventModel.unsubscribeByUserId(req);
     res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -347,12 +347,12 @@ eventRoute.delete("/:id/unsubscribe/:userId", verifyToken, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.post("/:id/start", isOrganizer, async (req, res) => {
+eventRoute.post("/:id/start", isOrganizer, async (req, res, next) => {
   try {
     const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -390,7 +390,7 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res) => {
     const result = await eventModel.getAllInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -419,7 +419,7 @@ eventRoute.get("/inscriptions/me", verifyToken, async (req, res) => {
     const result = await eventModel.getMyInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 

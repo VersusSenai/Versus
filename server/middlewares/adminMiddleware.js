@@ -10,19 +10,24 @@ const isAdmin = async (req, res, next) => {
     await jwt.verify(
         token,
         process.env.JWT_SECRET, 
-        (err, authData) => {
+        async (err, authData) => {
             if (err) {
                 res.sendStatus(403)
-            }})
+                return 0;
+            }
+            if(authData){
+                req.user = await util.getUserByToken(req)
+                if(req.user.role == "A"){
+                    next()
 
-    req.user = await util.getUserByToken(req)
-    if(req.user.role == "A"){
-        next()
+                }else{
+                    res.status(401)
+                    .json({msg: "User is not a Admin"})
+                }
+            }
+        })
 
-    }else{
-        res.status(401)
-        .json({msg: "User is not a Admin"})
-    }
+
 };
 
 export default isAdmin;

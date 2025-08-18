@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors"
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from "./docs/swagger.js";
+import errorHandler from "./middlewares/errorHandler.js";
 const app = express();
 
 app.use(cookieParser())
@@ -24,3 +25,5 @@ app.use(router)
 app.listen(process.env.PORT, () => {
   console.log("connect: ", process.env.PORT);
 });
+
+app.use(errorHandler)

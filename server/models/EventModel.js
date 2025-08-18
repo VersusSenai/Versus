@@ -1,5 +1,10 @@
-import { EventRole, PrismaClient } from '@prisma/client';
+import { EventRole, InscriptionStatus, PrismaClient } from '@prisma/client';
 import serviceUtils from '../services/util.js';
+import NotFoundException from '../exceptions/NotFoundException.js';
+import BadRequestException from '../exceptions/BadRequestException.js';
+import DataBaseException from '../exceptions/DataBaseException.js';
+import NotAllowedException from '../exceptions/NotAllowedException.js';
+import ConflictException from '../exceptions/ConflictException.js';
 
 class EventModel {
   
@@ -15,24 +20,30 @@ class EventModel {
   getById = async (req) => {
     return await this.prisma.event.findUnique({
       where: { id: parseInt(req.params.id) },
-    }).catch(e=>{
-      throw new Error("Event not found");
+    }).then(r=>{
+      if(r == null){
+        throw new NotFoundException("Event not found");
+
+      }else{
+        return r
+      }
     });
   };
 
   create = async (req) => {
-    const userData = await serviceUtils.getUserByToken(req);
+    const userData =req.user;
     const now = new Date();
 
     if(now > Date.parse(req.body.startDate)){
-      throw new Error("Event start date cannot be before today");
+      throw new BadRequestException("Event start date cannot be before today");
     }
     if(Date.parse(req.body.startDate) > Date.parse(req.body.endDate)){
-      throw new Error("Event start date cannot be after endDate");
+      throw new BadRequestException("Event start date cannot be after endDate");
     }
     if(parseInt(req.body.maxPlayers) %2 !=0){
-      throw new Error("Player quantity must be even")
+      throw new BadRequestException("Player quantity must be even")
     }
+
     if(req.body.multiplayer == "true"){
       req.body.multiplayer = true
     }else{
@@ -42,7 +53,7 @@ class EventModel {
     const newEvent = await this.prisma.event.create({
       data: {...req.body, maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
         create:[
-          {userId: userData.id, status: "C", role: "O"}
+          {userId: userData.id, status: "C", role: "O", status: 'O'}
         ]
       }},
     });
@@ -55,13 +66,20 @@ class EventModel {
   update = async (req) => {
     const isUserOwner = this.isUserOwner(req.user, parseInt(req.params.id))
     if(!isUserOwner){
-      throw new Error("Only the owner of this event can update it");
+      throw new NotAllowedException("Only the owner of this event can update it");
     }
 
     return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
         ...req.body
       }
+    }).catch(e=>{
+
+      if (err.code === 'P2025') {
+        throw new NotFoundException("Event not found");
+      }
+      throw new DataBaseException("Event cannot be Updated");
+      
     })
 
   };
@@ -73,54 +91,72 @@ class EventModel {
 
     const event = await this.prisma.event.findFirst({ where: { id: eventId } });
 
-    if (!event) throw new Error("Event not found");
+    if (!event) throw new BadRequestException("Event not found");
     if(event.keysQuantity != null){
-      throw new Error("Event already started");
+      throw new ConflictException("Event already started");
     }
 
-    const isUserAlreadyInscribed = await this.prisma.eventInscriptions.findFirst({
-      where: {
-        userId: userData.id,
-        eventId: eventId,
-      },
-    });
+    if (event.multiplayer == true){
+      const teamId = req.body.id ? parseInt(req.body.id) : null;
 
-    if (isUserAlreadyInscribed) {
-      throw new Error("User already inscribed");
-    }
+        if (teamId != null && !isNaN(teamId)) {
+          const team = await this.prisma.team.findFirst({ where: { id: teamId } });
 
-    const teamId = req.body.teamId ? parseInt(req.body.teamId) : null;
+          if (!team) {
+            throw new BadRequestException("Team does not exist");
+          }
 
-    if (teamId != null && !isNaN(teamId)) {
-      const team = await this.prisma.team.findFirst({ where: { id: teamId } });
+          const isTeamAlreadyInscribed = await this.prisma.eventInscriptions.findFirst({
+            where: {
+              teamId: teamId,
+              eventId: eventId,
+            },
+          });
 
-      if (!team) {
-        throw new Error("Team does not exist");
+          if (isTeamAlreadyInscribed) {
+            throw new ConflictException("Team already inscribed");
+          }
+
+
+          if (team.ownerId === userData.id) {
+            return this.prisma.eventInscriptions.create({
+              data: {
+                teamId: team.id,
+                eventId: eventId,
+                role: "P",
+                status: "O"
+              },
+            });
+          } else {
+            throw new ConflictException("You are not the owner of this team");
+          }
+        }
+    }else{
+
+      const isUserAlreadyInscribed = await this.prisma.eventInscriptions.findFirst({
+        where: {
+          userId: userData.id,
+          eventId: eventId,
+        },
+      });
+
+      if (isUserAlreadyInscribed) {
+        throw new ConflictException("User already inscribed");
       }
 
-      if (team.ownerId === userData.id) {
-        return this.prisma.eventInscriptions.create({
-          data: {
-            teamId: team.id,
-            eventId: eventId,
-            role: "P",
-            status: "O"
-          },
-        });
-      } else {
-        throw new Error("You are not the owner of this team");
-      }
-    }
+    
 
-    // Caso seja inscrição individual
-    return this.prisma.eventInscriptions.create({
-      data: {
-        userId: userData.id,
-        eventId: eventId,
-        role: "P",
-        status: "O"
-      },
-    });
+      // Caso seja inscrição individual
+      return this.prisma.eventInscriptions.create({
+        data: {
+          userId: userData.id,
+          eventId: eventId,
+          role: "P",
+          status: "O"
+        },
+      });
+
+    }
 
   };
 
@@ -129,10 +165,13 @@ class EventModel {
     const isUserOwner = this.isUserOwner(req.user, parseInt(req.params.id));
 
     if(!isUserOwner){
-      throw new Error("User is not owner of this event");
+      throw new NotAllowedException("User is not owner of this event");
     }
 
-    return await this.prisma.event.delete({where: {id: parseInt(req.params.id)}});
+    return await this.prisma.event.delete({where: {id: parseInt(req.params.id)}}).catch(e=>{
+      throw new DataBaseException("Error while trying to delete tournment");
+      
+    });
 
   }
 
@@ -144,19 +183,19 @@ class EventModel {
 
     if (!event) throw new Error("Event not found");
     if(event.keysQuantity != null){
-      throw new Error("Event already started");
+      throw new ConflictException("Event already started");
     }
 
     const userInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId}})
     if(!userInscription){
-      throw new Error("User not inscribed");
+      throw new ConflictException("User not inscribed");
 
     }
 
     if(userInscription != null && userInscription.role == "P"){
       await this.prisma.eventInscriptions.update({where: {id: userInscription.id}, data:{role: "R"}})
     }else{
-      throw new Error("Owner cannot unsubscribe himself");
+      throw new ConflictException("Owner cannot unsubscribe himself");
       
     }
 
@@ -171,13 +210,13 @@ class EventModel {
 
     if (!event) throw new Error("Event not found");
     if(event.keysQuantity != null){
-      throw new Error("Event already started");
+      throw new ConflictException("Event already started");
     }
 
     const isUserOwner = this.isUserOwner(req.user, eventId);
 
     if(!isUserOwner){
-      throw new Error("User is not Owner of this event");
+      throw new ConflictException("User is not Owner of this event");
       
     }
 
@@ -185,13 +224,13 @@ class EventModel {
       const teamInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userId, eventId}})
   
       if(!teamInscription){
-      throw new Error("Team not inscribed");
+      throw new ConflictException("Team not inscribed");
 
       }
       if(teamInscription != null && teamInscription.role == "P"){
         await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}, data:{role: "R"}})
       }else{
-        throw new Error("Owner cannot unsubscribe himself");
+        throw new ConflictException("Owner cannot unsubscribe himself");
         
       }
 
@@ -199,13 +238,13 @@ class EventModel {
     const userInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userId, eventId}})
     
     if(!userInscription){
-      throw new Error("User not inscribed");
+      throw new ConflictException("User not inscribed");
 
     }
     if(userInscription != null && userInscription.role == "P"){
       await this.prisma.eventInscriptions.delete({where: {id: userInscription.id}, data:{role: "R"} })
     }else{
-      throw new Error("Owner cannot unsubscribe himself");
+      throw new ConflictException("Owner cannot unsubscribe himself");
       
     }
 
@@ -216,7 +255,7 @@ class EventModel {
     const isOwner = this.isUserOwner(req.user, parseInt(req.params.id));
 
     if(!isOwner){
-      throw new Error("Only the owner of this event can make this call");
+      throw new NotAllowedException("Only the owner of this event can make this call");
     }
 
     return await this.prisma.eventInscriptions.findMany({where: {eventId: parseInt(req.params.id), role: "P"},
@@ -231,6 +270,9 @@ class EventModel {
           }
         }
       }
+    }).catch(e=>{
+      throw new DataBaseException("Internal Server Error");
+      
     });
   };
 
@@ -249,6 +291,9 @@ class EventModel {
           }
         }
       }
+    }).catch(e=>{
+        throw new DataBaseException("Internal Server Error");
+
     })
   };
 
@@ -259,15 +304,12 @@ class EventModel {
     const matchesAlreadyExists = await this.prisma.match.findMany({where: {eventId: event.id}})
 
     if(matchesAlreadyExists[0] != null){
-      throw new Error("Event Already started");
+      throw new ConflictException("Event Already started");
     }
 
-    const ownerInscrition = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId: event.id}});
-    if(!ownerInscrition){
-      throw new Error("You do not own this tournment");
-    }
-    if(ownerInscrition.role != "O" && userData.role != "A"){
-      throw new Error("You do not own this tournment");
+
+    if(!this.isUserOwner(userData, event.id)){
+      throw new ConflictException("You do not own this tournment");
     }
     
     const now = new Date();
@@ -278,16 +320,16 @@ class EventModel {
     const totalRounds = Math.log2(total);
     
     if (!Number.isInteger(totalRounds)) {
-      throw new Error("The total numbers of players needs to be an perfect square root of 2");
+      throw new ConflictException("The total numbers of players needs to be an perfect square root of 2");
     }
     
     
     if (now < eventStartDate) {
-      throw new Error(`The event cannot start before its startDate: (${eventStartDate.toLocaleString()}).`);
+      throw new ConflictException(`The event cannot start before its startDate: (${eventStartDate.toLocaleString()}).`);
     }
     
     if (total < 2) {
-      throw new Error('Inscriptions not sufficient');
+      throw new ConflictException('Inscriptions not sufficient');
     }
     
     
@@ -347,7 +389,7 @@ class EventModel {
             },
           }
         }).catch(e => {
-          throw new Error(e);
+          throw new DataBaseException(e);
         });
         matches.push(match);
         currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
@@ -366,7 +408,7 @@ class EventModel {
             time: new Date(currentTime),
           },
         }).catch(e => {
-          throw new Error("Error while creating match");
+          throw new DataBaseException("Error while creating match");
         });
         matches.push(match);
         currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);

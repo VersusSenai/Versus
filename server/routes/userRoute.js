@@ -32,10 +32,10 @@ const userRoute = express.Router();
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.get("/", verifyToken, async (req, res) => {
+userRoute.get("/", isAdmin, async (req, res,next) => {
   await userModel.getAll(req)
     .then(data => res.status(200).json(data))
-    .catch(e => res.status(400).json(e.message));
+    .catch(e => next(e));
 });
 
 /**
@@ -72,10 +72,10 @@ userRoute.get("/", verifyToken, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.get("/:id", verifyToken, async (req, res) => {
+userRoute.get("/:id", verifyToken, async (req, res, next) => {
   await userModel.getById(req)
     .then(data => res.status(200).json(data))
-    .catch(e => res.status(404).json(e.message));
+    .catch(e => next(e));
 });
 
 /**
@@ -111,10 +111,10 @@ userRoute.get("/:id", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro na validação dos dados
  */
-userRoute.post("/", async (req, res) => {
+userRoute.post("/", async (req, res,next) => {
   await userModel.create(req)
     .then(data => res.status(201).json(data))
-    .catch(e => res.status(400).json(e));
+    .catch(e => next(e));
 });
 
 /**
@@ -169,10 +169,10 @@ userRoute.post("/", async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.put("/:id", isAdmin, async (req, res) => {
+userRoute.put("/:id", isAdmin, async (req, res,next) => {
   await userModel.updateById(req)
     .then(data => res.status(200).json(data))
-    .catch(e => res.status(400).json(e.message));
+    .catch(e => next(e));
 });
 
 /**
@@ -210,10 +210,10 @@ userRoute.put("/:id", isAdmin, async (req, res) => {
  *       400:
  *         description: Erro na atualização
  */
-userRoute.put("/", verifyToken, async (req, res) => {
+userRoute.put("/", verifyToken, async (req, res,next) => {
   await userModel.update(req)
     .then(data => res.status(200).json(data))
-    .catch(e => res.status(400).json(e.message));
+    .catch(e => next(e));
 });
 
 /**
@@ -230,10 +230,10 @@ userRoute.put("/", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro ao desativar conta
  */
-userRoute.delete("/", verifyToken, async (req, res) => {
+userRoute.delete("/", verifyToken, async (req, res,next) => {
   await userModel.delete(req)
     .then(data => res.status(204).json(data))
-    .catch(e => res.status(400).json(e));
+    .catch(e => next(e));
 });
 
 /**
@@ -259,10 +259,10 @@ userRoute.delete("/", verifyToken, async (req, res) => {
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.delete("/:id", isAdmin, async (req, res) => {
+userRoute.delete("/:id", isAdmin, async (req, res,next) => {
   await userModel.deleteById(req)
     .then(data => res.status(204).json(data))
-    .catch(e => res.status(400).json(e));
+    .catch(e => next(e));
 });
 
 export default userRoute;

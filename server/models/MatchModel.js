@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import serviceUtils from '../services/util';
 import eventModel from './EventModel.js';
+import NotFoundException from '../exceptions/NotFoundException.js';
+import DataBaseException from '../exceptions/DataBaseException.js';
+import ConflictException from '../exceptions/ConflictException.js';
 
 class MatchModel {
   
@@ -52,7 +54,7 @@ class MatchModel {
     });
 
     if (!match) {
-      throw new Error("Match not found");
+      throw new NotFoundException("Match not found");
     }
 
     return match;
@@ -72,6 +74,9 @@ class MatchModel {
         firstUserId,
         secondUserId
       },
+    }).catch(e=>{
+      throw new DataBaseException("Internal Server Error");
+      
     });
 
     return newMatch.id;
@@ -97,9 +102,9 @@ class MatchModel {
       return updated;
     } catch (err) {
       if (err.code === 'P2025') {
-        throw new Error("Match not found");
+        throw new NotFoundException("Match not found");
       }
-      throw err;
+      throw new DataBaseException("Internal Server Error");
     }
   };
 
@@ -114,7 +119,7 @@ class MatchModel {
       if (err.code === 'P2025') {
         throw new Error("Match not found");
       }
-      throw err;
+      throw DataBaseException("Internal Server Error");
     }
   };
 
@@ -126,10 +131,10 @@ class MatchModel {
     const isUserOwner = eventModel.isUserOwner(userData, match.event.id)
 
     if(!isUserOwner){
-      throw new Error("User is not owner of this event");
+      throw new ConflictException("User is not owner of this event");
     }
     if(!match.secondUserId){
-      throw new Error("This Match have only 1 player")
+      throw new ConflictException("This Match have only 1 player")
     }
     
     const winnerId = parseInt(req.body.winnerId)
@@ -141,7 +146,7 @@ class MatchModel {
       }else if(winnerId == match.secondUserId){
         loserId = match.firstUserId;
       }else{
-        throw new Error("Wrong WinnerId");
+        throw new NotFoundException("Wrong WinnerId");
       }
     }else{
       if(winnerId == match.firstTeamId){
@@ -149,17 +154,19 @@ class MatchModel {
       }else if(winnerId == match.secondTeamId){
         loserId = match.firstTeamId;
       }else{
-        throw new Error("Wrong WinnerId");
+        throw new NotFoundException("Wrong WinnerId");
         
       }
     }
     
     if(match.winnerId){
-      throw new Error("Match Already decided");
+      throw new ConflictException("Match Already decided");
       
     }
       
-    const inscriptions = await this.prisma.eventInscriptions.findMany({where:{eventId: match.event.id, role: "P"}});
+    const inscriptions = await this.prisma.eventInscriptions.findMany({where:{eventId: match.event.id, role: "P"}}).catch(e=>{
+      DataBaseException("Interal Server Error")
+    });
 
     const total = inscriptions.length
     
@@ -167,40 +174,45 @@ class MatchModel {
 
     if(match.keyNumber == maxKeys){
       if(!match.event.multiplayer){
-        this.prisma.$transaction(async(tx)=>{
+        const response = this.prisma.$transaction(async(tx)=>{
           
           await tx.match.update({where: {id: match.id}, data:{
             winnerId,loserId
           }})
-
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
-            status: "W"
-          }})
-  
-  
+          
           await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
             status: "L"
           }})
-  
-        })
+          
+          return await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+            status: "W"
+          }})
 
+        }).catch(e=>{
+          throw new DataBaseException("Interal Server Error")
+        });
+        
+        return {response, msg: "Tournment Ended"} 
+        
       }else{
         
-        this.prisma.$transaction(async(tx)=>{
+        const res =this.prisma.$transaction(async(tx)=>{
           await tx.match.update({where: {id: match.id}, data:{
             winnerId,loserId
-          }})
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
-            status: "W"
           }})
           await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
             status: "L"
           }})
+          return await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+            status: "W"
+          }})
           
-        })    
+        }).catch(e=>{
+            throw new DataBaseException("Interal Server Error")
+          });
       }
       
-      return {msg: "event has ended"}
+        return {response, msg: "Tournment Ended"} 
 
     }
 
@@ -222,7 +234,9 @@ class MatchModel {
           return await tx.match.update({where:{ id: pendingMatchInActualKey.id}, data:{
             secondUserId: winnerId          
           }})
-        })
+        }).catch(e=>{
+            throw new DataBaseException("Interal Server Error")
+          });
      
       }else{
 
@@ -237,12 +251,14 @@ class MatchModel {
           return await tx.match.update({where:{ id: pendingMatchInActualKey.id}, data:{
             secondTeamId: winnerId          
           }})
-        })
+        }).catch(e=>{
+            throw new DataBaseException("Interal Server Error")
+          });
 
       }
     }else{
       if(!match.event.multiplayer){
-        return this.prisma.$transaction(async (tx)=>{
+        return await this.prisma.$transaction(async (tx)=>{
 
           await tx.match.update({where: {id: match.id}, data:{
             winnerId, loserId
@@ -252,12 +268,15 @@ class MatchModel {
             status: "L"
           }})
 
-          return tx.prisma.match.create({data:{
+          const createdMatch = await tx.match.create({data:{
               eventId: match.event.id,
               keyNumber: (match.keyNumber+1),
               firstUserId: winnerId
           }})
-        })
+          return createdMatch;
+        }).catch(e=>{
+            throw new DataBaseException("Interal Server Error")
+          });
         
       }else{
 
@@ -271,12 +290,15 @@ class MatchModel {
           }})
 
           
-          return await tx.match.create({data:{
+          const createdMatch =  await tx.match.create({data:{
               eventId: match.event.id,
               keyNumber: (match.keyNumber+1),
               firstTeamId: winnerId
           }})
-        })
+          return createdMatch
+        }).catch(e=>{
+            throw new DataBaseException("Interal Server Error")
+          })
 
       }
     }

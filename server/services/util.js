@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import jwt from "jsonwebtoken"
+import NotFoundException from "../exceptions/NotFoundException";
 const prisma = new PrismaClient();
 
 class UtilService {
@@ -10,11 +11,11 @@ class UtilService {
             const {token}= req.cookies
 
             if(!token){
-                throw Exception("Token is undefined")
+                throw Error("Token is undefined")
             }
 
            const data = jwt.decode(token)
-
+            
 
 
            return await prisma.user.findUnique({where: {id: data.id}, select:{
@@ -22,7 +23,7 @@ class UtilService {
                 username:true, email:true, id:true, role:true, password: true
             
            }}).catch(e =>{
-            throw Exception("User does not exists")
+                throw Error("User does not exists")
            })
 
     }

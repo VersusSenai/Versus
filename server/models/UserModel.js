@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import NotFoundException from "../exceptions/NotFoundException";
+import ConflictException from "../exceptions/ConflictException";
+import DataBaseException from "../exceptions/DataBaseException";
 
 class UserModel {
   constructor() {
@@ -10,10 +13,6 @@ class UserModel {
   async getAll(req) {
     const userData = req.user;
 
-    if (userData.role != "A") {
-      throw new Error("Only administrators can call this operation");
-    }
-
     return await this.prisma.user.findMany();
   }
 
@@ -21,20 +20,32 @@ class UserModel {
     const userData = req.user;
 
     if (userData.role == "A") {
-      return await this.prisma.user.findFirst({
+      const user = await this.prisma.user.findFirst({
         where: { id: parseInt(req.params.id), status: "A" },
       });
+      if(user == null){
+        throw new NotFoundException("Usuário não encontrado");
+        
+      }else{
+        return user
+      }
     }
     
     if (userData.role == "P" || userData.role == "O") {
-      return await this.prisma.user.findFirst({
+      const user = await this.prisma.user.findFirst({
         where: { id: parseInt(req.params.id), status: "A" },
         select: {
           email: true,
           username: true,
           role: true,
         },
-      });
+      })
+      if(user == null){
+        throw new NotFoundException("Usuário não encontrado");
+        
+      }else{
+        return user
+      }
     }
   }
 
@@ -44,7 +55,7 @@ class UserModel {
       parseInt(process.env.SALT_ROUNDS)
     );
 
-    return await this.prisma.user.create({
+    await this.prisma.user.create({
       data: {
         username: req.body.username,
         password: hash,
@@ -52,6 +63,18 @@ class UserModel {
         role: "P",
         status: "A",
       },
+    }).then(r=>{
+      return r
+    }).catch(err=>{
+      if(err.code == "P2002"){
+
+        throw new ConflictException("Email or Username already in use");
+
+      }else{
+        throw new DataBaseException("Error while creating user");
+        
+      }
+      
     });
   }
 
@@ -67,6 +90,7 @@ class UserModel {
     ):
     userData.password;
 
+    
     return await this.prisma.user.update({
       where: { id: parseInt(userData.id) },
       data: {
@@ -80,19 +104,38 @@ class UserModel {
         role: true,
         id: true,
       },
+    }).catch(err=>{
+        if(err.code == "P2002"){
+
+        throw new ConflictException("Email or Username already in use");
+
+      }
+      else if (err.code === 'P2025') {
+        throw new NotFoundException("Match not found");
+      }
+      else{
+        throw new DataBaseException("Error while updating user");
+        
+      }
     });
   }
 
   async updateById(req) {
     const userData = req.user;
 
+    const user = this.prisma.user.findFirst({where: {id: req.params.id}})
+
+    if(!user){
+      throw new NotFoundException("User not found");
+      
+    }
     const hash = 
     req.body.password? 
     bcrypt.hashSync(
       req.body.password? req.body.password: "mokup",
       parseInt(process.env.SALT_ROUNDS)
     ):
-    userData.password;
+    user.password;
 
 
     return await this.prisma.user.update({
@@ -110,7 +153,21 @@ class UserModel {
         role: true,
         id: true,
       },
-    });
+    }).catch(err=>{
+        if(err.code == "P2002"){
+
+        throw new ConflictException("Email or Username already in use");
+
+      }
+      else if (err.code === 'P2025') {
+        throw new NotFoundException("Match not found");
+      }
+      
+      else{
+        throw new DataBaseException("Error while updating user");
+        
+      }
+    })
   }
 
   async delete(req) {
@@ -121,6 +178,9 @@ class UserModel {
       data: {
         status: "D",
       },
+    }).catch(e=>{
+      throw new DataBaseException("Error while deleting User");
+      
     });
   }
 
@@ -130,6 +190,9 @@ class UserModel {
       data: {
         status: "D",
       },
+    }).catch(e=>{
+      throw new DataBaseException("Error while deleting User");
+      
     });
   }
 }

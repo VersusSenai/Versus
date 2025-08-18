@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import serviceUtils from '../services/util';
+import NotFoundException from '../exceptions/NotFoundException';
+import DataBaseException from '../exceptions/DataBaseException';
+import NotAllowedException from '../exceptions/NotAllowedException';
 
 class TeamModel {
   
@@ -17,7 +20,7 @@ class TeamModel {
     });
 
     if (!team) {
-      throw new Error("Team not found");
+      throw new NotFoundException("Team not found");
     }
 
     return team;
@@ -28,6 +31,9 @@ class TeamModel {
 
     return await this.prisma.team.create({
       data: { ...req.body, ownerId: userData.id },
+    }).catch(e=>{
+      throw new DataBaseException("Team not created");
+      
     });
   };
 
@@ -37,11 +43,11 @@ class TeamModel {
     const team = await this.prisma.team.findFirst({ where: { id: parseInt(req.params.id) } });
 
     if (team == null) {
-      throw new Error("Team not found");
+      throw new NotFoundException("Team not found");
     }
 
     if (team.ownerId != userData.id && userData.role != "A") {
-      throw new Error("You do not own this team");
+      throw new NotAllowedException("You do not own this team");
     }
 
     return await this.prisma.team.update({
@@ -49,6 +55,9 @@ class TeamModel {
       data: {
         ...req.body
       }
+    }).catch(e=>{
+      throw new DataBaseException("Failed to Update Team");
+      
     });
   };
 
@@ -58,11 +67,11 @@ class TeamModel {
     const team = await this.prisma.team.findFirst({ where: { id: parseInt(req.params.id) } });
 
     if (team == null) {
-      throw new Error("Team not found");
+      throw new NotFoundException("Team not found");
     }
 
     if (team.ownerId != userData.id && userData.role != "A") {
-      throw new Error("You do not own this team");
+      throw new NotAllowedException("You do not own this team");
     }
 
     return await this.prisma.team.delete({ where: { id: team.id } });
@@ -73,7 +82,7 @@ class TeamModel {
     const team = await this.prisma.team.findFirst({ where: { id: parseInt(req.params.id) } });
 
     if (team == null) {
-      throw new Error("Team not found");
+      throw new NotFoundException("Team not found");
     }
 
     return await this.prisma.teamUsers.create({
@@ -81,6 +90,9 @@ class TeamModel {
         userId: userData.id,
         teamId: parseInt(req.params.id),
       },
+    }).catch(e=>{
+      throw new DataBaseException("Failed to inscribe User");
+      
     });
   };
 
@@ -96,11 +108,11 @@ class TeamModel {
     const team = await this.prisma.team.findFirst({ where: { id: parseInt(req.params.id) } });
 
     if (team == null) {
-      throw new Error("Team not found");
+      throw new NotFoundException("Team not found");
     }
 
     if (userInscriptionByToken == null && userData.role != "A" && team.ownerId != userData.id) {
-      throw new Error("You are not inscribed in this team");
+      throw new NotFoundException("You are not inscribed in this team");
     }
 
     if (userInscriptionByToken != null && userInscriptionByToken.userId == userData.id) {
@@ -116,11 +128,11 @@ class TeamModel {
       });
 
       if (userInscriptionByReqId == null) {
-        throw new Error("This user is not inscribed in this team");
+        throw new NotFoundException("This user is not inscribed in this team");
       }
 
       if ((userData.role != "A" && team.ownerId != userData.id)) {
-        throw new Error("This user is not owner of this team");
+        throw new NotFoundException("This user is not owner of this team");
       }
 
       if ((userData.role == "A" || team.ownerId == userData.id)) {

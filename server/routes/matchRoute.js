@@ -54,11 +54,11 @@ matchRoute.get("/:id/match",verifyToken ,async (req,res)=>{
  *         description: Partida não encontrada
  */
 matchRoute.get("/:id",verifyToken ,async (req, res)=>{
-    const data = await matchModel.getById(req)
-    data != null? 
-      res.status(200).json(data)
-    :
-      res.status(404).json({ message: "User not found" })
+    await matchModel.getById(req).then(data =>{
+        res.status(201).json(data)
+    }).catch(e =>{
+        next(e)
+    })
 });
 
 /**
@@ -87,7 +87,7 @@ matchRoute.post("/",verifyToken ,async(req, res)=>{
     await matchModel.create(req).then(data =>{
         res.status(201).json(data)
     }).catch(e =>{
-        res.status(400).json(e)
+        next(e)
     })
 });
 
@@ -120,7 +120,7 @@ matchRoute.put("/", verifyToken, async(req,res)=>{
     await matchModel.update(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
-        res.status(400).json(e.message)
+        next(e)
     })
 });
 
@@ -140,7 +140,7 @@ matchRoute.delete("/",verifyToken ,async(req,res)=>{
     await matchModel.delete(req).then(data=>{
         res.status(204).json(data)
     }).catch(e =>{
-        res.status(400).json(e)
+        next(e)
     })
 });
 /**
@@ -217,11 +217,11 @@ matchRoute.delete("/",verifyToken ,async(req,res)=>{
  *          - Cria uma nova partida com o vencedor
  *          - Retorna os detalhes da nova partida
  */
-matchRoute.post("/winner/:id", verifyToken ,async(req,res)=>{
+matchRoute.post("/winner/:id", verifyToken ,async(req,res, next)=>{
     await matchModel.declareWinner(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
-        res.status(400).json({ message: e.message })
+        next(e)
     })
 });
 
