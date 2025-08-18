@@ -13,10 +13,6 @@ class UserModel {
   async getAll(req) {
     const userData = req.user;
 
-    if (userData.role != "A") {
-      throw new Error("Only administrators can call this operation");
-    }
-
     return await this.prisma.user.findMany();
   }
 

@@ -6,17 +6,26 @@ import util from '../services/util';
 const verifyToken = async (req, res, next) => {
 
     const {token }= req.cookies
+    if(token){
+        await jwt.verify(
+            token,
+            process.env.JWT_SECRET, 
+            async (err, authData) => {
+                if (err) {
+                    res.sendStatus(403)
+                }
+                if(authData){
+                    req.user = await util.getUserByToken(req)
+                }
+            })
+    
+        next()
 
-    await jwt.verify(
-        token,
-        process.env.JWT_SECRET, 
-        (err, authData) => {
-            if (err) {
-                res.sendStatus(403)
-            }})
+    }else{
+        res.sendStatus(403)
 
-    req.user = await util.getUserByToken(req)
-    next()
+    }
+
 };
 
 export default verifyToken;

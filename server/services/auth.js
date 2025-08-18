@@ -19,7 +19,6 @@ class Auth {
         ).catch(
             (err) => {
                 throw new DataBaseException("Internal Server Error");
-                ;
             }
         );
 

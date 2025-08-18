@@ -174,37 +174,37 @@ class MatchModel {
 
     if(match.keyNumber == maxKeys){
       if(!match.event.multiplayer){
-        this.prisma.$transaction(async(tx)=>{
+        const response = this.prisma.$transaction(async(tx)=>{
           
           await tx.match.update({where: {id: match.id}, data:{
             winnerId,loserId
           }})
-
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
-            status: "W"
-          }})
-  
-  
+          
           await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
             status: "L"
           }})
-  
+          
+          return await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+            status: "W"
+          }})
+
         }).catch(e=>{
-            throw new DataBaseException("Interal Server Error")
-          });
-
-
+          throw new DataBaseException("Interal Server Error")
+        });
+        
+        return {response, msg: "Tournment Ended"} 
+        
       }else{
         
-        this.prisma.$transaction(async(tx)=>{
+        const res =this.prisma.$transaction(async(tx)=>{
           await tx.match.update({where: {id: match.id}, data:{
             winnerId,loserId
           }})
-          await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
-            status: "W"
-          }})
           await tx.eventInscriptions.update({where: {userId_eventId: {userId: loserId, eventId}}, data:{
             status: "L"
+          }})
+          return await tx.eventInscriptions.update({where: {userId_eventId: {userId: winnerId, eventId}}, data:{
+            status: "W"
           }})
           
         }).catch(e=>{
@@ -212,7 +212,7 @@ class MatchModel {
           });
       }
       
-      return {msg: "event has ended"}
+        return {response, msg: "Tournment Ended"} 
 
     }
 
@@ -258,7 +258,7 @@ class MatchModel {
       }
     }else{
       if(!match.event.multiplayer){
-        await this.prisma.$transaction(async (tx)=>{
+        return await this.prisma.$transaction(async (tx)=>{
 
           await tx.match.update({where: {id: match.id}, data:{
             winnerId, loserId
@@ -268,13 +268,13 @@ class MatchModel {
             status: "L"
           }})
 
-          await tx.prisma.match.create({data:{
+          const createdMatch = await tx.match.create({data:{
               eventId: match.event.id,
               keyNumber: (match.keyNumber+1),
               firstUserId: winnerId
           }})
+          return createdMatch;
         }).catch(e=>{
-          console.log(e)
             throw new DataBaseException("Interal Server Error")
           });
         
@@ -290,14 +290,15 @@ class MatchModel {
           }})
 
           
-          return await tx.match.create({data:{
+          const createdMatch =  await tx.match.create({data:{
               eventId: match.event.id,
               keyNumber: (match.keyNumber+1),
               firstTeamId: winnerId
           }})
+          return createdMatch
         }).catch(e=>{
             throw new DataBaseException("Interal Server Error")
-          });
+          })
 
       }
     }

@@ -32,7 +32,7 @@ const userRoute = express.Router();
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.get("/", verifyToken, async (req, res,next) => {
+userRoute.get("/", isAdmin, async (req, res,next) => {
   await userModel.getAll(req)
     .then(data => res.status(200).json(data))
     .catch(e => next(e));
