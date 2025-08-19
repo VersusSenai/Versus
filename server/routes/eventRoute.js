@@ -223,9 +223,9 @@ eventRoute.delete("/:id", isOrganizer, async (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               teamId:
+ *               id:
  *                 type: integer
- *                 description: ID do time (para eventos multiplayer)
+ *                 description: ID do time ou jogador (para eventos multiplayer ou não)
  *                 example: 3
  *     responses:
  *       200:
@@ -387,7 +387,7 @@ eventRoute.post("/:id/start", isOrganizer, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res) => {
+eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res, next) => {
   try {
     const result = await eventModel.getAllInscriptions(req);
     res.status(200).json(result);
@@ -404,6 +404,13 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res) => {
  *     tags: [Eventos]
  *     security:
  *       - cookieAuth: []
+*     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do evento
  *     responses:
  *       200:
  *         description: Lista de inscrições do usuário
@@ -416,9 +423,88 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res) => {
  *       400:
  *         description: Erro ao buscar inscrições
  */
-eventRoute.get("/inscriptions/me", verifyToken, async (req, res) => {
+eventRoute.get("/inscriptions/me", verifyToken, async (req, res, next) => {
   try {
     const result = await eventModel.getMyInscriptions(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+
+/**
+ * @swagger
+ * /event/:id/invite:
+ *   get:
+ *     summary: Convida Um jogador para o um torneio
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do evento
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 description: ID do time ou jogador (para eventos multiplayer ou não)
+ *                 example: 3
+ *     responses:
+ *       200:
+ *         description: Convite Enviado com sucesso
+ *       400:
+ *         description: Erro ao buscar inscrições
+ */
+eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await eventModel.invitePlayer(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /event/updateInvite:
+ *   get:
+ *     summary: Responde convite
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do evento
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accept:
+ *                 type: boolean
+ *                 description: resposta do jogador
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Convite aceito com sucesso
+ *       400:
+ *         description: Erro com o convite
+ */
+eventRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await eventModel.updateInvite(req);
     res.status(200).json(result);
   } catch (err) {
     next(err)

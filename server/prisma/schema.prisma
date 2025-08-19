@@ -47,6 +47,7 @@ model Event {
   private     Boolean? @default(false)
   eventInscriptions EventInscriptions[]
   matches      Match[]
+  invites     Invite[] @relation("Invites_Event")
 
 
 }
@@ -76,6 +77,7 @@ model Team {
   EventInscriptions    EventInscriptions[]
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
+  invites       Invite[] @relation("Invites_Team")
 }
 
 model EventInscriptions {
@@ -177,8 +179,12 @@ model Invite {
   expirationDate DateTime
   status  InviteStatus
   callback  String?
+  teamId     Int? 
+  eventId     Int? 
   toUser    User  @relation(fields: [toUserId], references: [id], name: "Invite_toUser", onDelete: Cascade)
   fromUser    User  @relation(fields: [fromUserId], references: [id], name: "Invite_fromUser", onDelete: Cascade)
+  event     Event?  @relation(fields: [eventId], references: [id], name: "Invites_Event", onDelete: Cascade) 
+  team     Team?  @relation(fields: [teamId], references: [id], name: "Invites_Team", onDelete: Cascade) 
 
 
 }
