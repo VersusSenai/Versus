@@ -5,6 +5,7 @@ import BadRequestException from '../exceptions/BadRequestException.js';
 import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
+import inviteModel from './inviteModel.js';
 
 class EventModel {
   
@@ -89,6 +90,10 @@ class EventModel {
     if (!event) throw new BadRequestException("Event not found");
     if(event.keysQuantity != null){
       throw new ConflictException("Event already started");
+    }
+    if(event.private){
+      throw new NotAllowedException("You need to get invited to inscribe in a Private Tournment");
+      
     }
 
     if (event.multiplayer == true){
@@ -420,6 +425,91 @@ class EventModel {
     return matches;
   };
 
+  
+  
+  invitePlayer = async (req)=>{
+    const userData = req.user
+    const event = await this.prisma.event.findFirst({where:{id: parseInt( req.params.id)}}).catch(e=>{
+      throw new NotFoundException("Event not found");
+    })
+      
+    const userTo = await this.prisma.user.findFirst({where: {id: parseInt(req.body.id)}}).catch(e=>{
+      throw new NotFoundException("User not Found");
+      
+    })
+
+    if(!userTo){
+      throw new NotFoundException("User not found");
+      
+    }
+    if(!event){
+      throw new NotFoundException("Event not found");
+      
+    }
+
+    if(!this.isUserOwner(userData, event.id)){
+      throw new NotAllowedException("You are not the owner of this tournment");
+    }
+
+    await inviteModel.inviteToTournment(userTo, userData,event).then(r=>{
+      return {msg: "Invite Sent"}
+    })
+  } 
+  
+
+  updateInvite = async(req)=>{
+    const userData = req.user;
+
+    const accept = req.body.accept == 'true'? true : false
+
+    const invite = await inviteModel.inviteValidation(req.query.token);
+    if(invite ==false || !invite){
+      throw new NotAllowedException("Invite Expired or already used");
+      
+    }
+
+    const event = invite.event
+    if(invite.toUser.id != userData.id){
+      throw new NotAllowedException("Only the user invited can accept his invite");
+    }
+
+    if(req.body.accept == undefined || accept == true){
+      await this.prisma.$transaction(async(tx)=>{
+        await tx.invite.update({where: {id: invite.id}, data:{
+          status: "A"
+        }})
+
+        await tx.eventInscriptions.create({
+          data:{
+            userId: userData.id,
+            eventId: event.id,
+            role: "P",
+            status: "O"
+          }
+        }).catch(e=>{
+          if(e.code = "P2002"){
+            throw new ConflictException("User already inscribed")
+          }else{
+            throw new DataBaseException("Internal server error");
+            
+          }
+        })
+      
+      })
+    }
+    if(accept == false){
+        await this.prisma.invite.update({where: {id: invite.id}, data:{
+          status: "D"
+        }})
+
+      return {msg: 'Invite Denied'}
+    }
+
+
+  }
+  
+  // Funções de utiliddade do modelo
+
   //verifica se o user é dono do evento
   isUserOwner = async (user, eventId)=>{
       
@@ -431,6 +521,8 @@ class EventModel {
       return false
     }
   }
+
+  
 
 };
 

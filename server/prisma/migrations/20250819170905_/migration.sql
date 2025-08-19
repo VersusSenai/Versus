@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE `invite` ADD COLUMN `eventId` INTEGER NULL,
+    ADD COLUMN `teamId` INTEGER NULL,
+    MODIFY `callback` VARCHAR(191) NULL;
+
+-- AddForeignKey
+ALTER TABLE `Invite` ADD CONSTRAINT `Invite_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Invite` ADD CONSTRAINT `Invite_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

@@ -338,4 +338,76 @@ teamRoute.get("/:id/inscriptions",verifyToken ,async (req, res, next) => {
   res.json(inscriptions);
 });
 
+
+/**
+ * @swagger
+ * /team/:id/invite:
+ *   get:
+ *     summary: Convida Um jogador para o um time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do time
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 description: ID do jogador
+ *                 example: 3
+ *     responses:
+ *       200:
+ *         description: Convite Enviado com sucesso
+ *       400:
+ *         description: Erro ao buscar inscrições
+ */
+teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await teamModel.invitePlayer(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /team/updateInvite:
+ *   get:
+ *     summary: Responde convite
+ *     tags: [Time]
+ *     security:
+ *       - cookieAuth: []
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accept:
+ *                 type: boolean
+ *                 description: resposta do jogador
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Convite aceito com sucesso
+ *       400:
+ *         description: Erro com o convite
+ */
+teamRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await teamModel.updateInvite(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
 export default teamRoute;

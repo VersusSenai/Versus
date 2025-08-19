@@ -1,8 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import serviceUtils from '../services/util';
 import NotFoundException from '../exceptions/NotFoundException';
+import inviteModel from './inviteModel.js';
 import DataBaseException from '../exceptions/DataBaseException';
 import NotAllowedException from '../exceptions/NotAllowedException';
+import ConflictException from '../exceptions/ConflictException.js';
 
 class TeamModel {
   
@@ -233,6 +235,91 @@ class TeamModel {
     return isTeamOwner || user.role== "A"
     
   }
+
+  invitePlayer = async (req)=>{
+    const userData = req.user
+    const team = await this.prisma.team.findFirst({where:{id: parseInt( req.params.id)}}).catch(e=>{
+      throw new DataBaseException("Internal Server Error");
+    })
+      
+    const userTo = await this.prisma.user.findFirst({where: {id: parseInt(req.body.id)}}).catch(e=>{
+      throw new DataBaseException("Internal Server Error");
+    })
+
+    if(!userTo){
+      throw new NotFoundException("User not found");
+      
+    }
+    if(!team){
+      throw new NotFoundException("Team not found");
+      
+    }
+
+    if(!this.isTeamOwner(userData, team.id)){
+      throw new NotAllowedException("You are not the owner of this team");
+    }
+
+    await inviteModel.inviteToTeam(userTo, userData, team).then(r=>{
+      return {msg: "Invite Sent"}
+    }).catch(e=>{
+      DataBaseException("Internal Server Error")
+    })
+  } 
+
+ updateInvite = async(req)=>{
+    const userData = req.user;
+
+    const accept = req.body.accept == 'true'? true : false
+
+
+    const invite = await inviteModel.inviteValidation(req.query.token);
+    if(invite ==false || !invite){
+      throw new NotAllowedException("Invite Expired or already used");
+      
+    }
+
+    const team = invite.team
+    if(invite.toUser.id != userData.id){
+      throw new NotAllowedException("Only the user invited can accept his invite");
+    }
+
+    if(req.body.accept == undefined || accept == true){
+      await this.prisma.$transaction(async(tx)=>{
+        
+        await tx.invite.update({where: {id: invite.id}, data:{
+          status: "A"
+        }})
+
+        await tx.teamUsers.create({
+          data:{
+            userId: userData.id,
+            teamId: team.id,
+            role: "P",
+          }
+        }).catch(e=>{
+          if(e.code = "P2002"){
+            throw new ConflictException("User already inscribed")
+          }else{
+            throw new DataBaseException("Internal server error");
+            
+          }
+        })
+      
+        
+      })
+      return {msg: 'Invite Accepted'}
+    }
+    if(accept == false){
+        await this.prisma.invite.update({where: {id: invite.id}, data:{
+          status: "D"
+        }})
+
+      return {msg: 'Invite Denied'}
+    }
+
+
+  }
+
 
   isTeamOwner = async (user, teamId)=>{
     const isTeamOwner = await this.prisma.teamUsers.findFirst({where: {userId: user.id, teamId, role: "O"

@@ -19,6 +19,8 @@ model User {
   status         UserStatus
   firstMatches   Match[] @relation("Match_firstUser")
   secondMatches  Match[] @relation("Match_secondUser")
+  inviteTo        Invite[]  @relation("Invite_toUser")
+  inviteFrom        Invite[] @relation("Invite_fromUser")
 }
 enum UserStatus {
   A
@@ -42,8 +44,10 @@ model Event {
   matchsQuantity Int?
   keysQuantity Int?
   multiplayer Boolean
+  private     Boolean? @default(false)
   eventInscriptions EventInscriptions[]
   matches      Match[]
+  invites     Invite[] @relation("Invites_Event")
 
 
 }
@@ -69,9 +73,11 @@ model Team {
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
   teamUsers      TeamUsers[]
+  private       Boolean? @default(false)
   EventInscriptions    EventInscriptions[]
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
+  invites       Invite[] @relation("Invites_Team")
 }
 
 model EventInscriptions {
@@ -151,4 +157,34 @@ model Match {
   secondTeam  Team?  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam",  onDelete: Cascade)
   firstUser   User?  @relation(fields: [firstUserId], references: [id], name: "Match_firstUser",  onDelete: Cascade)
   secondUser  User?  @relation(fields: [secondUserId], references: [id], name: "Match_secondUser",  onDelete: Cascade)
+}
+
+enum InviteStatus {
+  //Pending
+  P 
+  //Accepted
+  A
+  //Denied
+  D
+  //Expired
+  E
+}
+
+model Invite {
+  id          Int      @id @default(autoincrement())
+  fromUserId  Int
+  toUserId    Int
+  description String
+  token       String
+  expirationDate DateTime
+  status  InviteStatus
+  callback  String?
+  teamId     Int? 
+  eventId     Int? 
+  toUser    User  @relation(fields: [toUserId], references: [id], name: "Invite_toUser", onDelete: Cascade)
+  fromUser    User  @relation(fields: [fromUserId], references: [id], name: "Invite_fromUser", onDelete: Cascade)
+  event     Event?  @relation(fields: [eventId], references: [id], name: "Invites_Event", onDelete: Cascade) 
+  team     Team?  @relation(fields: [teamId], references: [id], name: "Invites_Team", onDelete: Cascade) 
+
+
 }
