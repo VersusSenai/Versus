@@ -203,8 +203,7 @@ model Invite {
 enum ApplicationType {
   //To became an event organizer
   O
-  //To Register a Team
-  T
+
 }
 
 
@@ -214,4 +213,7 @@ model Application {
     fromUser    User  @relation(fields: [fromUserId], references: [id], name: "Application_fromUser", onDelete: Cascade)
     applicationType ApplicationType
     Description  String
+    status  InviteStatus @default(P)
+    applicationDate DateTime @default(now()) @map("applicationDate")
+    
 }

@@ -1,6 +1,7 @@
 import express from "express";
 import teamModel from "../models/TeamModel.js";
 import verifyToken from "../middlewares/authMiddleware.js";
+import isAdmin from "../middlewares/adminMiddleware.js";
 
 const teamRoute = express.Router();
 
@@ -361,7 +362,7 @@ teamRoute.get("/:id/inscriptions",verifyToken ,async (req, res, next) => {
 /**
  * @swagger
  * /team/:id/invite:
- *   get:
+ *   post:
  *     summary: Convida Um jogador para o um time
  *     tags: [Times]
  *     security:
@@ -402,7 +403,7 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
  * /team/updateInvite:
  *   get:
  *     summary: Responde convite
- *     tags: [Time]
+ *     tags: [Times]
  *     security:
  *       - cookieAuth: []
   *     requestBody:
@@ -424,6 +425,36 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
 teamRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await teamModel.updateInvite(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+
+/**
+ * @swagger
+ * /team/approveTeam/{id}:
+ *   post:
+ *     summary: Aprovar time pendente
+ *     tags: [Times]
+ *     security:
+ *       - adminAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do time
+ *     responses:
+ *       200:
+ *         description: Convite aceito com sucesso
+ *       400:
+ *         description: Erro com o convite
+ */
+teamRoute.post("/approveTeam/:id", isAdmin, async (req, res, next) => {
+  try {
+    const result = await teamModel.approveTeam(req);
     res.status(200).json(result);
   } catch (err) {
     next(err)

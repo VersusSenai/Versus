@@ -126,7 +126,14 @@ class MatchModel {
   declareWinner = async (req) => {
 
     const userData = req.user;
-    const match = await this.prisma.match.findFirst({where: {id: parseInt(req.params.id)}, include: {event: true}})
+    const match = await this.prisma.match.findFirst({where: {id: parseInt(req.params.id)}, include: {event: true}}).catch(e=>{
+      throw new DataBaseException("Internal Server Error");
+      
+    })
+    if(!match){
+      throw new NotFoundException("Match not found");
+      
+    }
     const eventId = match.event.id;
     const isUserOwner = eventModel.isUserOwner(userData, match.event.id)
 

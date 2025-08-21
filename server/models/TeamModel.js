@@ -327,6 +327,7 @@ class TeamModel {
   }
 
   approveTeam = async(req)=>{
+
     return await this.prisma.team.update({where: {id: parseInt(req.params.id)}, data:{
       status: "O"
     }}).catch(e=>{
