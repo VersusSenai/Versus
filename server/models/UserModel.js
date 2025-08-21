@@ -1,19 +1,34 @@
 import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import {pagination} from "prisma-extension-pagination"
 import NotFoundException from "../exceptions/NotFoundException";
 import ConflictException from "../exceptions/ConflictException";
 import DataBaseException from "../exceptions/DataBaseException";
 
 class UserModel {
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = new PrismaClient().$extends(pagination());
   }
 
   async getAll(req) {
     const userData = req.user;
+    let page =  parseInt(req.query.page)?  parseInt(req.query.page): 1;
+    let limit = parseInt(req.query.limit)?  parseInt(req.query.limit): 10;
 
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.paginate({
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        registeredDate: true,
+        status: true
+      }
+    }).withPages({
+      limit,
+      page
+    });
   }
 
   async getById(req) {
@@ -112,7 +127,7 @@ class UserModel {
 
       }
       else if (err.code === 'P2025') {
-        throw new NotFoundException("Match not found");
+        throw new NotFoundException("User not found");
       }
       else{
         throw new DataBaseException("Error while updating user");

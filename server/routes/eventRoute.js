@@ -18,6 +18,26 @@ const eventRoute = express.Router();
  *   get:
  *     summary: Lista todos os eventos
  *     tags: [Eventos]
+*     parameters:
+ *       - in: query
+ *         name: pagina
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: numero da página
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: quantidade de dados
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: Array
+ *         description: status
+ 
  *     responses:
  *       200:
  *         description: Lista de eventos
