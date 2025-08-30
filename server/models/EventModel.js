@@ -1,4 +1,4 @@
-import { EventRole, InscriptionStatus, PrismaClient } from '@prisma/client';
+
 import serviceUtils from '../services/util.js';
 import NotFoundException from '../exceptions/NotFoundException.js';
 import BadRequestException from '../exceptions/BadRequestException.js';
@@ -6,15 +6,34 @@ import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
 import inviteModel from './inviteModel.js';
+import {pagination} from "prisma-extension-pagination";
+import { PrismaClient } from '@prisma/client';
+
 
 class EventModel {
   
+
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = new PrismaClient().$extends(pagination());
   }
 
   getAll = async (req) => {
-    return await this.prisma.event.findMany();
+    let page = req.query.page? parseInt(req.query.page): 1;
+    let limit =  req.query.limit? parseInt(req.query.limit): 10;
+    let status = req.query.status? req.query.status : ["P", "O"];
+    if(!Array.isArray(status)){
+      status = [status]
+    }
+    
+    return await this.prisma.event.paginate({where: {
+      status: {
+        in: status
+      }
+    }}).withPages({
+      page, limit
+    })
+
+    
   };
 
 
@@ -29,6 +48,7 @@ class EventModel {
         return r
       }
     });
+
   };
 
   create = async (req) => {

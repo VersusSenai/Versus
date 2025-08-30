@@ -2,9 +2,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from "@prisma/client";
 import 'dotenv/config';
-import DataBaseException from '../exceptions/DataBaseException';
-import NotFoundException from '../exceptions/NotFoundException';
-import BadRequestException from '../exceptions/BadRequestException';
+import DataBaseException from '../exceptions/DataBaseException.js';
+import NotFoundException from '../exceptions/NotFoundException.js';
+import BadRequestException from '../exceptions/BadRequestException.js';
 
 
 const prisma = new PrismaClient()

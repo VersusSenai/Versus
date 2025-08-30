@@ -66,6 +66,15 @@ enum Status {
   P
 }
 
+enum TeamStatus {
+  //Ended
+  E
+  //On Going
+  O
+  // Pending (not started)
+  P
+}
+
 model Team {
   id             Int      @id @default(autoincrement())
   name           String   @db.VarChar(100)
@@ -75,6 +84,7 @@ model Team {
   teamUsers      TeamUsers[]
   private       Boolean? @default(false)
   EventInscriptions    EventInscriptions[]
+  status         TeamStatus
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
   invites       Invite[] @relation("Invites_Team")
