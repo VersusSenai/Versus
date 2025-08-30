@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
-import util from '../services/util';
+import util from '../services/util.js';
 
 
 const isAdmin = async (req, res, next) => {
