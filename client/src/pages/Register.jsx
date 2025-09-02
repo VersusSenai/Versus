@@ -41,7 +41,7 @@ const Register = () => {
         username,
         role,
       });
-      if (response.data) {
+      if (response.status === 201) {
         toast.success('Cadastro realizado com sucesso!');
         setTimeout(() => {
           navigate('/login');

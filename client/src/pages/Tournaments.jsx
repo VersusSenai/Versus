@@ -69,7 +69,7 @@ export default function Tournaments() {
 
       // Para cada evento, pegar detalhes completos e nome do vencedor
       const eventsWithDetails = await Promise.all(
-        eventsResponse.data.map(async (ev) => {
+        eventsResponse.data[0].map(async (ev) => {
           try {
             const detailRes = await api.get(`/event/${ev.id}`);
             const eventDetail = detailRes.data;
