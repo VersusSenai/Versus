@@ -61,6 +61,7 @@ authRoute.post("/login", async (req, res, next) => {
   };
 
   const resp = await auth.login(req).catch((err) => {
+    console.log(err)
     next(err)
   });
 

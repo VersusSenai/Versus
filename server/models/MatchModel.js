@@ -11,6 +11,11 @@ class MatchModel {
   }
 
   getAll = async (req) => {
+
+    if(!parseInt(req.params.id)){
+      throw new NotFoundException("Event ID is required");
+    }
+
     return await this.prisma.match.findMany({
       where: { eventId: parseInt(req.params.id) },
       include: {

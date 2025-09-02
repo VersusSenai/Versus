@@ -28,9 +28,11 @@ const matchRoute = express.Router();
  *       200:
  *         description: Lista de partidas retornada com sucesso
  */
-matchRoute.get("/:id/match",verifyToken ,async (req,res)=>{
+matchRoute.get("/:id/match",verifyToken ,async (req,res, next)=>{
     return await matchModel.getAll(req).then(r=>{
         res.status(200).json(r)
+    }).catch(e=>{
+        next(e)
     })
 });
 
