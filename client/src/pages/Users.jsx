@@ -57,7 +57,7 @@ const Users = () => {
     e.preventDefault();
 
     try {
-      await api.put(`/user`, { ...selectedUser, userId: selectedUser.i, password: null });
+      await api.put(`/user/${selectedUser.id}`, { ...selectedUser, userId: selectedUser.i, password: null });
       toast.success('Usuário atualizado com sucesso!');
 
       setData((oldData) => oldData.map((u) => (u.id === selectedUser.id ? selectedUser : u)));
@@ -75,7 +75,7 @@ const Users = () => {
     if (!confirmed) return;
 
     try {
-      await api.delete(`/user`, {
+      await api.delete(`/user/${user.id}`, {
         data: { userId: user.id },
       });
       toast.success('Usuário removido com sucesso!');
