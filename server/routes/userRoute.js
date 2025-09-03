@@ -265,4 +265,18 @@ userRoute.delete("/:id", isAdmin, async (req, res,next) => {
     .catch(e => next(e));
 });
 
+
+
+userRoute.post("/forgetPassword", async (req, res,next) => {
+  await userModel.passwordRecoverByEmail(req)
+    .then(data => res.status(200).json({msg: "Email enviado com sucesso"}))
+    .catch(e => next(e));
+});
+
+userRoute.patch("/recoverPassword", async (req, res,next) => {
+  await userModel.passwordRecoverByToken(req)
+    .then(data => res.status(200).json({msg: "Senha alterada com sucesso"}))
+    .catch(e => next(e));
+});
+
 export default userRoute;
