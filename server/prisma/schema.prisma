@@ -85,6 +85,7 @@ model Team {
   teamUsers      TeamUsers[]
   private       Boolean? @default(false)
   EventInscriptions    EventInscriptions[]
+  status         TeamStatus
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
   invites       Invite[] @relation("Invites_Team")

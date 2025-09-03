@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import jwt from "jsonwebtoken"
-import NotFoundException from "../exceptions/NotFoundException";
+import NotFoundException from "../exceptions/NotFoundException.js";
 const prisma = new PrismaClient();
 
 class UtilService {

@@ -1,10 +1,9 @@
 import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import {pagination} from "prisma-extension-pagination"
-import NotFoundException from "../exceptions/NotFoundException";
-import ConflictException from "../exceptions/ConflictException";
-import DataBaseException from "../exceptions/DataBaseException";
+import NotFoundException from "../exceptions/NotFoundException.js";
+import ConflictException from "../exceptions/ConflictException.js";
+import DataBaseException from "../exceptions/DataBaseException.js";
 
 class UserModel {
   constructor() {
@@ -29,6 +28,8 @@ class UserModel {
       limit,
       page
     });
+    
+    return await this.prisma.user.findMany();
   }
 
   async getById(req) {

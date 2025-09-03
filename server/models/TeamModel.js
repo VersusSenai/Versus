@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import serviceUtils from '../services/util';
-import NotFoundException from '../exceptions/NotFoundException';
+import serviceUtils from '../services/util.js';
+import NotFoundException from '../exceptions/NotFoundException.js';
 import inviteModel from './inviteModel.js';
-import DataBaseException from '../exceptions/DataBaseException';
-import NotAllowedException from '../exceptions/NotAllowedException';
+import DataBaseException from '../exceptions/DataBaseException.js';
+import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
-import {pagination} from "prisma-extension-pagination"
+import { pagination } from 'prisma-extension-pagination';
+
 
 class TeamModel {
   
@@ -14,18 +15,19 @@ class TeamModel {
   }
 
   getAll = async (req) => {
-    
-    let page =  parseInt(req.query.page)?  parseInt(req.query.page): 1;
-    let limit = parseInt(req.query.limit)?  parseInt(req.query.limit): 10;
-    
-    let status = req.query.status == null? ['O']: [...req.query.status];
-    if(status.find((v)=>{v == "B"}) && req.user.role != "A"){
-      throw new NotAllowedException("");
-      
+    let page = req.query.page? parseInt(req.query.page): 1;
+    let limit =  req.query.limit? parseInt(req.query.limit): 10;
+    let status = req.query.status? req.query.status : ["P", "O"];
+    if(!Array.isArray(status)){
+      status = [status]
     }
-    return await this.prisma.team.paginate({where: {status: {in: status}}}).withPages({
-      page, limit 
+
+    return await this.prisma.team.paginate({
+      where: {status: {in: status}}
+    }).withPages({
+      page, limit
     });
+    
   };
 
   getById = async (req) => {

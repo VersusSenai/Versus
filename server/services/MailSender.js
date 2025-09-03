@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import nodemailer from "nodemailer";
-import MailError from '../exceptions/MailError';
+import MailError from '../exceptions/MailError.js';
 
 class MailSender{
 
