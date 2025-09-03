@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import NotFoundException from "../exceptions/NotFoundException.js";
 import ConflictException from "../exceptions/ConflictException.js";
 import DataBaseException from "../exceptions/DataBaseException.js";
+import { pagination } from "prisma-extension-pagination";
 
 class UserModel {
   constructor() {
