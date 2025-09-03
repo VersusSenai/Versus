@@ -6,6 +6,7 @@ import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
 import inviteModel from './inviteModel.js';
+
 import {pagination} from "prisma-extension-pagination";
 import { PrismaClient } from '@prisma/client';
 
@@ -35,7 +36,7 @@ class EventModel {
 
     
   };
-
+  
 
   getById = async (req) => {
     return await this.prisma.event.findUnique({
@@ -67,7 +68,7 @@ class EventModel {
 
     
     const newEvent = await this.prisma.event.create({
-      data: {...req.body ,maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
+      data: {   ...req.body, status: "P",maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
         create:[
           {userId: userData.id, status: "C", role: "O", status: 'O'}
         ]
@@ -80,7 +81,7 @@ class EventModel {
   };
 
   update = async (req) => {
-    const isUserOwner = this.isUserOwner(req.user, parseInt(req.params.id))
+    const isUserOwner = await this.isUserOwner(req.user, parseInt(req.params.id))
     if(!isUserOwner){
       throw new NotAllowedException("Only the owner of this event can update it");
     }
@@ -186,7 +187,7 @@ class EventModel {
 
   delete = async (req) => {
 
-    const isUserOwner = this.isUserOwner(req.user, parseInt(req.params.id));
+    const isUserOwner = await this.isUserOwner(req.user, parseInt(req.params.id));
 
     if(!isUserOwner){
       throw new NotAllowedException("User is not owner of this event");
@@ -237,7 +238,7 @@ class EventModel {
       throw new ConflictException("Event already started");
     }
 
-    const isUserOwner = this.isUserOwner(req.user, eventId);
+    const isUserOwner = await this.isUserOwner(req.user, eventId);
 
     if(!isUserOwner){
       throw new ConflictException("User is not Owner of this event");
@@ -276,7 +277,7 @@ class EventModel {
 
   getAllInscriptions = async(req)=>{
     const userData = await serviceUtils.getUserByToken(req);
-    const isOwner = this.isUserOwner(req.user, parseInt(req.params.id));
+    const isOwner = await this.isUserOwner(req.user, parseInt(req.params.id));
 
     if(!isOwner){
       throw new NotAllowedException("Only the owner of this event can make this call");
@@ -337,7 +338,7 @@ class EventModel {
     }
 
 
-    if(!this.isUserOwner(userData, event.id)){
+    if(! await this.isUserOwner(userData, event.id)){
       throw new ConflictException("You do not own this tournment");
     }
     
@@ -366,7 +367,8 @@ class EventModel {
     let currentTime = new Date(Date.now () + 10 * 60 * 1000);; 
     await this.prisma.event.update({where: {id: eventId}, data:{
       keysQuantity: totalRounds,
-      matchsQuantity: total/2
+      matchsQuantity: total/2,
+      status: "O"
     }})      
 
     let Matchs = [];
@@ -467,7 +469,7 @@ class EventModel {
       
     }
 
-    if(!this.isUserOwner(userData, event.id)){
+    if(! await this.isUserOwner(userData, event.id)){
       throw new NotAllowedException("You are not the owner of this tournment");
     }
 

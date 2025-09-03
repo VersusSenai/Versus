@@ -21,6 +21,7 @@ model User {
   secondMatches  Match[] @relation("Match_secondUser")
   inviteTo        Invite[]  @relation("Invite_toUser")
   inviteFrom        Invite[] @relation("Invite_fromUser")
+  applicationFrom        Application[] @relation("Application_fromUser")
 }
 enum UserStatus {
   A
@@ -66,19 +67,19 @@ enum Status {
   P
 }
 
-enum TeamStatus {
-  //Ended
-  E
-  //On Going
-  O
-  // Pending (not started)
+enum TeamStatus { 
+  // Approvation Pending
   P
+  // Okay
+  O
+  // Banned
+  B
+  
 }
 
 model Team {
   id             Int      @id @default(autoincrement())
   name           String   @db.VarChar(100)
-  ownerId        Int
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
   teamUsers      TeamUsers[]
@@ -116,21 +117,21 @@ enum InscriptionStatus {
   R
 }
 
-enum EventRole{
+enum EventRole {
   //Owner
   O
   //Player
   P
 }
 
-enum TeamInscription{
+enum TeamInscription {
   //Okay
   O
   //Banned
   B
 }
 
-enum TeamRole{
+enum TeamRole {
   //Admin
   A 
   // Owner
@@ -197,4 +198,22 @@ model Invite {
   team     Team?  @relation(fields: [teamId], references: [id], name: "Invites_Team", onDelete: Cascade) 
 
 
+}
+
+enum ApplicationType {
+  //To became an event organizer
+  O
+
+}
+
+
+model Application {
+    id          Int      @id @default(autoincrement())
+    fromUserId  Int
+    fromUser    User  @relation(fields: [fromUserId], references: [id], name: "Application_fromUser", onDelete: Cascade)
+    applicationType ApplicationType
+    Description  String
+    status  InviteStatus @default(P)
+    applicationDate DateTime @default(now()) @map("applicationDate")
+    
 }
