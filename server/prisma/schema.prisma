@@ -89,7 +89,6 @@ model Team {
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
   invites       Invite[] @relation("Invites_Team")
-  status        TeamStatus
 }
 
 model EventInscriptions {

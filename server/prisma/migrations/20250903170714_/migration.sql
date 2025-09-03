@@ -34,10 +34,10 @@ CREATE TABLE `Event` (
 CREATE TABLE `Team` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(100) NOT NULL,
-    `ownerId` INTEGER NOT NULL,
     `description` VARCHAR(250) NULL,
     `registered_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `private` BOOLEAN NULL DEFAULT false,
+    `status` ENUM('P', 'O', 'B') NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -102,6 +102,18 @@ CREATE TABLE `Invite` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `Application` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `fromUserId` INTEGER NOT NULL,
+    `applicationType` ENUM('O') NOT NULL,
+    `Description` VARCHAR(191) NOT NULL,
+    `status` ENUM('P', 'A', 'D', 'E') NOT NULL DEFAULT 'P',
+    `applicationDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `EventInscriptions` ADD CONSTRAINT `EventInscriptions_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -143,3 +155,6 @@ ALTER TABLE `Invite` ADD CONSTRAINT `Invite_eventId_fkey` FOREIGN KEY (`eventId`
 
 -- AddForeignKey
 ALTER TABLE `Invite` ADD CONSTRAINT `Invite_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Application` ADD CONSTRAINT `Application_fromUserId_fkey` FOREIGN KEY (`fromUserId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
