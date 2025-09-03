@@ -1,4 +1,3 @@
-// App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
@@ -15,8 +14,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Users from './pages/Users';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AccountPage from './pages/AccountPage';
 
-// Componente simples para a página 404
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
     <h1 className="text-4xl font-bold">404 - Página não encontrada</h1>
@@ -68,6 +67,18 @@ const AnimatedRoutes = () => {
               <Layout>
                 <PageWrapper>
                   <CreateTournaments />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageWrapper>
+                  <AccountPage />
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
