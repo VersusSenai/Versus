@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from './navbar/Navbar';
 import Aurora from '../ui/blocks/Backgrounds/Aurora/Aurora'; // ajuste o caminho conforme necessário
 
 const Layout = ({ children }) => {
