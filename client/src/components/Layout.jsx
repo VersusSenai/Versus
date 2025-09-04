@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
           marginLeft: isDesktop ? navbarWidth : 0,
           width: isDesktop ? `calc(100% - ${navbarWidth}px)` : '100%',
         }}
-        className="transition-[margin-left,width] duration-300 p-4 relative z-10 flex justify-center"
+        className="transition-[margin-left,width] duration-300 relative z-10 flex justify-center"
       >
         <div className="w-full max-w-7xl">{children}</div>
       </main>

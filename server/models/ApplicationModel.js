@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import {pagination} from "prisma-extension-pagination"
-import DataBaseException from '../exceptions/DataBaseException';
-import NotAllowedException from '../exceptions/NotAllowedException';
+import DataBaseException from '../exceptions/DataBaseException.js';
+import NotAllowedException from '../exceptions/NotAllowedException.js';
 
 class ApplicationModel {
   
