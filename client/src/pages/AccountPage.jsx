@@ -2,7 +2,6 @@ import { FaUserCircle, FaTrash } from 'react-icons/fa';
 import { VersusIconButton } from '../ui/versus/versusIconButton';
 import { VersusInput } from '../ui/versus/versusInput';
 import { VersusButton } from '../ui/versus/versusButton';
-
 import {
   Dialog,
   DialogTrigger,
@@ -13,37 +12,47 @@ import {
   DialogDescription,
   DialogClose,
 } from '../components/ui/dialog';
-import { Button } from '../components/ui/button';
 import { useState } from 'react';
-
+import { useDeleteUser } from '../hooks/useDeleteUser';
+import { useUser } from '../hooks/useUser';
+import { useNavigate } from 'react-router-dom';
 export default function AccountPage() {
+  const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  const handleDelete = () => {
-    console.log('Conta excluída');
-    setShowDeleteDialog(false);
-  };
+  const { handleDelete, loading: deleting } = useDeleteUser();
+  const { user, loading } = useUser();
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-      <div className="rounded-xl p-8 w-full max-w-lgflex flex-col items-center justify-center flex">
+      <div className="rounded-xl p-8 w-full max-w-lg flex flex-col items-center justify-center">
         <h1 className="text-5xl font-bold mb-6 text-center text-white">Conta do Usuário</h1>
-        <div className="flex items-center justify-center rounded-xl p-8 max-w-lgflex flex-col  w-full max-w-md">
+        <div className="flex items-center justify-center rounded-xl p-8 w-full max-w-md flex-col">
           <div className="mb-6">
             <FaUserCircle className="text-[120px] text-white drop-shadow-lg" />
           </div>
 
-          <VersusInput placeholder="Nome de usuário" />
+          <VersusInput
+            placeholder="Nome de usuário"
+            value={loading ? 'Carregando...' : user?.username || ''}
+            disabled
+            readOnly
+          />
           <div className="mt-4 w-full">
-            <VersusInput type="email" placeholder="Email" />
+            <VersusInput
+              type="email"
+              placeholder="Email"
+              value={loading ? 'Carregando...' : user?.email || ''}
+              disabled
+              readOnly
+            />
           </div>
 
           <div className="flex w-full gap-4 mt-6">
             <VersusButton
               label="Editar"
               variant="contained"
-              onClick={() => console.log('Editar conta')}
               fullWidth
+              onClick={() => navigate('/account/edit')} // <-- navega para a página de edição
             />
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -69,7 +78,12 @@ export default function AccountPage() {
                     variant="outlined"
                     onClick={() => setShowDeleteDialog(false)}
                   />
-                  <VersusButton label="Excluir" variant="contained" onClick={handleDelete} />
+                  <VersusButton
+                    label={deleting ? 'Excluindo...' : 'Excluir'}
+                    variant="contained"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                  />
                 </DialogFooter>
 
                 <DialogClose />
