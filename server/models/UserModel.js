@@ -8,6 +8,8 @@ import { pagination } from "prisma-extension-pagination";
 import MailSender from "../services/MailSender.js";
 import dayjs from "dayjs"
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
 
 class UserModel {
   constructor() {
@@ -241,16 +243,17 @@ class UserModel {
       });
 
     let mailSender = MailSender;
+    const resetLink = `http://localhost:5173/forgetPassword?token=${userPasswordRecover.token}`;
+    const templatePath = path.resolve(__dirname, '../templates/email/recoverPassword.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+    htmlTemplate = htmlTemplate.replace('{{resetLink}}', resetLink);
 
     await mailSender.sendMail({
       to: user.email,
-      subject: "Token para recuperação de senha",
-      text:
-        "Aqui está seu token para recuperar sua senha: " + "http://localhost:5173/forgetPassword?token=" +
-        userPasswordRecover.token,
-      html: ""
+      subject: "Recuperação de senha Versus",
+      text: ``,
+      html: htmlTemplate
     });
-
     return "";
   }
 
