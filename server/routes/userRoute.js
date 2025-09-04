@@ -265,4 +265,95 @@ userRoute.delete("/:id", isAdmin, async (req, res,next) => {
     .catch(e => next(e));
 });
 
+
+/**
+ * @swagger
+ * /user/forgetPassword:
+ *   post:
+ *     summary: Solicita recuperação de senha por email
+ *     tags: [Usuários]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "usuario@email.com"
+ *                 description: Email do usuário para recuperação de senha
+ *     responses:
+ *       200:
+ *         description: Email de recuperação enviado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Email enviado com sucesso"
+ *       400:
+ *         description: Erro na solicitação de recuperação
+ *       404:
+ *         description: Usuário não encontrado
+ *       500:
+ *         description: Erro interno do servidor
+ */
+userRoute.post("/forgetPassword", async (req, res,next) => {
+  await userModel.passwordRecoverByEmail(req)
+    .then(data => res.status(200).json({msg: "Email enviado com sucesso"}))
+    .catch(e => nexteita (e));
+});
+
+/**
+ * @swagger
+ * /user/recoverPassword:
+ *   patch:
+ *     summary: Altera senha usando token de recuperação
+ *     tags: [Usuários]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token de recuperação recebido por email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 example: "novasenha123"
+ *                 description: Nova senha do usuário
+ *     responses:
+ *       200:
+ *         description: Senha alterada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Senha alterada com sucesso"
+ *       400:
+ *         description: Token inválido ou expirado
+ *       404:
+ *         description: Token não encontrado
+ *       500:
+ *         description: Erro interno do servidor
+ */
+userRoute.patch("/recoverPassword", async (req, res,next) => {
+  await userModel.passwordRecoverByToken(req)
+    .then(data => res.status(200).json({msg: "Senha alterada com sucesso"}))
+    .catch(e => next(e));
+});
+
 export default userRoute;

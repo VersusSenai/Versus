@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "migrate": "for file in migrations/*.sql; do mysql -u root -p -h localhost < \"$file\"; done"
+    "migrate": "prisma generate && prisma migrate dev"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

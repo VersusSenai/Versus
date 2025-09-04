@@ -13,7 +13,7 @@ class MailSender{
         let password = process.env.SMTP_PASSWORD;
 
         this.mailSender = nodemailer.createTransport({
-            host, port, auth:{
+            host, port, secure: false, auth:{
                 user: username, pass: password
             }
         })
@@ -25,7 +25,8 @@ class MailSender{
         }).then(r=>{
             return {msg: "Message Sent"}
         }).catch(e=>{
-            throw new MailError("Failed to sendo email");
+            console.log(e)
+            throw new MailError("Failed to send email");
             
         })
 
