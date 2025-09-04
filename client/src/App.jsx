@@ -15,6 +15,7 @@ import Users from './pages/Users';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AccountPage from './pages/AccountPage';
+import AccountEditPage from './pages/AccountEditPage';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -79,6 +80,18 @@ const AnimatedRoutes = () => {
               <Layout>
                 <PageWrapper>
                   <AccountPage />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/edit"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageWrapper>
+                  <AccountEditPage />
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
