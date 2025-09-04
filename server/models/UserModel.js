@@ -246,7 +246,7 @@ class UserModel {
       to: user.email,
       subject: "Token para recuperação de senha",
       text:
-        "Aqui está seu token para recuperar sua senha: " +
+        "Aqui está seu token para recuperar sua senha: " + "http://localhost:5173/forgetPassword?token=" +
         userPasswordRecover.token,
       html: ""
     });
@@ -286,9 +286,6 @@ class UserModel {
       throw new DataBaseException("Internal Server Error");
       
     })
-    
-    
-    
     
   }
 }
