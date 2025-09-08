@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import MailSender from "../services/MailSender.js"
 import dayjs from "dayjs"
 import DataBaseException from '../exceptions/DataBaseException.js';
+
 class InviteModel{
     prisma;
     

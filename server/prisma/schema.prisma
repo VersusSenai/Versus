@@ -23,6 +23,7 @@ model User {
   inviteFrom        Invite[] @relation("Invite_fromUser")
   applicationFrom        Application[] @relation("Application_fromUser")
   passwordRecover        UserPasswordRecover[] @relation("passwordRecoverToken")
+  RefreshToken        UserRefreshToken[] @relation("RefreshToken")
 }
 enum UserStatus {
   A
@@ -225,5 +226,25 @@ model UserPasswordRecover{
   expirationDate  DateTime
   userId    Int
   user    User  @relation(fields: [userId], references: [id], name: "passwordRecoverToken", onDelete: Cascade)
+
+}
+
+
+enum RefreshTokenStatus {
+  //Active
+  A
+  //Expired
+  E
+  // Canceled
+  C
+}
+
+model UserRefreshToken{
+  id Int  @id @default(autoincrement())
+  token     String  @unique
+  expirationDate  DateTime
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], name: "RefreshToken", onDelete: Cascade)
+  status  RefreshTokenStatus 
 
 }
