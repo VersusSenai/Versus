@@ -28,8 +28,9 @@ class EventModel {
     
     return await this.prisma.event.paginate({where: {
       status: {
-        in: status
-      }
+        in: status,
+      },
+      private: false
     }}).withPages({
       page, limit
     })
