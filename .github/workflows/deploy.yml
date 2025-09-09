@@ -24,6 +24,8 @@ jobs:
             cd ~/Versus/backend
             git pull origin main
             npm install
+            npx prisma generate         # Atualiza o client do Prisma
+            npx prisma migrate deploy   # Aplica migrations no banco
             pm2 restart versus-backend || pm2 start server.js --name versus-backend
             pm2 save
           EOF
