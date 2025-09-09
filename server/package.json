@@ -6,11 +6,11 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "migrate": "for file in migrations/*.sql; do mysql -u root -p -h localhost < \"$file\"; done"
+    "migrate": "prisma generate && prisma migrate dev"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
@@ -18,8 +18,10 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.0",
+    "nodemailer": "^7.0.5",
     "nodemon": "^3.1.9",
     "prisma": "^6.5.0",
+    "prisma-extension-pagination": "^0.7.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   }

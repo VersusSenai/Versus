@@ -35,14 +35,14 @@ const Login = () => {
       const response = await api.post(
         '/auth/login',
         { email, password },
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
 
-      if ((response.status = 200)) {
+      if (response.status === 200) {
         toast.success('Login bem-sucedido!');
+
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.user.id);
 
         dispatch(login(response.data.user));
 
@@ -52,7 +52,7 @@ const Login = () => {
       } else {
         toast.error('Usuário ou senha incorretos!');
       }
-    } catch {
+    } catch (error) {
       toast.error('Erro ao conectar ao servidor!');
     }
     setLoading(false);

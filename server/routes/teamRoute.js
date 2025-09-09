@@ -1,6 +1,7 @@
 import express from "express";
-import teamService from "../services/team.js";
+import teamModel from "../models/TeamModel.js";
 import verifyToken from "../middlewares/authMiddleware.js";
+import isAdmin from "../middlewares/adminMiddleware.js";
 
 const teamRoute = express.Router();
 
@@ -17,12 +18,31 @@ const teamRoute = express.Router();
  *   get:
  *     summary: Lista todos os times
  *     tags: [Times]
+*     parameters:
+ *       - in: query
+ *         name: pagina
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: numero da página
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: quantidade de dados
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: Array
+ *         description: status
  *     responses:
  *       200:
  *         description: Lista de times
  */
-teamRoute.get("/", async (req, res) => {
-  const teams = await teamService.getAll();
+teamRoute.get("/",verifyToken ,async (req, res) => {
+  const teams = await teamModel.getAll(req);
   res.json(teams);
 });
 
@@ -45,12 +65,12 @@ teamRoute.get("/", async (req, res) => {
  *       404:
  *         description: Time não encontrado
  */
-teamRoute.get("/:id", async (req, res) => {
+teamRoute.get("/:id",verifyToken ,async (req, res,next) => {
   try {
-    const team = await teamService.getById(req);
+    const team = await teamModel.getById(req);
     res.status(200).json(team);
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -77,12 +97,12 @@ teamRoute.get("/:id", async (req, res) => {
  *       400:
  *         description: Erro ao criar time
  */
-teamRoute.post("/", verifyToken, async (req, res) => {
+teamRoute.post("/", verifyToken, async (req, res, next) => {
   try {
-    const team = await teamService.create(req);
+    const team = await teamModel.create(req);
     res.status(201).json(team);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -118,12 +138,12 @@ teamRoute.post("/", verifyToken, async (req, res) => {
  *       403:
  *         description: Sem permissão para editar
  */
-teamRoute.put("/:id", verifyToken, async (req, res) => {
+teamRoute.put("/:id", verifyToken, async (req, res, next) => {
   try {
-    const updated = await teamService.update(req);
+    const updated = await teamModel.update(req);
     res.status(200).json(updated);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -150,12 +170,12 @@ teamRoute.put("/:id", verifyToken, async (req, res) => {
  *       403:
  *         description: Sem permissão para deletar
  */
-teamRoute.delete("/:id", verifyToken, async (req, res) => {
+teamRoute.delete("/:id", verifyToken, async (req, res, next) => {
   try {
-    await teamService.delete(req);
+    await teamModel.delete(req);
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -180,12 +200,12 @@ teamRoute.delete("/:id", verifyToken, async (req, res) => {
  *       400:
  *         description: Erro ao inscrever
  */
-teamRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
+teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
   try {
-    const resp = await teamService.inscribe(req);
+    const resp = await teamModel.inscribe(req);
     res.status(200).json(resp);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
   }
 });
 
@@ -219,12 +239,100 @@ teamRoute.post("/:id/inscribe", verifyToken, async (req, res) => {
  *       403:
  *         description: Sem permissão para remover inscrição de outro usuário
  */
-teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
+teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res, next) => {
   try {
-    const resp = await teamService.unsubscribe(req);
+    const resp = await teamModel.unsubscribe(req);
     res.status(200).json(resp);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /team/{id}/unsubscribe/{userId}:
+ *   post:
+ *     summary: Remove inscrição do usuário no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: userId
+ *         in: path
+ *         description: ID do usuário a ser removido
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               userId: 5
+ *     responses:
+ *       200:
+ *         description: Inscrição removida
+ *       400:
+ *         description: Erro ao remover inscrição
+ *       403:
+ *         description: Sem permissão para remover inscrição de outro usuário
+ */
+teamRoute.post("/:id/unsubscribe/:userId", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.unsubscribeById(req);
+    res.status(200).json(resp);
+  } catch (err) {
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /team/{id}/update/{userId}:
+ *   post:
+ *     summary: Atualiza inscrição do usuário no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: userId
+ *         in: path
+ *         description: ID do usuário a ser removido
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               userId: 5
+ *     responses:
+ *       200:
+ *         description: Inscrição removida
+ *       400:
+ *         description: Erro ao remover inscrição
+ *       403:
+ *         description: Sem permissão para remover inscrição de outro usuário
+ */
+teamRoute.put("/:id/update/:userId", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.updateUserInscription(req);
+    res.status(200).json(resp);
+  } catch (err) {
+    next(err)
   }
 });
 
@@ -245,9 +353,111 @@ teamRoute.post("/:id/unsubscribe", verifyToken, async (req, res) => {
  *       200:
  *         description: Lista de usuários inscritos
  */
-teamRoute.get("/:id/inscriptions", async (req, res) => {
-  const inscriptions = await teamService.getAllInscriptions(req);
+teamRoute.get("/:id/inscriptions",verifyToken ,async (req, res, next) => {
+  const inscriptions = await teamModel.getAllInscriptions(req);
   res.json(inscriptions);
 });
 
+
+/**
+ * @swagger
+ * /team/:id/invite:
+ *   post:
+ *     summary: Convida Um jogador para o um time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do time
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 description: ID do jogador
+ *                 example: 3
+ *     responses:
+ *       200:
+ *         description: Convite Enviado com sucesso
+ *       400:
+ *         description: Erro ao buscar inscrições
+ */
+teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await teamModel.invitePlayer(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /team/updateInvite:
+ *   get:
+ *     summary: Responde convite
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accept:
+ *                 type: boolean
+ *                 description: resposta do jogador
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Convite aceito com sucesso
+ *       400:
+ *         description: Erro com o convite
+ */
+teamRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await teamModel.updateInvite(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+
+/**
+ * @swagger
+ * /team/approveTeam/{id}:
+ *   post:
+ *     summary: Aprovar time pendente
+ *     tags: [Times]
+ *     security:
+ *       - adminAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do time
+ *     responses:
+ *       200:
+ *         description: Convite aceito com sucesso
+ *       400:
+ *         description: Erro com o convite
+ */
+teamRoute.post("/approveTeam/:id", isAdmin, async (req, res, next) => {
+  try {
+    const result = await teamModel.approveTeam(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
 export default teamRoute;

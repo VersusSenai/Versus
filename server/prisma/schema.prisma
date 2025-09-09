@@ -6,6 +6,7 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
 model User {
   id              Int      @id @default(autoincrement())
   username        String   @db.VarChar(100)
@@ -13,13 +14,16 @@ model User {
   password        String   @db.VarChar(255)
   role            Role
   registeredDate  DateTime @default(now()) @map("registered_date")
-  teams           Team[]
   eventInscriptions EventInscriptions[]
   teamUsers       TeamUsers[]
   status         UserStatus
   firstMatches   Match[] @relation("Match_firstUser")
   secondMatches  Match[] @relation("Match_secondUser")
-  eventsWon       Event[] @relation("UserWinner")
+  inviteTo        Invite[]  @relation("Invite_toUser")
+  inviteFrom        Invite[] @relation("Invite_fromUser")
+  applicationFrom        Application[] @relation("Application_fromUser")
+  passwordRecover        UserPasswordRecover[] @relation("passwordRecoverToken")
+  RefreshToken        UserRefreshToken[] @relation("RefreshToken")
 }
 enum UserStatus {
   A
@@ -43,11 +47,11 @@ model Event {
   matchsQuantity Int?
   keysQuantity Int?
   multiplayer Boolean
+  private     Boolean? @default(false)
   eventInscriptions EventInscriptions[]
   matches      Match[]
+  invites     Invite[] @relation("Invites_Event")
 
-  winnerUserId     Int?
-  winnerUser       User?    @relation("UserWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
 
 }
 
@@ -57,22 +61,36 @@ enum Model {
 }
 
 enum Status {
+  //Ended
   E
-  S
+  //On Going
+  O
+  // Pending (not started)
   P
+}
+
+enum TeamStatus { 
+  // Approvation Pending
+  P
+  // Okay
+  O
+  // Banned
+  B
+  
 }
 
 model Team {
   id             Int      @id @default(autoincrement())
   name           String   @db.VarChar(100)
-  ownerId        Int
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
-  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   teamUsers      TeamUsers[]
+  private       Boolean? @default(false)
   EventInscriptions    EventInscriptions[]
+  status         TeamStatus
   firstMatches   Match[] @relation("Match_firstTeam")
   secondMatches  Match[] @relation("Match_secondTeam")
+  invites       Invite[] @relation("Invites_Team")
 }
 
 model EventInscriptions {
@@ -81,22 +99,46 @@ model EventInscriptions {
   teamId          Int?
   eventId        Int
   registeredDate DateTime @default(now()) @map("registered_date")
-  status        InscriptionStatus @default(P)
+  status        InscriptionStatus @default(O)
   role          EventRole @default(P)
   user          User?     @relation(fields: [userId], references: [id],  onDelete: Cascade)
   event         Event    @relation(fields: [eventId], references: [id],  onDelete: Cascade)
   team           Team?  @relation(fields: [teamId], references: [id],  onDelete: Cascade)
   @@unique([userId, eventId])
+  @@unique([teamId, eventId])
 }
 
 enum InscriptionStatus {
-  P
-  C
-  D
+  //Okay
+  O
+  //Lost
+  L
+  //Winner
+  W
+  //Removed
+  R
 }
 
-enum EventRole{
+enum EventRole {
+  //Owner
   O
+  //Player
+  P
+}
+
+enum TeamInscription {
+  //Okay
+  O
+  //Banned
+  B
+}
+
+enum TeamRole {
+  //Admin
+  A 
+  // Owner
+  O 
+  // Player
   P
 }
 
@@ -105,15 +147,16 @@ model TeamUsers {
   userId          Int @unique
   teamId          Int
   inscriptionDate DateTime @default(now()) @map("inscription_date")
-  status         InscriptionStatus @default(P)
+  status         TeamInscription @default(O)
+  role            TeamRole @default(P)
   user           User @relation(fields: [userId], references: [id],  onDelete: Cascade)
   team           Team @relation(fields: [teamId], references: [id],  onDelete: Cascade)
 }
 
+
 model Match {
   id          Int      @id @default(autoincrement())
   eventId     Int
-  matchNumber Int
   keyNumber   Int
   firstTeamId Int?
   secondTeamId Int?
@@ -127,4 +170,81 @@ model Match {
   secondTeam  Team?  @relation(fields: [secondTeamId], references: [id], name: "Match_secondTeam",  onDelete: Cascade)
   firstUser   User?  @relation(fields: [firstUserId], references: [id], name: "Match_firstUser",  onDelete: Cascade)
   secondUser  User?  @relation(fields: [secondUserId], references: [id], name: "Match_secondUser",  onDelete: Cascade)
+}
+
+enum InviteStatus {
+  //Pending
+  P 
+  //Accepted
+  A
+  //Denied
+  D
+  //Expired
+  E
+}
+
+model Invite {
+  id          Int      @id @default(autoincrement())
+  fromUserId  Int
+  toUserId    Int
+  description String
+  token       String
+  expirationDate DateTime
+  status  InviteStatus
+  callback  String?
+  teamId     Int? 
+  eventId     Int? 
+  toUser    User  @relation(fields: [toUserId], references: [id], name: "Invite_toUser", onDelete: Cascade)
+  fromUser    User  @relation(fields: [fromUserId], references: [id], name: "Invite_fromUser", onDelete: Cascade)
+  event     Event?  @relation(fields: [eventId], references: [id], name: "Invites_Event", onDelete: Cascade) 
+  team     Team?  @relation(fields: [teamId], references: [id], name: "Invites_Team", onDelete: Cascade) 
+
+
+}
+
+enum ApplicationType {
+  //To became an event organizer
+  O
+
+}
+
+
+model Application {
+    id          Int      @id @default(autoincrement())
+    fromUserId  Int
+    fromUser    User  @relation(fields: [fromUserId], references: [id], name: "Application_fromUser", onDelete: Cascade)
+    applicationType ApplicationType
+    Description  String
+    status  InviteStatus @default(P)
+    applicationDate DateTime @default(now()) @map("applicationDate")
+    
+}
+
+model UserPasswordRecover{
+  id Int  @id @default(autoincrement())
+  token     String  @unique
+  expirationDate  DateTime
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], name: "passwordRecoverToken", onDelete: Cascade)
+
+}
+
+
+enum RefreshTokenStatus {
+  //Active
+  A
+  //Expired
+  E
+  // Canceled
+  C
+}
+
+model UserRefreshToken{
+  id Int  @id @default(autoincrement())
+  token     String  @unique
+  expirationDate  DateTime
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], name: "RefreshToken", onDelete: Cascade)
+  status  RefreshTokenStatus 
+
 }

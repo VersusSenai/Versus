@@ -1,3 +1,4 @@
+
 import auth from "../services/auth.js";
 import express from "express";
 import dayjs from "dayjs";
@@ -52,7 +53,7 @@ const authRoute = express.Router();
  *       400:
  *         description: Erro de autenticação
  */
-authRoute.post("/login", async (req, res) => {
+authRoute.post("/login", async (req, res, next) => {
   const cookieOptions = {
     secure: true,
     httpOnly: true,
@@ -61,12 +62,13 @@ authRoute.post("/login", async (req, res) => {
   };
 
   const resp = await auth.login(req).catch((err) => {
-    res.status(400).json(err.message);
+    next(err)
   });
 
   if (resp) {
     res
       .cookie("token", resp.token, cookieOptions)
+      .cookie("refreshToken", resp.refreshToken, cookieOptions)
       .json({
         message: "Token generated",
         user: {
@@ -100,6 +102,78 @@ authRoute.post("/login", async (req, res) => {
  */
 authRoute.post("/logout", async (req, res) => {
   res.cookie("token", null).json({ message: "logout with success" });
+});
+
+
+
+/**
+ * @swagger
+ * /auth/refresh-token:
+ *   post:
+ *     summary: Gera um novo token de acesso e refresh token a partir do refresh token atual
+ *     tags:
+ *       - Autenticação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *     responses:
+ *       200:
+ *         description: Token renovado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Token refreshed
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *       400:
+ *         description: Erro ao renovar o token
+ */
+authRoute.post("/refresh-token", async (req, res, next) => {
+  const cookieOptions = {
+    secure: true,
+    httpOnly: true,
+    sameSite: "none",
+    expires: dayjs().add(1, "day").toDate(),
+  };
+  const resp = await auth.refreshToken(req).catch((err) => {
+    next(err);
+  });
+  if (resp) {
+    res
+      .cookie("token", resp.token, cookieOptions)
+      .cookie("refreshToken", resp.refreshToken, cookieOptions)
+      .json({
+        message: "Token refreshed",
+        user: {
+          email: resp.email,
+          username: resp.username,
+          id: resp.id,
+          role: resp.role,
+        },
+      });
+  }
+
+
 });
 
 export default authRoute;
