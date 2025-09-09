@@ -58,7 +58,7 @@ class TeamModel {
     const userData = await serviceUtils.getUserByToken(req);
 
     return await this.prisma.team.create({
-      data: { ...req.body,status: "P" ,ownerId: userData.id , teamUsers: {
+      data: { ...req.body,status: "P" , teamUsers: {
         create: [
           {userId: userData.id, role: "O"}
         ]
