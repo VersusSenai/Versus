@@ -38,7 +38,7 @@ const Layout = ({ children }) => {
         }}
         className="transition-[margin-left,width] duration-300 relative z-10 flex justify-center"
       >
-        <div className="w-full max-w-7xl">{children}</div>
+        <div className="w-full">{children}</div>
       </main>
     </div>
   );

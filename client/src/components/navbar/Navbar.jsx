@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox } from 'react-icons/md';
+import {
+  MdOutlineEmojiEvents,
+  MdOutlinePeopleAlt,
+  MdOutlineAddBox,
+  MdGroups,
+} from 'react-icons/md';
 import { AiOutlineMenu } from 'react-icons/ai';
 import { logout } from '../../redux/userSlice';
 import { NavbarDesktop } from './NavBarDesktop';
@@ -30,7 +35,13 @@ const Navbar = ({ onWidthChange }) => {
 
   const links = useMemo(
     () => [
-      { label: 'Usuários', icon: <MdOutlinePeopleAlt />, path: 'users', roles: ['A'] },
+      {
+        label: 'Usuários',
+        icon: <MdOutlinePeopleAlt />,
+        path: 'users',
+        roles: ['A'],
+        variant: 'outlined',
+      },
       {
         label: 'Torneios',
         icon: <MdOutlineEmojiEvents />,
@@ -45,7 +56,13 @@ const Navbar = ({ onWidthChange }) => {
         roles: ['A', 'O'],
         variant: 'outlined',
       },
-
+      {
+        label: 'Times',
+        icon: <MdGroups />,
+        path: 'teams',
+        roles: ['A'],
+        variant: 'outlined',
+      },
       {
         label: 'Conta',
         icon: <FaUser />,

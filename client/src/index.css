@@ -110,8 +110,8 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #220033;
-  --foreground: #fff;
+  --background: #fff;
+  --foreground: #220033;
   --card: #331155;
   --card-foreground: #fff;
   --popover: #fff;
@@ -126,7 +126,7 @@
   --accent-foreground: #fff;
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: #5c4bf5;
+  --input: #331155;
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);

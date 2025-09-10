@@ -16,6 +16,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AccountPage from './pages/AccountPage';
 import AccountEditPage from './pages/AccountEditPage';
+import { Teams } from './pages/TeamsPage';
+import { DataTableProvider } from './context/DataTableContext';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -68,6 +70,20 @@ const AnimatedRoutes = () => {
               <Layout>
                 <PageWrapper>
                   <CreateTournaments />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teams"
+          element={
+            <ProtectedRoute allowedRoles={['A']}>
+              <Layout>
+                <PageWrapper>
+                  <DataTableProvider>
+                    <Teams />
+                  </DataTableProvider>
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>

@@ -27,13 +27,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import {
-  ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
-  SortAsc,
-  SortDesc,
-} from 'lucide-react';
+import { ArrowUpDown, ChevronDown, MoreHorizontal, SortAsc, SortDesc } from 'lucide-react';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 
@@ -101,19 +95,22 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
   const checkboxColumn = {
     id: 'checkbox',
     header: ({ table }) => (
-      <Checkbox
-        className="mr-4"
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Selecionar tudo"
-      />
+      <div className="w-full flex items-center justify-center">
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Selecionar tudo"
+        />
+      </div>
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Selecionar linha"
-      />
+      <div className="w-full flex items-center justify-center">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Selecionar linha"
+        />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false,
@@ -200,7 +197,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
         </DropdownMenu>
       </div>
       <div className="flex-1 w-full overflow-auto">
-        <ScrollArea className="rounded-md p-1">
+        <ScrollArea className="rounded-md">
           <ScrollBar orientation="vertical" />
           <Table>
             {/* Cabeçalho da tabela */}
@@ -210,11 +207,11 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="text-gray-300 py-2 px-4 hover:bg-1/10 text-left whitespace-normal break-words cursor-pointer"
+                      className="text-gray-300"
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {header.isPlaceholder ? null : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 p-2 m-1 hover:bg-1/10 rounded-md cursor-pointer">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {header.column.getCanSort() &&
                             ({
@@ -237,7 +234,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="px-4 text-gray-100"
+                        className="text-gray-100 p-2"
                         title={
                           !['checkbox', 'acoes'].includes(cell.column.id) &&
                           (typeof cell.getValue() === 'string' ||
@@ -246,7 +243,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                             : undefined
                         }
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
