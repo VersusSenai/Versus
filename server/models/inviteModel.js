@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 import MailSender from "../services/MailSender.js"
 import dayjs from "dayjs"
 import DataBaseException from '../exceptions/DataBaseException.js';
+import util from '../services/util.js';
+
 
 class InviteModel{
     prisma;
@@ -13,8 +15,8 @@ class InviteModel{
     }
     
 
-    inviteToTournment = async(to, from, event)=>{
-        
+    inviteToTournment = async(to, from, event, req)=>{
+        let fullUrl =util.getFullUrl(req)
         const expirationDate = dayjs().add(5, 'day')
         
         const token = jwt.sign(
@@ -43,7 +45,7 @@ class InviteModel{
             MailSender.sendMail({
                 to: to.email,
                 subject: "Versus - Convite para o Torneio: " + event.name,
-                html: `<a href="http://localhost:8080/event/updateInvite?token=${token}" >Convite </a>`
+                html: `<a href=" ${fullUrl}/event/updateInvite?token=${token} " >Convite:</a>`
             })
 
             return {msg:"Invite Sent"}
@@ -51,8 +53,9 @@ class InviteModel{
         })
     }
 
-    inviteToTeam = async(to, from, team)=>{
-        
+    inviteToTeam = async(to, from, team, req)=>{
+        let fullUrl =util.getFullUrl(req)
+
         const expirationDate = dayjs().add(5, 'day')
         
         const token = jwt.sign(
@@ -81,7 +84,7 @@ class InviteModel{
             MailSender.sendMail({
                 to: to.email,
                 subject: "Versus - Convite para o Time: " + team.name,
-                html: `<a href="http://localhost:8080/team/updateInvite?token=${token}" >Convite </a>`
+                html: `<a href="${fullUrl}/team/updateInvite?token=${token}" >Convite </a>`
             })
 
             return {msg:"Invite Sent"}

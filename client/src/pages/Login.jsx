@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaGoogle, FaGithub, FaEye, FaEyeSlash, FaDiscord } from 'react-icons/fa';
 import BlurText from '../ui/blocks/TextAnimations/BlurText/BlurText.jsx';
 import Particles from '../ui/blocks/Backgrounds/Particles/Particles.jsx';
 import { toast, ToastContainer } from 'react-toastify';
@@ -177,8 +177,13 @@ const Login = () => {
           </div>
 
           <div className="flex justify-center gap-4 mb-15">
-            <FaGoogle className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
-            <FaGithub className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
+            <a href='http://localhost:8080/auth/google'>
+             <FaGoogle  className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
+            </a>
+            <a href='http://localhost:8080/auth/discord'>
+            <FaDiscord  className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
+
+            </a>
           </div>
 
           {/* Register Link */}

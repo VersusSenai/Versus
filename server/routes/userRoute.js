@@ -38,6 +38,34 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
     .catch(e => next(e));
 });
 
+
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Lista os dados do próprio usuário
+ *     tags: [Usuários]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description:  Lista os dados do próprio usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       403:
+ *         description: Acesso não autorizado
+ */
+userRoute.get("/me", verifyToken ,async (req, res,next) => {
+
+  const {id, role, email, username} = req.user;
+  res.status(200).json({id, role, email, username})
+
+});
+
 /**
  * @swagger
  * /user/{id}:
@@ -355,5 +383,7 @@ userRoute.patch("/recoverPassword", async (req, res,next) => {
     .then(data => res.status(200).json({msg: "Senha alterada com sucesso"}))
     .catch(e => next(e));
 });
+
+
 
 export default userRoute;

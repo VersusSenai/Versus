@@ -3,6 +3,14 @@ import auth from "../services/auth.js";
 import express from "express";
 import dayjs from "dayjs";
 
+const cookieOptions = {
+    secure: true,
+    httpOnly: true,
+    sameSite: "none",
+    expires: dayjs().add(1, "day").toDate(),
+  };
+
+const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 const authRoute = express.Router();
 
 /**
@@ -54,12 +62,6 @@ const authRoute = express.Router();
  *         description: Erro de autenticação
  */
 authRoute.post("/login", async (req, res, next) => {
-  const cookieOptions = {
-    secure: true,
-    httpOnly: true,
-    sameSite: "none",
-    expires: dayjs().add(1, "day").toDate(),
-  };
 
   const resp = await auth.login(req).catch((err) => {
     next(err)
@@ -149,12 +151,7 @@ authRoute.post("/logout", async (req, res) => {
  *         description: Erro ao renovar o token
  */
 authRoute.post("/refresh-token", async (req, res, next) => {
-  const cookieOptions = {
-    secure: true,
-    httpOnly: true,
-    sameSite: "none",
-    expires: dayjs().add(1, "day").toDate(),
-  };
+
   const resp = await auth.refreshToken(req).catch((err) => {
     next(err);
   });
@@ -174,6 +171,54 @@ authRoute.post("/refresh-token", async (req, res, next) => {
   }
 
 
+
 });
 
+authRoute.get("/google", async(req, res, next)=>{
+
+  const resp = await auth.generateAuthUrl(req).catch((err) => {
+    next(err);
+  });
+
+  res.redirect(resp);
+})
+
+authRoute.get("/google/callback", async(req, res, next)=>{
+
+
+  const resp = await auth.googleCallback(req).catch((err) => {
+    next(err);
+  });
+
+  if (resp) {
+    res
+    .cookie("token", resp.token, cookieOptions)
+    .cookie("refreshToken", resp.refreshToken, cookieOptions)
+    .redirect(frontEndUrl+"/tournaments");
+  }
+});
+
+authRoute.get("/discord", async(req, res, next)=>{
+
+  const resp = await auth.discordAuthUrl(req).catch((err) => {
+    next(err);
+
+  });
+
+  res.redirect(resp);
+
+});
+
+authRoute.get("/discord/callback", async(req, res, next)=>{
+  const resp = await auth.discordCallback(req).catch((err) => {
+    next(err);
+  })
+
+  if (resp) {
+    res
+    .cookie("token", resp.token, cookieOptions)
+    .cookie("refreshToken", resp.refreshToken, cookieOptions)
+    .redirect(frontEndUrl+"/tournaments");
+  }
+})
 export default authRoute;

@@ -8,11 +8,13 @@ import { pagination } from "prisma-extension-pagination";
 import MailSender from "../services/MailSender.js";
 import dayjs from "dayjs"
 import jwt from 'jsonwebtoken';
+const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
 class UserModel {
   constructor() {
     this.prisma = new PrismaClient().$extends(pagination());
   }
+
 
   async getAll(req) {
     const userData = req.user;
@@ -246,7 +248,7 @@ class UserModel {
       to: user.email,
       subject: "Token para recuperação de senha",
       text:
-        "Aqui está seu token para recuperar sua senha: " + "http://localhost:5173/forgetPassword?token=" +
+        "Aqui está seu token para recuperar sua senha: " +frontEndUrl +"/forgetPassword?token=" +
         userPasswordRecover.token,
       html: ""
     });
