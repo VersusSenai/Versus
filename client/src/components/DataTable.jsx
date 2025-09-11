@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { useDataTableContext } from '../context/useDataTableContext';
 import {
   DropdownMenu,

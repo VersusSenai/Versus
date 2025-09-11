@@ -14,6 +14,7 @@ class UserModel {
     this.prisma = new PrismaClient().$extends(pagination());
   }
 
+
   async getAll(req) {
     const userData = req.user;
     let page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
