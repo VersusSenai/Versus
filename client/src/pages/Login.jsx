@@ -18,6 +18,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
+  const [remember, setRemember] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -34,7 +35,7 @@ const Login = () => {
 
       const response = await api.post(
         '/auth/login',
-        { email, password },
+        { email, password, remember },
         { withCredentials: true }
       );
 
@@ -144,7 +145,7 @@ const Login = () => {
 
           {/* Remember Me */}
           <div className="flex items-center w-full mb-4">
-            <input type="checkbox" id="remember" className="mr-2" />
+            <input onChange={(e) => setRemember(e.target.checked)} type="checkbox" id="remember" className="mr-2" />
             <label htmlFor="remember" className="text-sm text-[var(--color-muted)]">
               Se lembre de mim
             </label>
