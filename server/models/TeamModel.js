@@ -267,7 +267,7 @@ class TeamModel {
       throw new NotAllowedException("You are not the owner of this team");
     }
 
-    await inviteModel.inviteToTeam(userTo, userData, team).then(r=>{
+    await inviteModel.inviteToTeam(userTo, userData, team, req).then(r=>{
       return {msg: "Invite Sent"}
     }).catch(e=>{
       DataBaseException("Internal Server Error")

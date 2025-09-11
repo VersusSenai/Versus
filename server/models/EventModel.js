@@ -474,7 +474,7 @@ class EventModel {
       throw new NotAllowedException("You are not the owner of this tournment");
     }
 
-    await inviteModel.inviteToTournment(userTo, userData,event).then(r=>{
+    await inviteModel.inviteToTournment(userTo, userData,event, req).then(r=>{
       return {msg: "Invite Sent"}
     })
   } 

@@ -10,7 +10,7 @@ const cookieOptions = {
     expires: dayjs().add(1, "day").toDate(),
   };
 
-
+const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 const authRoute = express.Router();
 
 /**
@@ -194,7 +194,7 @@ authRoute.get("/google/callback", async(req, res, next)=>{
     res
     .cookie("token", resp.token, cookieOptions)
     .cookie("refreshToken", resp.refreshToken, cookieOptions)
-    .redirect("http://localhost:5173/tournaments");
+    .redirect(frontEndUrl+"/tournaments");
   }
 });
 
@@ -218,7 +218,7 @@ authRoute.get("/discord/callback", async(req, res, next)=>{
     res
     .cookie("token", resp.token, cookieOptions)
     .cookie("refreshToken", resp.refreshToken, cookieOptions)
-    .redirect("http://localhost:5173/tournaments");
+    .redirect(frontEndUrl+"/tournaments");
   }
 })
 export default authRoute;

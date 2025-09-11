@@ -5,7 +5,9 @@ const prisma = new PrismaClient();
 
 class UtilService {
 
-
+   getFullUrl = (req) => {
+        return req.protocol + '://' + req.get('host');
+    }
     getUserByToken= async(req)=>{
         
             const {token}= req.cookies
