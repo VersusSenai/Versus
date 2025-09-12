@@ -4,8 +4,12 @@ import 'dotenv/config';
 import util from "../services/util.js";
 export const socketToUser = new Map();
 export const userMap = new Map();
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 const notificationSocket = (io) => {
+
+    
 
     io.use(async (socket, next) => {
       const session = socket.request.headers.cookie;
@@ -42,10 +46,37 @@ const notificationSocket = (io) => {
     });
     
     
-    io.on("connection", (socket) => {
+    io.on("connect", async(socket) => {
 
-        console.log("a user connected", socketToUser.get(socket.id));
+        if(!socketToUser.has(socket.id)){
+            console.log("Unauthorized socket connection attempt: " + socket.id)
+            return;
+        }
+
+
+        await prisma.notification.findMany({
+            select:{
+                id: true, link: true, message: true, title: true, read: true, createdAt: true
+            },
+            where: {
+                userId: socketToUser.get(socket.id).id,
+            },
+            take: 10,
+        }).then(notifications=>{
+            console.log("Emitting notifications to user: " + socketToUser.get(socket.id).username)
+            io.to(socket.id).emit("notifications", notifications)
+        })
+
     })
+
+    io.on("disconnect", () => {
+        if(socketToUser.has(socket.id)){
+            userMap.delete(socketToUser.get(socket.id).id);
+            socketToUser.delete(socket.id);
+        }
+    })
+
+
 }
 
 
