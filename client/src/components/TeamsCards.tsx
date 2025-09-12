@@ -12,7 +12,7 @@ export const TeamsCardsPage = ({ team }: TeamCardProps) => {
       <img src={teamPhoto} alt={team?.name} className="w-full h-32 object-cover mb-2 rounded" />
       <h2 className="text-xl font-bold">{team?.name}</h2>
       <p>{team?.description}</p>
-      <p>Cadastrado em: {new Date(team?.registered_date).toLocaleDateString()}</p>
+      <p>Cadastrado em: {new Date(team?.registeredDate).toLocaleDateString('pt-BR')}</p>
     </Card>
   );
 };

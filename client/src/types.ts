@@ -3,7 +3,7 @@ export type TeamProps = {
   name: string;
   photo: string;
   description: string;
-  registered_date: Date;
+  registeredDate: Date;
 };
 
 export type ResponseGetTeams = {
