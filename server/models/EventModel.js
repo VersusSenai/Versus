@@ -23,6 +23,13 @@ class EventModel {
     if(!Array.isArray(status)){
       status = [status]
     }
+
+    status.forEach(e => {
+      if(e != "P" && e != "O" && e != "E"){
+        throw new BadRequestException("Status must be in ['P', 'O', 'E']");
+        
+      }
+    });
     if(limit > 30){
       limit = 30;
     }
@@ -139,7 +146,7 @@ class EventModel {
     }
 
     if (event.multiplayer == true){
-      const teamId = req.params.id ? parseInt(req.params.id) : null;
+      const teamId = req.body.id ? parseInt(req.body.id) : null;
 
         if (teamId != null && !isNaN(teamId)) {
           const team = await this.prisma.team.findFirst({ where: { id: teamId } });
@@ -239,13 +246,13 @@ class EventModel {
     }
 
     const userInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId}})
-    if(!userInscription){
+    if(!userInscription || userInscription.status == "R"){
       throw new ConflictException("User not inscribed");
 
     }
 
     if(userInscription != null && userInscription.role == "P"){
-      await this.prisma.eventInscriptions.update({where: {id: userInscription.id}, data:{role: "R"}})
+      await this.prisma.eventInscriptions.update({where: {id: userInscription.id}, data:{status: "R"}})
     }else{
       throw new ConflictException("Owner cannot unsubscribe himself");
       
@@ -279,7 +286,10 @@ class EventModel {
 
       }
       if(teamInscription != null && teamInscription.role == "P"){
-        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}, data:{role: "R"}})
+        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}, data:{status: "R"}}).catch(e=>{
+          throw new DataBaseException("Internal Server Error");
+          
+        })
       }else{
         throw new ConflictException("Owner cannot unsubscribe himself");
         
