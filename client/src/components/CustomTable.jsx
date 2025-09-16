@@ -80,7 +80,7 @@ export default function CustomTable({ data, columns: userColumns, actions = [] }
             )}
 
             {actions.map(({ label, icon: Icon, onClick }, i) => (
-              <React.Fragment key={i}>
+              <div key={i}>
                 {i > 0 && <DropdownMenuSeparator />}
                 <DropdownMenuItem
                   onClick={() => onClick(rowData)}
@@ -89,7 +89,7 @@ export default function CustomTable({ data, columns: userColumns, actions = [] }
                   {Icon && <Icon className="h-4 w-4" />}
                   {label}
                 </DropdownMenuItem>
-              </React.Fragment>
+              </div>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
