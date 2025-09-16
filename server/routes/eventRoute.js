@@ -372,8 +372,7 @@ eventRoute.post("/:id/start", isOrganizer, async (req, res, next) => {
     const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
-    // next(err)
-        console.log(err)
+    next(err)
 
   }
 });
@@ -494,7 +493,7 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
 /**
  * @swagger
  * /event/updateInvite:
- *   get:
+ *   patch:
  *     summary: Responde convite
  *     tags: [Eventos]
  *     security:
@@ -522,7 +521,7 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
  *       400:
  *         description: Erro com o convite
  */
-eventRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+eventRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await eventModel.updateInvite(req);
     res.status(200).json(result);
