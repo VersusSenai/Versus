@@ -376,7 +376,7 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
 /**
  * @swagger
  * /team/updateInvite:
- *   get:
+ *   patch:
  *     summary: Responde convite
  *     tags: [Times]
  *     security:
@@ -397,7 +397,7 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
  *       400:
  *         description: Erro com o convite
  */
-teamRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+teamRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await teamModel.updateInvite(req);
     res.status(200).json(result);

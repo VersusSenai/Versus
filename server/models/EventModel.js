@@ -8,6 +8,12 @@ import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
 
+import inviteModel from './inviteModel.js';
+
+import {pagination} from "prisma-extension-pagination";
+import { PrismaClient } from '@prisma/client';
+import notificationService from '../services/notificationService.js';
+
 
 class EventModel {
   
@@ -479,6 +485,7 @@ class EventModel {
         currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
       }
     }
+    this.notificateUsersOfEvent(event.id, "O Torneio " + event.name + " começou!. se prepare para jogar!")
     return matches;
   };
 
@@ -579,6 +586,44 @@ class EventModel {
     }
   }
 
+
+  notificateUsersOfEvent = async(eventId, message)=>{
+
+    const event = await this.prisma.event.findFirst({where: {id: eventId}})
+    if(!event){
+      throw new NotFoundException("Event not found");
+    }
+    if(event.multiplayer == true){
+      const teams = await this.prisma.eventInscriptions.findMany({where: {eventId, role: "P", teamId: { not: null } }, include:{ team:{ include:{teamUsers: true}}  }
+      })
+
+      for(const team of teams){
+        for(const user of team.team.teamUsers){
+          notificationService.sendNotification({
+            userId: user.userId,
+            title: "Notificação do Torneio: " + event.name,
+            message: message,
+            link: `/event/${event.id}`
+          })
+        } 
+      }
+
+    }else{
+      const inscriptions = await this.prisma.eventInscriptions.findMany({where: {eventId, role: "P"}, select:{
+        userId: true
+      }})
+
+      for(const inscription of inscriptions){
+        notificationService.sendNotification({
+          userId: inscription.userId,
+            title: "Torneio " + event.name + " foi iniciado!",
+            message: "O Torneio " + event.name + " começou!. se prepare para jogar!",
+          link: `/event/${event.id}`
+        })
+      }
+    }
+    
+  }
   
 
 };

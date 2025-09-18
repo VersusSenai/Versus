@@ -24,6 +24,7 @@ model User {
   applicationFrom        Application[] @relation("Application_fromUser")
   passwordRecover        UserPasswordRecover[] @relation("passwordRecoverToken")
   RefreshToken        UserRefreshToken[] @relation("RefreshToken")
+  notifications      Notification[] @relation("Notification_user")
 }
 enum UserStatus {
   A
@@ -247,4 +248,15 @@ model UserRefreshToken{
   user    User  @relation(fields: [userId], references: [id], name: "RefreshToken", onDelete: Cascade)
   status  RefreshTokenStatus 
 
+}
+
+model Notification{
+  id Int  @id @default(autoincrement())
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, name: "Notification_user")
+  title   String @db.VarChar(100)
+  message String @db.VarChar(250)
+  link    String? @db.VarChar(250)
+  read    Boolean @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
 }
