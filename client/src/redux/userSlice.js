@@ -11,6 +11,7 @@ const userSlice = createSlice({
     login: (state, action) => {
       state.user = action.payload;
       localStorage.setItem("user", JSON.stringify(action.payload)); // Salva no localStorage
+      localStorage.setItem("userId", action.payload.id); // Salva no localStorage
     },
     logout: (state) => {
       state.user = null;

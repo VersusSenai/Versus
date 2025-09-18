@@ -118,7 +118,6 @@ class EventModel {
         name, description, startDate, endDate, multiplayer,private: isPrivate ,model, maxPlayers
       }
       }).catch(e=>{
-        console.log(e)
 
         if (e.code === 'P2025') {
           throw new NotFoundException("Event not found");

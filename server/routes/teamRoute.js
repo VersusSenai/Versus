@@ -186,36 +186,6 @@ teamRoute.delete("/:id", verifyToken, async (req, res, next) => {
 
 /**
  * @swagger
- * /team/{id}/inscribe:
- *   post:
- *     summary: Inscreve o usuário logado no time
- *     tags: [Times]
- *     security:
- *       - cookieAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         description: ID do time
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Usuário inscrito no time
- *       400:
- *         description: Erro ao inscrever
- */
-teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
-  try {
-    const resp = await teamModel.inscribe(req);
-    res.status(200).json(resp);
-  } catch (err) {
-    next(err)
-  }
-});
-
-/**
- * @swagger
  * /team/{id}/unsubscribe:
  *   post:
  *     summary: Remove inscrição do usuário no time
@@ -461,6 +431,36 @@ teamRoute.post("/approveTeam/:id", isAdmin, async (req, res, next) => {
   try {
     const result = await teamModel.approveTeam(req);
     res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+
+/**
+ * @swagger
+ * /team/{id}/inscribe:
+ *   post:
+ *     summary: Inscreve o usuário logado no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuário inscrito no time
+ *       400:
+ *         description: Erro ao inscrever
+ */
+teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.inscribe(req);
+    res.status(200).json(resp);
   } catch (err) {
     next(err)
   }

@@ -20,13 +20,11 @@ api.interceptors.response.use(
             "http://localhost:8080/auth/refresh-token",
             {},
             { withCredentials: true }
-          ).then((res) => {
-            console.log(res)
-              return api(originalRequest);
+          )
+            return api(originalRequest);
             
-          });
-          } catch (err) {
-            console.log(err)
+          } 
+          catch (err) {
             if(err.response && err.response.status === 400 || err.response.status === 401){
               window.location.href = "/login";
             }
