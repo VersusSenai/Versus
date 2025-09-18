@@ -49,7 +49,13 @@ const eventRoute = express.Router();
  *                 $ref: '#/components/schemas/Event'
  */
 eventRoute.get("/", verifyToken, async (req, res, next) => {
-  res.json(await eventModel.getAll(req));
+  await eventModel.getAll(req).catch(e=>{
+    next(e)
+  }).then(data=>{
+    if(data)
+      res.json(data);
+
+  })
 });
 
 /**
@@ -264,6 +270,7 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
+    console.log(err)
     next(err)
   }
 });
@@ -296,6 +303,7 @@ eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.unsubscribe(req);
     res.status(200).json(result);
   } catch (err) {
+    console.log(err)
     next(err)
   }
 });
@@ -443,11 +451,13 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res, next) => {
  *         description: Erro ao buscar inscrições
  */
 eventRoute.get("/inscriptions/me", verifyToken, async (req, res, next) => {
-  try {
-    const result = await eventModel.getMyInscriptions(req);
-    res.status(200).json(result);
-  } catch (err) {
+  
+  const result = await eventModel.getMyInscriptions(req).catch(err=>{
+    console.log(err)
     next(err)
+  })
+  if(result){
+    res.status(200).json(result);
   }
 });
 

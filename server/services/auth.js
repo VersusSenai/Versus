@@ -195,6 +195,11 @@ class Auth {
             const { sub, email, name, picture } = payload;
 
             let user = await this.prisma.user.findUnique({ where: { email } });
+            if (user && user.status == "D"){
+                throw new NotFoundException("User Deleted or Banned") ;
+
+            }
+        
             
             if (!user) {
                 const hashedPassword = bcrypt.hashSync(sub, 10);
@@ -215,6 +220,7 @@ class Auth {
 
 
         } catch (error) {
+            console.log(error)
             throw new DataBaseException("Internal Server Error");
             
         }
@@ -264,6 +270,11 @@ class Auth {
             const {username, email, avatar,id, global_name} = await userResponse.json();
             let user = await this.prisma.user.findUnique({ where: { email } });
             
+            
+            if (user && user.status == "D"){
+                throw new NotFoundException("User Deleted or Banned") ;
+
+            }
             if (!user) {
                 const hashedPassword = bcrypt.hashSync(id, 10);
                 user = await this.prisma.user.create({

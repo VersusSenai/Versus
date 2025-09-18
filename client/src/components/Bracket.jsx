@@ -84,7 +84,7 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
     }
 
     try {
-      await api.post(`/event/${eventId}/winner/${matchId}`, { winnerId });
+      await api.post(`/event/winner/${matchId}`, { winnerId });
       alert('Vencedor declarado com sucesso.');
 
       // Recarrega partidas

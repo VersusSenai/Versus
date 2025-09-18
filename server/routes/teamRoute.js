@@ -41,9 +41,14 @@ const teamRoute = express.Router();
  *       200:
  *         description: Lista de times
  */
-teamRoute.get("/",verifyToken ,async (req, res) => {
-  const teams = await teamModel.getAll(req);
-  res.json(teams);
+teamRoute.get("/",verifyToken ,async (req, res, next) => {
+  const teams = await teamModel.getAll(req).catch(e=>{
+        next(e)
+  });
+  if(teams){
+    res.json(teams);
+
+  }
 });
 
 /**
@@ -174,36 +179,6 @@ teamRoute.delete("/:id", verifyToken, async (req, res, next) => {
   try {
     await teamModel.delete(req);
     res.status(204).end();
-  } catch (err) {
-    next(err)
-  }
-});
-
-/**
- * @swagger
- * /team/{id}/inscribe:
- *   post:
- *     summary: Inscreve o usuário logado no time
- *     tags: [Times]
- *     security:
- *       - cookieAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         description: ID do time
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Usuário inscrito no time
- *       400:
- *         description: Erro ao inscrever
- */
-teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
-  try {
-    const resp = await teamModel.inscribe(req);
-    res.status(200).json(resp);
   } catch (err) {
     next(err)
   }
@@ -456,6 +431,36 @@ teamRoute.post("/approveTeam/:id", isAdmin, async (req, res, next) => {
   try {
     const result = await teamModel.approveTeam(req);
     res.status(200).json(result);
+  } catch (err) {
+    next(err)
+  }
+});
+
+/**
+ * @swagger
+ * /team/{id}/inscribe:
+ *   post:
+ *     summary: Inscreve o usuário logado no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuário inscrito no time
+ *       400:
+ *         description: Erro ao inscrever
+ */
+teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.inscribe(req);
+    res.status(200).json(resp);
   } catch (err) {
     next(err)
   }

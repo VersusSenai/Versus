@@ -220,6 +220,7 @@ class MatchModel {
           }})
           
         }).catch(e=>{
+
             throw new DataBaseException("Interal Server Error")
           });
       }
@@ -247,6 +248,7 @@ class MatchModel {
             secondUserId: winnerId          
           }})
         }).catch(e=>{
+
             throw new DataBaseException("Interal Server Error")
           });
      
@@ -264,6 +266,7 @@ class MatchModel {
             secondTeamId: winnerId          
           }})
         }).catch(e=>{
+
             throw new DataBaseException("Interal Server Error")
           });
 
@@ -287,6 +290,8 @@ class MatchModel {
           }})
           return createdMatch;
         }).catch(e=>{
+            console.log(e)
+
             throw new DataBaseException("Interal Server Error")
           });
         
