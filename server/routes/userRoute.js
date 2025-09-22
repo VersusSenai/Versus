@@ -2,8 +2,12 @@ import userModel from "../models/UserModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isAdmin from "../middlewares/adminMiddleware.js";
-
+import ImageService from "../services/ImageService.js";
+import multer from 'multer';
 const userRoute = express.Router();
+
+
+const upload = multer({dest: 'uploads/'})
 
 /**
  * @swagger
@@ -238,7 +242,7 @@ userRoute.put("/:id", isAdmin, async (req, res,next) => {
  *       400:
  *         description: Erro na atualização
  */
-userRoute.put("/", verifyToken, async (req, res,next) => {
+userRoute.put("/", verifyToken, upload.single('image') ,async (req, res,next) => {
   await userModel.update(req)
     .then(data => res.status(200).json(data))
     .catch(e => next(e));
@@ -383,6 +387,7 @@ userRoute.patch("/recoverPassword", async (req, res,next) => {
     .then(data => res.status(200).json({msg: "Senha alterada com sucesso"}))
     .catch(e => next(e));
 });
+
 
 
 

@@ -210,6 +210,7 @@ class Auth {
                         password: hashedPassword,
                         role: "P",
                         status: "A",
+                        icon: picture
                     }
                 });
 
@@ -267,7 +268,7 @@ class Auth {
                 },
             });
 
-            const {username, email, avatar,id, global_name} = await userResponse.json();
+            const {username, email, avatar, id, global_name} = await userResponse.json();
             let user = await this.prisma.user.findUnique({ where: { email } });
             
             
@@ -275,7 +276,14 @@ class Auth {
                 throw new NotFoundException("User Deleted or Banned") ;
 
             }
+
+
             if (!user) {
+            let avatarUrl = null;
+            if (avatar) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=256`; 
+            }
+            
                 const hashedPassword = bcrypt.hashSync(id, 10);
                 user = await this.prisma.user.create({
                     data: {
@@ -284,6 +292,7 @@ class Auth {
                         password: hashedPassword,
                         role: "P",
                         status: "A",
+                        icon: avatarUrl
                     }
                 });
             }

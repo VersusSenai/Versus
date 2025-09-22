@@ -53,8 +53,8 @@ class NotificationModel {
         page = page ? parseInt(page) : 1;
         limit = limit ? parseInt(limit) : 10;
         read = read === 'true' ? true : read === 'false' ? false : undefined;
-        if(limit > 30){
-            limit = 30;
+        if(limit > 50){
+            limit = 50;
         }
 
         return await this.prisma.notification.paginate({
@@ -63,6 +63,7 @@ class NotificationModel {
                 read
             },
             orderBy: {
+                read: 'asc',
                 createdAt: 'desc'
             }
         }).withPages({page, limit});

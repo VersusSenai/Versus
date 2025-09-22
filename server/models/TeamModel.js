@@ -63,6 +63,7 @@ class TeamModel {
   create = async (req) => {
     const userData = req.user;
     const { name, description } = req.body;
+
     let isPrivate = req.body.private;
     if (!name || !description) {
       throw new BadRequestException("Missing required fields");
@@ -76,6 +77,7 @@ class TeamModel {
           description,
           status: "P",
           private: isPrivate,
+          icon: image? image.url: undefined,
           teamUsers: {
             create: [{ userId: userData.id, role: "O" }],
           },
@@ -155,8 +157,8 @@ class TeamModel {
     if (team == null) {
       throw new NotFoundException("Team not found");
     }
-    if(team.status !== "O" && team.private == true){
-      throw new NotAllowedException("User cannot inscribe in this team")
+    if (team.status !== "O" && team.private == true) {
+      throw new NotAllowedException("User cannot inscribe in this team");
     }
 
     return await this.prisma.teamUsers.create({

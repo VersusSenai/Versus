@@ -6,6 +6,7 @@ import teamRoute from "./teamRoute.js";
 import matchRoute from "./matchRoute.js";
 import applicationRoute from "./applicationRoute.js";
 import notificationRoute from "./notificationRoute.js";
+import imageRoute from "./imageRoute.js";
 
 const router = express.Router()
 eventRoute.use(matchRoute);
@@ -15,4 +16,6 @@ router.use("/auth", authRoute);
 router.use("/application", applicationRoute);
 router.use("/notification", notificationRoute);
 router.use("/team", teamRoute)
+router.use("/image", imageRoute)
 export default router;
+

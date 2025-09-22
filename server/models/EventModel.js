@@ -7,11 +7,6 @@ import BadRequestException from '../exceptions/BadRequestException.js';
 import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
-
-import inviteModel from './inviteModel.js';
-
-import {pagination} from "prisma-extension-pagination";
-import { PrismaClient } from '@prisma/client';
 import notificationService from '../services/notificationService.js';
 
 
