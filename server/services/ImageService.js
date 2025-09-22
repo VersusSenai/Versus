@@ -1,12 +1,11 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import fs from "fs"
-import path from 'path';
 import 'dotenv/config';
 
 
 class ImageService{
     constructor(){
-        this.client = new S3Client({
+        this.client = new S3Client( {
             region: 'us-east-1',
             endpoint: process.env.AWS_S3_ENDPOINT,
             credentials: {
@@ -21,21 +20,31 @@ class ImageService{
 
     
     upload = async(file)=>{ 
-        console.log(process.env.AWS_S3_ENDPOINT)
+        
         try {
-            const fileContent = fs.readFileSync(file.path);
-            const key = file.filename + new Date().getTime();
+            const fileContent = file.buffer;
+            const fileExtension = file.originalname.split('.').pop();
+               const fileNameWithoutExt = file.originalname
+                .replace(`.${fileExtension}`, '')
+                .replace(/[^a-zA-Z0-9]/g, '_') // Remove caracteres especiais
+                .substring(0, 50); // Limita o tamanho
+
+            console.log(file)
+            const key = file.originalname + new Date().getTime().toString();
             
             const params = {
-                Bucket: process.env.AWS_S3_BUCKET,
-                Key: key,
-                Body: fileContent,
-                ContentType: "image/jpeg"
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key,
+            Body: file.buffer,
+            ContentType: file.mimetype, // Usar o mimetype real do arquivo
+            Metadata: {
+                originalName: file.originalname,
+                uploadedAt: new Date().getTime().toString()
+            }
             }
 
             const command = new PutObjectCommand(params)
             const response = await this.client.send(command);
-            clearTempFiles()
             return {name: key, url:`http://localhost:8080/image/${key}`, response}
         } catch (error) {
             throw error;
@@ -70,25 +79,6 @@ class ImageService{
 
 }
 
-
-const uploadsPath = path.join(path.resolve(), 'uploads');
-
-async function clearTempFiles() {
-   try {
-     // 💡 fs.promises.readdir retorna uma Promise que pode ser usada com await
-     const files = await fs.readdir(uploadsPath);
-     
-     // Continue com a lógica de exclusão
-     for (const file of files) {
-       const filePath = path.join(uploadsPath, file);
-       await fs.unlink(filePath); // Exclui o arquivo
-       console.log(`Arquivo temporário deletado: ${filePath}`);
-     }
-
-   } catch (error) {
-     console.error("Erro ao limpar arquivos temporários:", error);
-   }
-}
 
 
 export default new ImageService();

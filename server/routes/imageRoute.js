@@ -11,10 +11,10 @@ imageRoute.get("/:key", async (req, res)=>{
 
 
     try {
-          const imageBuffer = await ImageService.get( fileKey);
+        const imageBuffer = await ImageService.get( fileKey);
 
-        res.setHeader('Content-Type', 'image/png'); // ou 'image/png', 'image/gif', etc.
-        res.setHeader('Content-Disposition', `attachment; filename="${fileKey}"`);
+        res.setHeader('Content-Type', 'image/jpeg'); 
+        res.setHeader('Content-Disposition', `attachment; filename="${fileKey}.png"`);
         
         res.status(200).send(imageBuffer);
 

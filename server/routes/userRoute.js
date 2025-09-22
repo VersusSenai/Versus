@@ -4,10 +4,10 @@ import verifyToken from "../middlewares/authMiddleware.js";
 import isAdmin from "../middlewares/adminMiddleware.js";
 import ImageService from "../services/ImageService.js";
 import multer from 'multer';
+import upload from "../middlewares/uploadMiddleware.js";
 const userRoute = express.Router();
 
 
-const upload = multer({dest: 'uploads/'})
 
 /**
  * @swagger
