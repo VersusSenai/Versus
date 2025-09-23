@@ -122,4 +122,8 @@ prisma/migrations/
 # SvelteKit build / generate output
 .svelte-kit
 
+# Docker
+containers3root
+/locals3root
+
 # End of https://www.gitignore.io/api/node

@@ -19,6 +19,7 @@ import AccountEditPage from './pages/AccountEditPage';
 import { Teams } from './pages/TeamsPage';
 import { DataTableProvider } from './context/DataTableContext';
 import { NavbarProvider } from './context/NavbarContext';
+import { TeamsPageProvider } from './context/TeamsPageContext';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -44,7 +45,9 @@ const AnimatedRoutes = () => {
             <ProtectedRoute allowedRoles={['A']}>
               <Layout>
                 <PageWrapper>
-                  <Users />
+                  <DataTableProvider>
+                    <Users />
+                  </DataTableProvider>
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
@@ -82,9 +85,9 @@ const AnimatedRoutes = () => {
             <ProtectedRoute allowedRoles={['A']}>
               <Layout>
                 <PageWrapper>
-                  <DataTableProvider>
+                  <TeamsPageProvider>
                     <Teams />
-                  </DataTableProvider>
+                  </TeamsPageProvider>
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>

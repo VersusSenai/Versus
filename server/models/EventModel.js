@@ -1,15 +1,14 @@
-
+import { PrismaClient } from '@prisma/client';
+import { pagination } from 'prisma-extension-pagination';
 import serviceUtils from '../services/util.js';
+import inviteModel from './inviteModel.js';
 import NotFoundException from '../exceptions/NotFoundException.js';
 import BadRequestException from '../exceptions/BadRequestException.js';
 import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
-import inviteModel from './inviteModel.js';
-
-import {pagination} from "prisma-extension-pagination";
-import { PrismaClient } from '@prisma/client';
-
+import notificationService from '../services/notificationService.js';
+import ImageService from '../services/ImageService.js';
 
 class EventModel {
   
@@ -24,6 +23,16 @@ class EventModel {
     let status = req.query.status? req.query.status : ["P", "O"];
     if(!Array.isArray(status)){
       status = [status]
+    }
+
+    status.forEach(e => {
+      if(e != "P" && e != "O" && e != "E"){
+        throw new BadRequestException("Status must be in ['P', 'O', 'E']");
+        
+      }
+    });
+    if(limit > 30){
+      limit = 30;
     }
     
     return await this.prisma.event.paginate({where: {
@@ -57,10 +66,29 @@ class EventModel {
     const userData =req.user;
     const now = new Date();
 
-    if(now > Date.parse(req.body.startDate)){
+    const {name, description, startDate, endDate, multiplayer, model} = req.body;
+    const isPrivate = req.body.private;
+    if(!name || !description || !startDate || !endDate || multiplayer == null){
+      throw new BadRequestException("Missing required fields");
+    }
+
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
+
+
+
+    if(now > Date.parse(startDate)){
       throw new BadRequestException("Event start date cannot be before today");
     }
-    if(Date.parse(req.body.startDate) > Date.parse(req.body.endDate)){
+    if(Date.parse(startDate) > Date.parse(endDate)){
       throw new BadRequestException("Event start date cannot be after endDate");
     }
     if(parseInt(req.body.maxPlayers) %2 !=0){
@@ -69,7 +97,18 @@ class EventModel {
 
     
     const newEvent = await this.prisma.event.create({
-      data: {   ...req.body, status: "P",maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
+      data: {
+        model,
+        name,
+        description,
+        startDate,
+        endDate,
+        multiplayer: multiplayer == 'true'? true : false,
+        private: isPrivate == 'true'? true : false,
+        status: "P",
+        maxPlayers: parseInt(req.body.maxPlayers) ,
+        thumbnail: image? image.url: undefined,
+         eventInscriptions: {
         create:[
           {userId: userData.id, status: "C", role: "O", status: 'O'}
         ]
@@ -86,19 +125,42 @@ class EventModel {
     if(!isUserOwner){
       throw new NotAllowedException("Only the owner of this event can update it");
     }
+  const isPrivate = req.body.private;
+    const event = await this.prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
+    if(!event){
+      throw new NotFoundException("Event not found");
+    }
+    if(event.status != "P"){
+      throw new ConflictException("Only events with status 'Pending' can be updated");
+    }
+
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
+
+
+    let {name, description, startDate, endDate, multiplayer, maxPlayers, model} = req.body;
+    maxPlayers = maxPlayers === undefined?undefined: parseInt(maxPlayers);
 
     return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
-        ...req.body
+        name, description, startDate, endDate, multiplayer,private: isPrivate ,model, maxPlayers, thumbnail: image? image.url: undefined,
       }
-    }).catch(e=>{
+      }).catch(e=>{
 
-      if (err.code === 'P2025') {
-        throw new NotFoundException("Event not found");
-      }
-      throw new DataBaseException("Event cannot be Updated");
-      
-    })
+        if (e.code === 'P2025') {
+          throw new NotFoundException("Event not found");
+        }
+        throw new DataBaseException("Event cannot be Updated");
+        
+      })
 
   };
 
@@ -170,8 +232,6 @@ class EventModel {
         throw new ConflictException("User already inscribed");
       }
 
-    
-
       // Caso seja inscrição individual
       return this.prisma.eventInscriptions.create({
         data: {
@@ -189,7 +249,14 @@ class EventModel {
   delete = async (req) => {
 
     const isUserOwner = await this.isUserOwner(req.user, parseInt(req.params.id));
+    const event = await this.prisma.event.findFirst({where: {id: parseInt(req.params.id)}});
 
+    if(!event){
+      throw new NotFoundException("Event not found");
+    }
+    if(event.status != "P"){
+      throw new ConflictException("Only events with status 'Pending' can be deleted");
+    }
     if(!isUserOwner){
       throw new NotAllowedException("User is not owner of this event");
     }
@@ -208,18 +275,19 @@ class EventModel {
     const event = await this.prisma.event.findFirst({ where: { id: eventId } });
 
     if (!event) throw new Error("Event not found");
-    if(event.keysQuantity != null){
+
+    if(event.status != "P"){
       throw new ConflictException("Event already started");
     }
 
     const userInscription = await this.prisma.eventInscriptions.findFirst({where: {userId: userData.id, eventId}})
-    if(!userInscription){
+    if(!userInscription || userInscription.status == "R"){
       throw new ConflictException("User not inscribed");
 
     }
 
     if(userInscription != null && userInscription.role == "P"){
-      await this.prisma.eventInscriptions.update({where: {id: userInscription.id}, data:{role: "R"}})
+      await this.prisma.eventInscriptions.update({where: {id: userInscription.id}, data:{status: "R"}})
     }else{
       throw new ConflictException("Owner cannot unsubscribe himself");
       
@@ -235,7 +303,7 @@ class EventModel {
     const event = await this.prisma.event.findFirst({ where: { id: eventId } });
 
     if (!event) throw new Error("Event not found");
-    if(event.keysQuantity != null){
+    if(event.status != "P"){
       throw new ConflictException("Event already started");
     }
 
@@ -243,7 +311,6 @@ class EventModel {
 
     if(!isUserOwner){
       throw new ConflictException("User is not Owner of this event");
-      
     }
 
     if(!isNaN(teamId) && teamId!= null){
@@ -254,7 +321,10 @@ class EventModel {
 
       }
       if(teamInscription != null && teamInscription.role == "P"){
-        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}, data:{role: "R"}})
+        await this.prisma.eventInscriptions.delete({where: {id: teamInscription.id}, data:{status: "R"}}).catch(e=>{
+          throw new DataBaseException("Internal Server Error");
+          
+        })
       }else{
         throw new ConflictException("Owner cannot unsubscribe himself");
         
@@ -445,6 +515,7 @@ class EventModel {
         currentTime = new Date(currentTime.getTime() + 10 * 60 * 1000);
       }
     }
+    this.notificateUsersOfEvent(event.id, "O Torneio " + event.name + " começou!. se prepare para jogar!")
     return matches;
   };
 
@@ -545,6 +616,44 @@ class EventModel {
     }
   }
 
+
+  notificateUsersOfEvent = async(eventId, message)=>{
+
+    const event = await this.prisma.event.findFirst({where: {id: eventId}})
+    if(!event){
+      throw new NotFoundException("Event not found");
+    }
+    if(event.multiplayer == true){
+      const teams = await this.prisma.eventInscriptions.findMany({where: {eventId, role: "P", teamId: { not: null } }, include:{ team:{ include:{teamUsers: true}}  }
+      })
+
+      for(const team of teams){
+        for(const user of team.team.teamUsers){
+          notificationService.sendNotification({
+            userId: user.userId,
+            title: "Notificação do Torneio: " + event.name,
+            message: message,
+            link: `/event/${event.id}`
+          })
+        } 
+      }
+
+    }else{
+      const inscriptions = await this.prisma.eventInscriptions.findMany({where: {eventId, role: "P"}, select:{
+        userId: true
+      }})
+
+      for(const inscription of inscriptions){
+        notificationService.sendNotification({
+          userId: inscription.userId,
+            title: "Torneio " + event.name + " foi iniciado!",
+            message: "O Torneio " + event.name + " começou!. se prepare para jogar!",
+          link: `/event/${event.id}`
+        })
+      }
+    }
+    
+  }
   
 
 };

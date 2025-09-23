@@ -42,7 +42,7 @@ const applicationRoute = express.Router();
  *       200:
  *         description: Lista de Aplcações
  */
-applicationRoute.get("/", verifyToken, async (req, res, next) => {
+applicationRoute.get("/", isAdmin, async (req, res, next) => {
   await ApplicationModel.getAll(req).then(r=>{
     res.json(r)
   }).catch(e=>{

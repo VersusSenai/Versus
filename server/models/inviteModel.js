@@ -5,6 +5,7 @@ import MailSender from "../services/MailSender.js"
 import dayjs from "dayjs"
 import DataBaseException from '../exceptions/DataBaseException.js';
 import util from '../services/util.js';
+import notificationService from '../services/notificationService.js';
 
 
 class InviteModel{
@@ -42,10 +43,17 @@ class InviteModel{
                 eventId: event.id
             }
         }).then(data=>{
+            
             MailSender.sendMail({
                 to: to.email,
                 subject: "Versus - Convite para o Torneio: " + event.name,
                 html: `<a href=" ${fullUrl}/event/updateInvite?token=${token} " >Convite:</a>`
+            })
+            notificationService.sendNotification({
+                userId: to.id,
+                title: "Convite para o Torneio: " + event.name,
+                message: from.username + " convidou você para o torneio: " + event.name,
+                link: `/event/updateInvite?token=${token}`
             })
 
             return {msg:"Invite Sent"}
@@ -87,6 +95,13 @@ class InviteModel{
                 html: `<a href="${fullUrl}/team/updateInvite?token=${token}" >Convite </a>`
             })
 
+            notificationService.sendNotification({
+                userId: to.id,
+                title: "Convite para o Time: " + team.name,
+                message: from.username + " convidou você para o time: " + team.name,
+                link: `/team/updateInvite?token=${token}`
+            })
+
             return {msg:"Invite Sent"}
         })
     }
@@ -102,7 +117,7 @@ class InviteModel{
         return await jwt.verify(invite.token, process.env.INVITE_SECRET, async (err, authData)=>{
             if(err){
                 if (err.name === 'TokenExpiredError') {
-                this.prisma.invite.update({where:{token}, data:{
+                await this.prisma.invite.update({where:{token}, data:{
                     status: "E"
                 }})
 

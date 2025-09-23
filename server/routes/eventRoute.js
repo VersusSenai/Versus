@@ -2,6 +2,7 @@ import eventModel from "../models/EventModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isOrganizer from "../middlewares/organizerMiddleware.js";
+import upload from "../middlewares/uploadMiddleware.js";
 
 const eventRoute = express.Router();
 
@@ -49,7 +50,13 @@ const eventRoute = express.Router();
  *                 $ref: '#/components/schemas/Event'
  */
 eventRoute.get("/", verifyToken, async (req, res, next) => {
-  res.json(await eventModel.getAll(req));
+  await eventModel.getAll(req).catch(e=>{
+    next(e)
+  }).then(data=>{
+    if(data)
+      res.json(data);
+
+  })
 });
 
 /**
@@ -139,11 +146,12 @@ eventRoute.get("/:id", verifyToken, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.post("/", isOrganizer, async (req, res, next) => {
+eventRoute.post("/", isOrganizer, upload.single('image'), async (req, res, next) => {
   try {
     const event = await eventModel.create(req);
     res.status(201).json(event);
   } catch (err) {
+    console.log(err)
     next(err)
   }
 });
@@ -181,7 +189,7 @@ eventRoute.post("/", isOrganizer, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.put("/:id", isOrganizer, async (req, res, next) => {
+eventRoute.put("/:id", isOrganizer, upload.single('image'), async (req, res, next) => {
   try {
     const updated = await eventModel.update(req);
     res.status(200).json(updated);
@@ -264,6 +272,7 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
+    console.log(err)
     next(err)
   }
 });
@@ -296,6 +305,7 @@ eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.unsubscribe(req);
     res.status(200).json(result);
   } catch (err) {
+    console.log(err)
     next(err)
   }
 });
@@ -372,8 +382,7 @@ eventRoute.post("/:id/start", isOrganizer, async (req, res, next) => {
     const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
-    // next(err)
-        console.log(err)
+    next(err)
 
   }
 });
@@ -444,11 +453,13 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res, next) => {
  *         description: Erro ao buscar inscrições
  */
 eventRoute.get("/inscriptions/me", verifyToken, async (req, res, next) => {
-  try {
-    const result = await eventModel.getMyInscriptions(req);
-    res.status(200).json(result);
-  } catch (err) {
+  
+  const result = await eventModel.getMyInscriptions(req).catch(err=>{
+    console.log(err)
     next(err)
+  })
+  if(result){
+    res.status(200).json(result);
   }
 });
 
@@ -494,7 +505,7 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
 /**
  * @swagger
  * /event/updateInvite:
- *   get:
+ *   patch:
  *     summary: Responde convite
  *     tags: [Eventos]
  *     security:
@@ -522,7 +533,7 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
  *       400:
  *         description: Erro com o convite
  */
-eventRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+eventRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await eventModel.updateInvite(req);
     res.status(200).json(result);

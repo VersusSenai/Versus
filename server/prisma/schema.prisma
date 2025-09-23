@@ -9,6 +9,7 @@ datasource db {
 
 model User {
   id              Int      @id @default(autoincrement())
+  icon            String?  
   username        String   @db.VarChar(100)
   email           String   @unique @db.VarChar(100)
   password        String   @db.VarChar(255)
@@ -24,6 +25,7 @@ model User {
   applicationFrom        Application[] @relation("Application_fromUser")
   passwordRecover        UserPasswordRecover[] @relation("passwordRecoverToken")
   RefreshToken        UserRefreshToken[] @relation("RefreshToken")
+  notifications      Notification[] @relation("Notification_user")
 }
 enum UserStatus {
   A
@@ -38,6 +40,7 @@ enum Role {
 model Event {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(100)
+  thumbnail   String?  
   description String  @db.VarChar(250)
   maxPlayers  Int     @db.Int
   startDate   DateTime @map("start_date")
@@ -81,6 +84,7 @@ enum TeamStatus {
 
 model Team {
   id             Int      @id @default(autoincrement())
+  icon           String?  
   name           String   @db.VarChar(100)
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
@@ -247,4 +251,15 @@ model UserRefreshToken{
   user    User  @relation(fields: [userId], references: [id], name: "RefreshToken", onDelete: Cascade)
   status  RefreshTokenStatus 
 
+}
+
+model Notification{
+  id Int  @id @default(autoincrement())
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, name: "Notification_user")
+  title   String @db.VarChar(100)
+  message String @db.VarChar(250)
+  link    String? @db.VarChar(250)
+  read    Boolean @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
 }

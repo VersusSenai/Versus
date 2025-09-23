@@ -11,7 +11,7 @@ const prisma = new PrismaClient()
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = "http://localhost:8080/auth/google/callback";
+const REDIRECT_URI =  process.env.BACKEND_URL + "/auth/google/callback" || 'http://localhost:8080' + "/auth/google/callback";
 
 const oauth2Client = new OAuth2Client(
   GOOGLE_CLIENT_ID,
@@ -195,6 +195,11 @@ class Auth {
             const { sub, email, name, picture } = payload;
 
             let user = await this.prisma.user.findUnique({ where: { email } });
+            if (user && user.status == "D"){
+                throw new NotFoundException("User Deleted or Banned") ;
+
+            }
+        
             
             if (!user) {
                 const hashedPassword = bcrypt.hashSync(sub, 10);
@@ -205,6 +210,7 @@ class Auth {
                         password: hashedPassword,
                         role: "P",
                         status: "A",
+                        icon: picture
                     }
                 });
 
@@ -215,6 +221,7 @@ class Auth {
 
 
         } catch (error) {
+            console.log(error)
             throw new DataBaseException("Internal Server Error");
             
         }
@@ -222,7 +229,7 @@ class Auth {
 
     discordAuthUrl = async(req)=>{
         const clientId = process.env.DISCORD_CLIENT_ID;
-        const redirectUri = encodeURIComponent("http://localhost:8080/auth/discord/callback");
+        const redirectUri = encodeURIComponent(process.env.BACKEND_URL + "/auth/discord/callback" || 'http://localhost:8080' + "/auth/discord/callback");
         const scope = "identify email";
 
 
@@ -261,10 +268,22 @@ class Auth {
                 },
             });
 
-            const {username, email, avatar,id, global_name} = await userResponse.json();
+            const {username, email, avatar, id, global_name} = await userResponse.json();
             let user = await this.prisma.user.findUnique({ where: { email } });
             
+            
+            if (user && user.status == "D"){
+                throw new NotFoundException("User Deleted or Banned") ;
+
+            }
+
+
             if (!user) {
+            let avatarUrl = null;
+            if (avatar) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=256`; 
+            }
+            
                 const hashedPassword = bcrypt.hashSync(id, 10);
                 user = await this.prisma.user.create({
                     data: {
@@ -273,6 +292,7 @@ class Auth {
                         password: hashedPassword,
                         role: "P",
                         status: "A",
+                        icon: avatarUrl
                     }
                 });
             }
