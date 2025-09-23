@@ -6,6 +6,7 @@ import DataBaseException from "../exceptions/DataBaseException.js";
 import NotAllowedException from "../exceptions/NotAllowedException.js";
 import ConflictException from "../exceptions/ConflictException.js";
 import { pagination } from "prisma-extension-pagination";
+import ImageService from "../services/ImageService.js";
 
 class TeamModel {
   constructor() {
@@ -63,7 +64,17 @@ class TeamModel {
   create = async (req) => {
     const userData = req.user;
     const { name, description } = req.body;
-
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
+    console.log(file)
     let isPrivate = req.body.private;
     if (!name || !description) {
       throw new BadRequestException("Missing required fields");
@@ -94,6 +105,18 @@ class TeamModel {
   update = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
     const { name, description } = req.body;
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
+    console.log(image)
+
 
     const teamOwner = await this.isTeamOwner(userData, parseInt(req.params.id));
     if (!teamOwner) {
@@ -118,6 +141,8 @@ class TeamModel {
         data: {
           name,
           description,
+          icon: image? image.url: undefined,
+          
         },
       })
       .catch((e) => {

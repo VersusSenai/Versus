@@ -2,7 +2,7 @@ import express from "express";
 import teamModel from "../models/TeamModel.js";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isAdmin from "../middlewares/adminMiddleware.js";
-
+import upload from "../middlewares/uploadMiddleware.js";
 const teamRoute = express.Router();
 
 /**
@@ -102,7 +102,7 @@ teamRoute.get("/:id",verifyToken ,async (req, res,next) => {
  *       400:
  *         description: Erro ao criar time
  */
-teamRoute.post("/", verifyToken, async (req, res, next) => {
+teamRoute.post("/", verifyToken, upload.single('image'), async (req, res, next) => {
   try {
     const team = await teamModel.create(req);
     res.status(201).json(team);
@@ -143,7 +143,7 @@ teamRoute.post("/", verifyToken, async (req, res, next) => {
  *       403:
  *         description: Sem permissão para editar
  */
-teamRoute.put("/:id", verifyToken, async (req, res, next) => {
+teamRoute.put("/:id", verifyToken, upload.single('image'), async (req, res, next) => {
   try {
     const updated = await teamModel.update(req);
     res.status(200).json(updated);

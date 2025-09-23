@@ -1,6 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import fs from "fs"
 import 'dotenv/config';
+import InternalServerError from "../exceptions/InternalServerError.js";
 
 
 class ImageService{
@@ -23,31 +24,26 @@ class ImageService{
         
         try {
             const fileContent = file.buffer;
-            const fileExtension = file.originalname.split('.').pop();
-               const fileNameWithoutExt = file.originalname
-                .replace(`.${fileExtension}`, '')
-                .replace(/[^a-zA-Z0-9]/g, '_') // Remove caracteres especiais
-                .substring(0, 50); // Limita o tamanho
 
-            console.log(file)
             const key = file.originalname + new Date().getTime().toString();
             
             const params = {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: key,
             Body: file.buffer,
-            ContentType: file.mimetype, // Usar o mimetype real do arquivo
+            ContentType: file.mimetype, 
             Metadata: {
                 originalName: file.originalname,
                 uploadedAt: new Date().getTime().toString()
             }
             }
 
+            const url = process.env.BACKEND_URL +`/image/${key}`  || 'http://localhost:8080' +`/image/${key}`
             const command = new PutObjectCommand(params)
             const response = await this.client.send(command);
-            return {name: key, url:`http://localhost:8080/image/${key}`, response}
+            return {name: key, url: url, response}
         } catch (error) {
-            throw error;
+            throw new InternalServerError();
         }
 
     }
@@ -70,7 +66,7 @@ class ImageService{
             const buffer = Buffer.concat(chunks);
             return buffer
         }catch(e){
-            console.log(e)
+            throw new InternalServerError();
         }
     }
 

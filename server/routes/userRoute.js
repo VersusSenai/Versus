@@ -65,8 +65,8 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
  */
 userRoute.get("/me", verifyToken ,async (req, res,next) => {
 
-  const {id, role, email, username} = req.user;
-  res.status(200).json({id, role, email, username})
+  const {id, role, email, username, icon} = req.user;
+  res.status(200).json({id, role, email, username, icon})
 
 });
 

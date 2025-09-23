@@ -30,6 +30,7 @@ class UserModel {
           role: true,
           registeredDate: true,
           status: true,
+          icon: true
         },
       })
       .withPages({
@@ -60,6 +61,7 @@ class UserModel {
           email: true,
           username: true,
           role: true,
+          icon: true,
         },
       });
       if (user == null) {
@@ -106,16 +108,11 @@ class UserModel {
     if(file){
       try {
         image = await ImageService.upload(file);
-
       } catch (error) {
         console.log(error)
-        throw new DataBaseException("Intenal Server error");
-        
+        throw new DataBaseException("Intenal Server error"); 
       }
-
     }
-
-
     const hash = req.body.password
       ? bcrypt.hashSync(
           req.body.password ? req.body.password : "mokup",

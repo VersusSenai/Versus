@@ -8,7 +8,7 @@ import DataBaseException from '../exceptions/DataBaseException.js';
 import NotAllowedException from '../exceptions/NotAllowedException.js';
 import ConflictException from '../exceptions/ConflictException.js';
 import notificationService from '../services/notificationService.js';
-
+import ImageService from '../services/ImageService.js';
 
 class EventModel {
   
@@ -72,6 +72,19 @@ class EventModel {
       throw new BadRequestException("Missing required fields");
     }
 
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
+
+
+
     if(now > Date.parse(startDate)){
       throw new BadRequestException("Event start date cannot be before today");
     }
@@ -84,7 +97,18 @@ class EventModel {
 
     
     const newEvent = await this.prisma.event.create({
-      data: { model,  name, description, startDate, endDate, multiplayer, private: isPrivate, status: "P",maxPlayers: parseInt(req.body.maxPlayers) ,eventInscriptions: {
+      data: {
+        model,
+        name,
+        description,
+        startDate,
+        endDate,
+        multiplayer: multiplayer == 'true'? true : false,
+        private: isPrivate == 'true'? true : false,
+        status: "P",
+        maxPlayers: parseInt(req.body.maxPlayers) ,
+        thumbnail: image? image.url: undefined,
+         eventInscriptions: {
         create:[
           {userId: userData.id, status: "C", role: "O", status: 'O'}
         ]
@@ -110,13 +134,24 @@ class EventModel {
       throw new ConflictException("Only events with status 'Pending' can be updated");
     }
 
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
+
 
     let {name, description, startDate, endDate, multiplayer, maxPlayers, model} = req.body;
     maxPlayers = maxPlayers === undefined?undefined: parseInt(maxPlayers);
 
     return await this.prisma.event.update({where: {id: parseInt(req.params.id)},
       data:{
-        name, description, startDate, endDate, multiplayer,private: isPrivate ,model, maxPlayers
+        name, description, startDate, endDate, multiplayer,private: isPrivate ,model, maxPlayers, thumbnail: image? image.url: undefined,
       }
       }).catch(e=>{
 

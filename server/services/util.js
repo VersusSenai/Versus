@@ -22,7 +22,7 @@ class UtilService {
 
            return await prisma.user.findUnique({where: {id: data.id}, select:{
           
-                username:true, email:true, id:true, role:true, password: true
+                username:true, email:true, id:true, role:true, password: true, icon: true
             
            }}).catch(e =>{
                 throw Error("User does not exists")
