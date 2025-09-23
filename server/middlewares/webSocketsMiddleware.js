@@ -60,6 +60,10 @@ const notificationSocket = (io) => {
             },
             where: {
                 userId: socketToUser.get(socket.id).id,
+                read: true
+            },
+            orderBy:{
+                createdAt: 'desc'  
             },
             take: 10,
         }).then(notifications=>{

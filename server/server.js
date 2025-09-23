@@ -9,8 +9,8 @@ import notificationSocket from "./middlewares/webSocketsMiddleware.js";
 import { Server } from "socket.io";
 import errorHandler from "./middlewares/errorHandler.js";
 import http from "http";
+import multer from "multer";
 const app = express();
-
 
 app.use(cookieParser())
 app.use(express.json());

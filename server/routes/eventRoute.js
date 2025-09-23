@@ -2,6 +2,7 @@ import eventModel from "../models/EventModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isOrganizer from "../middlewares/organizerMiddleware.js";
+import upload from "../middlewares/uploadMiddleware.js";
 
 const eventRoute = express.Router();
 
@@ -145,11 +146,12 @@ eventRoute.get("/:id", verifyToken, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.post("/", isOrganizer, async (req, res, next) => {
+eventRoute.post("/", isOrganizer, upload.single('image'), async (req, res, next) => {
   try {
     const event = await eventModel.create(req);
     res.status(201).json(event);
   } catch (err) {
+    console.log(err)
     next(err)
   }
 });
@@ -187,7 +189,7 @@ eventRoute.post("/", isOrganizer, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.put("/:id", isOrganizer, async (req, res, next) => {
+eventRoute.put("/:id", isOrganizer, upload.single('image'), async (req, res, next) => {
   try {
     const updated = await eventModel.update(req);
     res.status(200).json(updated);

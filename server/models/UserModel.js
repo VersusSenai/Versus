@@ -6,15 +6,15 @@ import ConflictException from "../exceptions/ConflictException.js";
 import DataBaseException from "../exceptions/DataBaseException.js";
 import { pagination } from "prisma-extension-pagination";
 import MailSender from "../services/MailSender.js";
-import dayjs from "dayjs"
-import jwt from 'jsonwebtoken';
+import dayjs from "dayjs";
+import jwt from "jsonwebtoken";
+import ImageService from "../services/ImageService.js";
 const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
 class UserModel {
   constructor() {
     this.prisma = new PrismaClient().$extends(pagination());
   }
-
 
   async getAll(req) {
     const userData = req.user;
@@ -30,6 +30,7 @@ class UserModel {
           role: true,
           registeredDate: true,
           status: true,
+          icon: true
         },
       })
       .withPages({
@@ -37,7 +38,6 @@ class UserModel {
         page,
       });
 
-    return await this.prisma.user.findMany();
   }
 
   async getById(req) {
@@ -61,6 +61,7 @@ class UserModel {
           email: true,
           username: true,
           role: true,
+          icon: true,
         },
       });
       if (user == null) {
@@ -102,6 +103,16 @@ class UserModel {
   async update(req) {
     const userData = req.user;
 
+    const file = req.file;
+    let image;
+    if(file){
+      try {
+        image = await ImageService.upload(file);
+      } catch (error) {
+        console.log(error)
+        throw new DataBaseException("Intenal Server error"); 
+      }
+    }
     const hash = req.body.password
       ? bcrypt.hashSync(
           req.body.password ? req.body.password : "mokup",
@@ -116,6 +127,7 @@ class UserModel {
           email: req.body.email,
           username: req.body.username,
           password: hash,
+          icon: image? image.url: undefined
         },
         select: {
           username: true,
@@ -159,6 +171,7 @@ class UserModel {
           password: hash,
           role: req.body.role,
           status: req.body.status,
+          
         },
         select: {
           username: true,
@@ -248,19 +261,26 @@ class UserModel {
       to: user.email,
       subject: "Token para recuperação de senha",
       text:
-        "Aqui está seu token para recuperar sua senha: " +frontEndUrl +"/forgetPassword?token=" +
+        "Aqui está seu token para recuperar sua senha: " +
+        frontEndUrl +
+        "/forgetPassword?token=" +
         userPasswordRecover.token,
-      html: ""
+      html: "",
     });
 
     return "";
   }
 
   async passwordRecoverByToken(req) {
-    const userPasswordRecover = await this.prisma.userPasswordRecover.findUnique({ where: { token: req.query.token }, include: {user: true} }).catch((e) => {
-      console.log(e)
-      throw new DataBaseException("Internal Server Error");
-    });
+    const userPasswordRecover = await this.prisma.userPasswordRecover
+      .findUnique({
+        where: { token: req.query.token },
+        include: { user: true },
+      })
+      .catch((e) => {
+        console.log(e);
+        throw new DataBaseException("Internal Server Error");
+      });
     if (!userPasswordRecover) {
       throw new NotFoundException("Token is invalid");
     }
@@ -281,14 +301,17 @@ class UserModel {
       req.body.password,
       parseInt(process.env.SALT_ROUNDS)
     );
-    
-    await this.prisma.user.update({where: {id: userPasswordRecover.userId}, data:{
-      password: hash
-    }}).catch(e=>{
-      throw new DataBaseException("Internal Server Error");
-      
-    })
-    
+
+    await this.prisma.user
+      .update({
+        where: { id: userPasswordRecover.userId },
+        data: {
+          password: hash,
+        },
+      })
+      .catch((e) => {
+        throw new DataBaseException("Internal Server Error");
+      });
   }
 }
 

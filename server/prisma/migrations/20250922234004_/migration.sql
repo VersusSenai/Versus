@@ -1,6 +1,7 @@
 -- CreateTable
 CREATE TABLE `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `icon` VARCHAR(191) NULL,
     `username` VARCHAR(100) NOT NULL,
     `email` VARCHAR(100) NOT NULL,
     `password` VARCHAR(255) NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE `User` (
 CREATE TABLE `Event` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(100) NOT NULL,
+    `thumbnail` VARCHAR(191) NULL,
     `description` VARCHAR(250) NOT NULL,
     `maxPlayers` INTEGER NOT NULL,
     `start_date` DATETIME(3) NOT NULL,
@@ -33,6 +35,7 @@ CREATE TABLE `Event` (
 -- CreateTable
 CREATE TABLE `Team` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `icon` VARCHAR(191) NULL,
     `name` VARCHAR(100) NOT NULL,
     `description` VARCHAR(250) NULL,
     `registered_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -137,6 +140,19 @@ CREATE TABLE `UserRefreshToken` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `Notification` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `title` VARCHAR(100) NOT NULL,
+    `message` VARCHAR(250) NOT NULL,
+    `link` VARCHAR(250) NULL,
+    `read` BOOLEAN NOT NULL DEFAULT false,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `EventInscriptions` ADD CONSTRAINT `EventInscriptions_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -187,3 +203,6 @@ ALTER TABLE `UserPasswordRecover` ADD CONSTRAINT `UserPasswordRecover_userId_fke
 
 -- AddForeignKey
 ALTER TABLE `UserRefreshToken` ADD CONSTRAINT `UserRefreshToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Notification` ADD CONSTRAINT `Notification_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
