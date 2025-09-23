@@ -18,6 +18,7 @@ import AccountPage from './pages/AccountPage';
 import AccountEditPage from './pages/AccountEditPage';
 import { Teams } from './pages/TeamsPage';
 import { DataTableProvider } from './context/DataTableContext';
+import { NavbarProvider } from './context/NavbarContext';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -133,20 +134,22 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
-        <AnimatedRoutes />
-      </Router>
+      <NavbarProvider>
+        <Router>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
+          <AnimatedRoutes />
+        </Router>
+      </NavbarProvider>
     </Provider>
   );
 }
