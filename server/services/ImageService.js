@@ -1,5 +1,4 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import fs from "fs"
 import 'dotenv/config';
 import InternalServerError from "../exceptions/InternalServerError.js";
 
