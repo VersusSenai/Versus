@@ -17,6 +17,7 @@ class NotificationService {
             if(userMap.has(notification.userId)){
                 io.to(userMap.get(notification.userId)).emit("notifications", {...notification});
             }
+
         })
     }
 
