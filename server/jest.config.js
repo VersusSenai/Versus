@@ -4,6 +4,7 @@ export default {
   testMatch: [
     '**/tests/**/*.test.js'
   ],
+  setupFiles: ['<rootDir>/tests/jest.setup.js'],
   collectCoverageFrom: [
     'models/**/*.js',
     'services/**/*.js',

@@ -290,7 +290,6 @@ class MatchModel {
           }})
           return createdMatch;
         }).catch(e=>{
-            console.log(e)
 
             throw new DataBaseException("Interal Server Error")
           });

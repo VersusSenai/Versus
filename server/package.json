@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "migrate": "prisma generate && prisma migrate dev",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage"
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit",
+    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
+    "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage --forceExit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.893.0",

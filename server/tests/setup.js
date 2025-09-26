@@ -1,5 +1,9 @@
 // Setup global test configuration
 import 'jest-extended';
+import { jest } from '@jest/globals';
+
+// Make jest available globally
+global.jest = jest;
 
 // Mock console methods to reduce noise in tests
 global.console = {

@@ -25,7 +25,6 @@ class MailSender{
         }).then(r=>{
             return {msg: "Message Sent"}
         }).catch(e=>{
-            console.log(e)
             throw new MailError("Failed to send email");
             
         })

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import TeamModel from '../../models/TeamModel.js';
 import NotFoundException from '../../exceptions/NotFoundException.js';
 import NotAllowedException from '../../exceptions/NotAllowedException.js';
@@ -6,12 +6,12 @@ import ConflictException from '../../exceptions/ConflictException.js';
 
 // Mock do jwt
 const mockJwt = {
-  decode: mock(() => ({ id: 1 }))
+  decode: jest.fn(() => ({ id: 1 }))
 };
 
 // Mock do util
 const mockUtil = {
-  getUserByToken: mock(() => Promise.resolve({ id: 1, role: 'U' }))
+  getUserByToken: jest.fn(() => Promise.resolve({ id: 1, role: 'U' }))
 };
 
 // Mock das dependências
@@ -21,25 +21,25 @@ global.serviceUtils = mockUtil;
 // Mock do Prisma
 const mockPrisma = {
   team: {
-    paginate: mock(),
-    findUnique: mock(),
-    findFirst: mock(),
-    create: mock(),
-    update: mock(),
+    paginate: jest.fn(),
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
   },
   teamUsers: {
-    findFirst: mock(),
-    findMany: mock(),
-    create: mock(),
-    update: mock(),
-    delete: mock(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   },
   user: {
-    findFirst: mock(),
-    findUnique: mock(),
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
   },
-  $transaction: mock(),
-  $extends: mock(() => mockPrisma),
+  $transaction: jest.fn(),
+  $extends: jest.fn(() => mockPrisma),
 };
 
 // Helper para criar requests
@@ -97,7 +97,7 @@ describe('TeamModel Tests', () => {
   // Exemplo de teste com mock
   describe('Mock functionality', () => {
     it('should work with mocked functions', () => {
-      const mockFunction = mock(() => 'mocked result');
+      const mockFunction = jest.fn(() => 'mocked result');
       
       const result = mockFunction();
       
@@ -106,7 +106,7 @@ describe('TeamModel Tests', () => {
     });
 
     it('should work with async mocks', async () => {
-      const asyncMock = mock(() => Promise.resolve({ id: 1, name: 'Test' }));
+      const asyncMock = jest.fn(() => Promise.resolve({ id: 1, name: 'Test' }));
       
       const result = await asyncMock();
       
@@ -164,7 +164,7 @@ describe('TeamModel Tests', () => {
         meta: { total: 2, page: 1, limit: 10 }
       };
 
-      const mockWithPages = mock(() => Promise.resolve(mockTeams));
+      const mockWithPages = jest.fn(() => Promise.resolve(mockTeams));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
@@ -193,7 +193,7 @@ describe('TeamModel Tests', () => {
         query: { limit: 50 }
       });
 
-      const mockWithPages = mock(() => Promise.resolve({}));
+      const mockWithPages = jest.fn(() => Promise.resolve({}));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
@@ -405,7 +405,7 @@ describe('TeamModel Tests', () => {
     it('should validate team exists before update', async () => {
       // Mockamos o isTeamOwner para ser true
       const originalIsTeamOwner = TeamModel.isTeamOwner;
-      TeamModel.isTeamOwner = mock(() => Promise.resolve(true));
+      TeamModel.isTeamOwner = jest.fn(() => Promise.resolve(true));
 
       const mockRequest = createMockRequest({
         params: { id: '999' }
@@ -574,7 +574,7 @@ describe('TeamModel Tests', () => {
         query: { status: ['P', 'O'] }
       });
 
-      const mockWithPages = mock(() => Promise.resolve({}));
+      const mockWithPages = jest.fn(() => Promise.resolve({}));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
@@ -591,7 +591,7 @@ describe('TeamModel Tests', () => {
         query: {}
       });
 
-      const mockWithPages = mock(() => Promise.resolve({}));
+      const mockWithPages = jest.fn(() => Promise.resolve({}));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
@@ -632,7 +632,7 @@ describe('TeamModel Tests', () => {
         query: { page: 999999, limit: 5 }
       });
 
-      const mockWithPages = mock(() => Promise.resolve({ data: [], meta: {} }));
+      const mockWithPages = jest.fn(() => Promise.resolve({ data: [], meta: {} }));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
@@ -652,7 +652,7 @@ describe('TeamModel Tests', () => {
         query: { status: 'P' }
       });
 
-      const mockWithPages = mock(() => Promise.resolve({}));
+      const mockWithPages = jest.fn(() => Promise.resolve({}));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
@@ -669,7 +669,7 @@ describe('TeamModel Tests', () => {
         query: { page: -5 }
       });
 
-      const mockWithPages = mock(() => Promise.resolve({}));
+      const mockWithPages = jest.fn(() => Promise.resolve({}));
       mockPrisma.team.paginate.mockReturnValue({
         withPages: mockWithPages
       });
