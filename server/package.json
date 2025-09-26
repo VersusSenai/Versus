@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "migrate": "prisma generate && prisma migrate dev",
+    "migrate": "npm prisma generate && npm prisma migrate dev",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit",
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
     "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage --forceExit"
