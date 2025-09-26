@@ -16,8 +16,7 @@ api.interceptors.response.use(
       if (status === 403 && !originalRequest._retry) {
         originalRequest._retry = true;
         try {
-          await axios.post(
-            "http://localhost:8080/auth/refresh-token",
+          await api.post("/auth/refresh-token",
             {},
             { withCredentials: true }
           )
