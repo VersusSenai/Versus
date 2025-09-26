@@ -49,7 +49,6 @@ const notificationSocket = (io) => {
     io.on("connect", async(socket) => {
 
         if(!socketToUser.has(socket.id)){
-            console.log("Unauthorized socket connection attempt: " + socket.id)
             return;
         }
 

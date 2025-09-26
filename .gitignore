@@ -1,2 +1,33 @@
-containers3root
-/locals3root
+# Docker volumes
+containers3root/
+locals3root/
+mysql-data/
+
+# Environment files
+.env
+*.env
+client/.env
+server/.env
+
+# Node modules
+node_modules/
+*/node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'Versus Api',
       version: '1.0.0',
-      description: 'Documentação do sistema de torneios Versus',
+      description: 'Documentação do sistema de torneios',
     },
     servers: [
       {

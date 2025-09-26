@@ -30,10 +30,13 @@ app.use(router)
 app.use(errorHandler)
 
 const server = http.createServer(app); 
-server.listen(process.env.PORT, () => {
-  console.log("connect: ", process.env.PORT);
-});
 
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(process.env.PORT, () => {
+    console.log("connect: ", process.env.PORT);
+  });
+}
 
 export const io = new Server(server,{
   cors: {
@@ -42,7 +45,5 @@ export const io = new Server(server,{
     credentials: true
   }
 })
-
-
 
 notificationSocket(io);

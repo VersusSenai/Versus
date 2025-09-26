@@ -153,7 +153,6 @@ authRoute.post("/logout", async (req, res) => {
 authRoute.post("/refresh-token", async (req, res, next) => {
 
   const resp = await auth.refreshToken(req).catch((err) => {
-    console.log(err)
     next(err);
   });
   if (resp) {
@@ -192,7 +191,6 @@ authRoute.get("/google/callback", async(req, res, next)=>{
   });
 
   if (resp) {
-    console.log(resp)
     res
     .cookie("token", resp.token, cookieOptions)
     .cookie("refreshToken", resp.refreshToken, cookieOptions)

@@ -1,6 +1,7 @@
 services:
   s3mock:
     image: adobe/s3mock:latest
+    container_name: versus-s3mock
     environment:
       - COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT=true
       - COM_ADOBE_TESTING_S3MOCK_STORE_ROOT=containers3root
@@ -10,3 +11,63 @@ services:
       - 9191:9191
     volumes:
       - ./locals3root:/containers3root
+    networks:
+      - versus-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: versus-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123 
+      MYSQL_DATABASE: versus
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    networks:
+      - versus-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  server:
+    build:
+      context: ./server
+    container_name: versus-server
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app
+    environment:
+      DATABASE_URL: mysql://root:123@mysql:3306/versus
+      FRONTEND_URL: http://localhost:5173
+      AWS_S3_ENDPOINT: http://s3mock:9090
+      AWS_S3_BUCKET: balde-imagem-cachorro
+    env_file:
+      - ./server/.env 
+    command: npm run dev
+    depends_on:
+      mysql:
+        condition: service_healthy
+      s3mock:
+        condition: service_started
+    networks:
+      - versus-network
+
+  frontend:
+    build:
+      context: ./client
+    container_name: versus-frontend
+    ports:
+      - "5173:5173"
+    command: npm run dev
+    depends_on:
+      - server
+    networks:
+      - versus-network
+
+networks:
+  versus-network:
+    driver: bridge

@@ -109,7 +109,6 @@ class UserModel {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        console.log(error)
         throw new DataBaseException("Intenal Server error"); 
       }
     }
@@ -278,7 +277,6 @@ class UserModel {
         include: { user: true },
       })
       .catch((e) => {
-        console.log(e);
         throw new DataBaseException("Internal Server Error");
       });
     if (!userPasswordRecover) {
