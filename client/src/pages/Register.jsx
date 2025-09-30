@@ -170,14 +170,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Remember Me */}
-          <div className="flex items-center w-full mb-4">
-            <input type="checkbox" id="remember" className="mr-2" />
-            <label htmlFor="remember" className="text-sm text-[var(--color-muted)]">
-              Se lembre de mim
-            </label>
-          </div>
-
           {/* Register Button */}
           <button
             onClick={handleRegister}
