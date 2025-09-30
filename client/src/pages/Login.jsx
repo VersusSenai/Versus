@@ -42,8 +42,13 @@ const Login = () => {
       if (response.status === 200) {
         toast.success('Login bem-sucedido!');
 
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userId', response.data.user.id);
+        if (remember) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('userId', response.data.user.id);
+        } else {
+          sessionStorage.setItem('token', response.data.token);
+          sessionStorage.setItem('userId', response.data.user.id);
+        }
 
         dispatch(login(response.data.user));
 
