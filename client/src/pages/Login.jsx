@@ -145,7 +145,12 @@ const Login = () => {
 
           {/* Remember Me */}
           <div className="flex items-center w-full mb-4">
-            <input onChange={(e) => setRemember(e.target.checked)} type="checkbox" id="remember" className="mr-2" />
+            <input
+              onChange={(e) => setRemember(e.target.checked)}
+              type="checkbox"
+              id="remember"
+              className="mr-2"
+            />
             <label htmlFor="remember" className="text-sm text-[var(--color-muted)]">
               Se lembre de mim
             </label>
@@ -178,12 +183,11 @@ const Login = () => {
           </div>
 
           <div className="flex justify-center gap-4 mb-15">
-            <a href='http://localhost:8080/auth/google'>
-             <FaGoogle  className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
+            <a href="http://localhost:8080/auth/google">
+              <FaGoogle className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
             </a>
-            <a href='http://localhost:8080/auth/discord'>
-            <FaDiscord  className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
-
+            <a href="http://localhost:8080/auth/discord">
+              <FaDiscord className="text-2xl cursor-pointer transition-transform transform hover:rotate-12 duration-300" />
             </a>
           </div>
 
