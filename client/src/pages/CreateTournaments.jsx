@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'react-toastify';
 import {
   Select,
   SelectTrigger,
@@ -18,6 +19,7 @@ import api from '../api';
 
 import teamImage from '../assets/team.jpeg';
 import soloImage from '../assets/solo.jpg';
+import { toast } from 'react-toastify';
 
 const transition = { duration: 0.4, ease: 'easeInOut' };
 const variants = {
@@ -39,12 +41,12 @@ const CreateTournaments = ({ fetchTorneios }) => {
 
   const criarTorneio = async () => {
     if (!nome || !description || !startDate || !endDate || !maxPlayers || !model) {
-      alert('Preencha todos os campos corretamente.');
+      toast.error('Preencha todos os campos corretamente.');
       return;
     }
 
     if (description.length > 250) {
-      alert('A descrição deve ter no máximo 250 caracteres.');
+      toast.error('A descrição deve ter no máximo 250 caracteres.');
       return;
     }
 
@@ -53,12 +55,12 @@ const CreateTournaments = ({ fetchTorneios }) => {
     const end = new Date(endDate);
 
     if (start < now) {
-      alert('A data de início deve ser no futuro.');
+      toast.error('A data de início deve ser no futuro.');
       return;
     }
 
     if (start > end) {
-      alert('A data de início não pode ser após a data de término.');
+      toast.error('A data de início não pode ser após a data de término.');
       return;
     }
 
@@ -74,7 +76,7 @@ const CreateTournaments = ({ fetchTorneios }) => {
         model,
       });
 
-      alert('Evento criado com sucesso!');
+      toast.success('Evento criado com sucesso!');
       setNome('');
       setDescription('');
       setStartDate('');
@@ -84,7 +86,7 @@ const CreateTournaments = ({ fetchTorneios }) => {
       setModel('P');
       if (fetchTorneios) fetchTorneios();
     } catch (e) {
-      alert(e.response?.data?.message || 'Erro ao criar torneio');
+      toast.error(e.response?.data?.message || 'Erro ao criar torneio');
     } finally {
       setLoading(false);
     }
