@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiLogIn } from 'react-icons/fi';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import ScrollArrow from '../../components/ScrollArrow';
 import logo from '../../assets/logo.svg';
+import { FaPlay } from 'react-icons/fa';
 
 const animatedWords = ['torneios', 'times', 'ranking'];
 
@@ -15,6 +15,7 @@ const Hero = () => {
   const [animating, setAnimating] = useState(false);
   const [logoCoords, setLogoCoords] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const prevNavbarLogoOpacityRef = useRef(null);
 
   // Alterna as palavras animadas
   useEffect(() => {
@@ -35,25 +36,45 @@ const Hero = () => {
   }, []);
 
   const handleLogin = () => {
-    if (logoRef.current) {
-      const rect = logoRef.current.getBoundingClientRect();
+    const navbarLogo = document.getElementById('navbar-logo');
+    const sourceEl = navbarLogo || logoRef.current;
+    if (sourceEl) {
+      const rect = sourceEl.getBoundingClientRect();
       setLogoCoords({
         top: rect.top,
         left: rect.left,
         width: rect.width,
         height: rect.height,
       });
+      // Oculta o logo original durante a animação para evitar "logo parado"
+      try {
+        prevNavbarLogoOpacityRef.current = sourceEl.style.opacity;
+        sourceEl.style.opacity = '0';
+      } catch {}
       setAnimating(true);
 
       setTimeout(() => {
         navigate('/login');
-      }, 2800);
+      }, 2700);
     }
   };
 
+  // Caso a animação seja cancelada/termine sem navegação, restaura o logo
+  useEffect(() => {
+    if (!animating) {
+      const navbarLogo = document.getElementById('navbar-logo');
+      if (navbarLogo && prevNavbarLogoOpacityRef.current !== null) {
+        try {
+          navbarLogo.style.opacity = prevNavbarLogoOpacityRef.current;
+        } catch {}
+        prevNavbarLogoOpacityRef.current = null;
+      }
+    }
+  }, [animating]);
+
   return (
     <>
-      {/* Fundo escurecido durante a animação */}
+      {/* overlay durante animação */}
       <AnimatePresence>
         {animating && (
           <motion.div
@@ -61,12 +82,12 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.85 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.9, ease: 'easeInOut' }}
             style={{
               position: 'fixed',
               inset: 0,
               backgroundColor: 'black',
-              zIndex: 998,
+              zIndex: 1100,
             }}
           />
         )}
@@ -79,14 +100,34 @@ const Hero = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
       >
-        {/* Logo no canto superior */}
-        {!animating && (
-          <div className="absolute top-6 left-6 z-50">
-            <img ref={logoRef} src={logo} alt="Logo VERSUS" className="w-[100px]" />
-          </div>
-        )}
+        {/* orbs de fundo */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.4, scale: 1 }}
+            transition={{ duration: 1.2 }}
+            className="absolute -top-24 -left-24 h-80 w-80 rounded-full blur-3xl"
+            style={{ background: 'radial-gradient(closest-side, var(--color-1), transparent 70%)' }}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.35, scale: 1 }}
+            transition={{ duration: 1.2, delay: 0.2 }}
+            className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full blur-3xl"
+            style={{ background: 'radial-gradient(closest-side, var(--color-2), transparent 70%)' }}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.25, scale: 1 }}
+            transition={{ duration: 1.2, delay: 0.35 }}
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full blur-3xl"
+            style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.15), transparent 70%)' }}
+          />
+        </div>
 
-        {/* Logo animada no centro */}
+        {/* logo fica na navbar */}
+
+        {/* logo animada */}
         <AnimatePresence>
           {animating && logoCoords && (
             <motion.img
@@ -107,34 +148,55 @@ const Hero = () => {
                 pointerEvents: 'none',
                 originX: 0.5,
                 originY: 0.5,
+                filter: 'none',
+                willChange: 'transform, opacity',
+                backgroundColor: 'transparent'
               }}
               animate={{
                 top: '50%',
                 left: '50%',
-                x: '-50%',
-                y: '-50%',
-                scale: isMobile ? 3.5 : 6,
+                x: ['-75%', '-58%', '-50%'],
+                y: ['-25%', '-56%', '-50%'],
+                scale: [1, (isMobile ? 7.5 : 12.0) * 1.02, (isMobile ? 7.5 : 12.0)],
                 opacity: 1,
-                rotate: [0, 5, 8, 0],
+                rotate: 0,
+                filter: 'none',
+                boxShadow: ['0 0 0 rgba(0,0,0,0)', '0 0 28px rgba(132,92,245,0.16)', '0 0 34px rgba(132,92,245,0.18)']
               }}
               transition={{
-                duration: 1.5,
-                ease: 'easeInOut',
-                times: [0, 0.25, 0.5, 0.75, 1],
+                duration: 2.6,
+                ease: [0.16, 1, 0.3, 1],
+                times: [0, 0.6, 1],
+                x: { duration: 2.6, ease: [0.16, 1, 0.3, 1] },
+                y: { duration: 2.6, ease: [0.16, 1, 0.3, 1] },
+                scale: { duration: 2.6, ease: [0.16, 1, 0.3, 1], times: [0, 0.6, 1] },
+                boxShadow: { duration: 1.2, ease: 'easeOut' }
               }}
             />
           )}
         </AnimatePresence>
 
-        {/* Conteúdo principal */}
-        <div className="max-w-[1000px] w-full h-screen mx-auto text-center flex flex-col justify-center px-4">
-          <p className="text-[var(--color-2)] font-bold text-sm sm:text-base">
+        {/* conteúdo principal */}
+        <div className="max-w-[1100px] w-full h-screen mx-auto text-center flex flex-col justify-center px-4">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-[var(--color-2)] font-bold text-sm sm:text-base tracking-widest"
+          >
             ORGANIZE. COMPITA. VENÇA.
-          </p>
+          </motion.p>
 
-          <h1 className="md:text-7xl sm:text-5xl text-4xl font-bold md:py-6">
-            Gerencie seu torneio com facilidade
-          </h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="md:text-7xl sm:text-5xl text-4xl font-extrabold md:py-6 leading-tight"
+          >
+            <span className="bg-gradient-to-r from-[var(--color-2)] via-white to-[var(--color-2)] bg-clip-text text-transparent">
+              Gerencie seu torneio com facilidade
+            </span>
+          </motion.h1>
 
           <div className="flex justify-center items-center h-[60px]">
             <p className="md:text-4xl sm:text-2xl text-lg font-bold py-4">
@@ -147,25 +209,44 @@ const Hero = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5 }}
-                className="md:text-4xl sm:text-2xl text-lg font-bold text-[var(--color-2)]"
+                className="md:text-4xl sm:text-2xl text-lg font-extrabold text-[var(--color-2)]"
               >
                 {animatedWords[index]}
               </motion.span>
             </AnimatePresence>
           </div>
 
-          <p className="md:text-xl text-base font-medium text-gray-400 max-w-xl mx-auto">
-            Crie brackets, acompanhe estatísticas e gerencie jogadores em uma interface intuitiva.
-          </p>
-
-          <Button
-            onClick={handleLogin}
-            disabled={animating}
-            className="flex items-center justify-center gap-2 bg-[var(--color-2)] w-[220px] rounded-xl font-semibold my-6 mx-auto py-3 text-black text-lg hover:brightness-110 transition"
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="md:text-xl text-base font-medium text-gray-300 max-w-2xl mx-auto"
           >
-            <FiLogIn className="text-2xl" />
-            Entrar
-          </Button>
+            Crie brackets, acompanhe estatísticas e gerencie jogadores em uma interface intuitiva.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center justify-center mt-8"
+          >
+            <button
+              onClick={handleLogin}
+              disabled={animating}
+              className="flex items-center justify-center gap-2 border border-[var(--color-2)] backdrop-blur-sm min-w-[220px] rounded-xl font-semibold py-3 text-[var(--color-2)] text-lg hover:bg-[var(--color-2)] hover:text-[var(--color-dark)] transition shadow-lg cursor-pointer"
+            >
+              <FiLogIn className="text-2xl" />
+              Entrar
+            </button>
+            <button
+              onClick={() => document.getElementById('cards')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center justify-center gap-2 border border-white/30 backdrop-blur-sm min-w-[220px] rounded-xl font-semibold py-3 text-white text-lg hover:bg-white/10 transition shadow-lg cursor-pointer"
+            >
+              <FaPlay />
+              Explorar recursos
+            </button>
+          </motion.div>
 
           <ScrollArrow targetId="cards" />
         </div>

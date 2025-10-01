@@ -6,25 +6,26 @@ import {
   FaInstagram,
   FaTwitterSquare,
 } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const Footer = () => {
   return (
     <div className="w-full bg-[var(--color-dark)] text-white py-16 px-4">
       <div className="max-w-[1240px] mx-auto grid lg:grid-cols-3 gap-8">
-        {/* Branding & Social */}
+        {/* branding e social */}
         <div>
           <h1 className="text-3xl font-bold text-accent">Versus.</h1>
-          <p className="py-4">A melhor empresa de gerenciamento de torneios online.</p>
+          <p className="py-4 text-white/80">A melhor empresa de gerenciamento de torneios online.</p>
           <div className="flex justify-start space-x-6 mt-6">
-            <FaFacebookSquare size={30} />
-            <FaInstagram size={30} />
-            <FaTwitterSquare size={30} />
-            <FaGithubSquare size={30} />
-            <FaDribbbleSquare size={30} />
+            {[FaFacebookSquare, FaInstagram, FaTwitterSquare, FaGithubSquare, FaDribbbleSquare].map((Icon, i) => (
+              <motion.a key={i} whileHover={{ y: -2, scale: 1.05 }} href="#" className="text-white/80 hover:text-[var(--color-2)] transition">
+                <Icon size={30} />
+              </motion.a>
+            ))}
           </div>
         </div>
 
-        {/* Newsletter */}
+        {/* newsletter */}
         <div className="lg:col-span-2">
           <h2 className="md:text-2xl sm:text-xl text-lg font-bold py-2">
             Quer ficar por dentro das últimas novidades e dicas para seus torneios?
@@ -34,14 +35,14 @@ const Footer = () => {
           </p>
           <form className="flex flex-col sm:flex-row items-center justify-between w-full">
             <input
-              className="p-3 flex w-full rounded-md text-accent border border-white"
+              className="p-3 flex w-full rounded-md text-accent border border-white/40 bg-white/5 placeholder-white/50"
               type="email"
               placeholder="Digite seu e-mail"
               required
             />
             <button
               type="submit"
-              className="bg-[var(--color-2)] text-[var(--color-dark)] rounded-md font-medium w-[200px] ml-0 sm:ml-4 my-4 sm:my-0 px-6 py-3 hover:bg-[var(--color-dark)] hover:text-[var(--color-2)] transition"
+              className="bg-[var(--color-2)] text-[var(--color-dark)] rounded-md font-semibold w-[200px] ml-0 sm:ml-4 my-4 sm:my-0 px-6 py-3 hover:bg-[var(--color-dark)] hover:text-[var(--color-2)] transition shadow-md cursor-pointer"
             >
               Quero Receber
             </button>
@@ -56,8 +57,8 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom copyright */}
-      <div className="border-t border-gray-700 mt-12 pt-6 text-center text-gray-500 text-sm">
+      {/* copyright */}
+      <div className="border-t border-white/10 mt-12 pt-6 text-center text-gray-400 text-sm">
         &copy; {new Date().getFullYear()} Versus. Todos os direitos reservados.
       </div>
     </div>

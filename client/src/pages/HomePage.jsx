@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import Analytics from '../components/homepage/Analytics';
 import Cards from '../components/homepage/Cards';
 import Footer from '../components/homepage/Footer';
 import Hero from '../components/homepage/Hero';
 import Aurora from '../ui/blocks/Backgrounds/Aurora/Aurora';
+import Showcase from '../components/homepage/Showcase';
+import Navbar from '../components/Navbar';
 
 function HomePage() {
   const location = useLocation();
@@ -29,9 +30,10 @@ function HomePage() {
           speed={0.5}
         />
       </div>
+      <Navbar />
       <Hero />
       <Cards />
-      <Analytics />
+      <Showcase />
       <Footer />
     </>
   );
