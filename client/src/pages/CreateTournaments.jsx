@@ -19,7 +19,6 @@ import api from '../api';
 
 import teamImage from '../assets/team.jpeg';
 import soloImage from '../assets/solo.jpg';
-import { toast } from 'react-toastify';
 
 const transition = { duration: 0.4, ease: 'easeInOut' };
 const variants = {
