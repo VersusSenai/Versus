@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { useSelector } from 'react-redux';
 import api from '../api';
 
 export const NotificationContext = createContext();
@@ -14,6 +15,7 @@ export const NotificationProvider = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [socketConnected, setSocketConnected] = useState(false);
   const socketRef = useRef(null);
+  const user = useSelector((state) => state.user.user);
 
   // buscar notificações iniciais
   const fetchNotifications = async () => {
@@ -105,6 +107,11 @@ export const NotificationProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // só faz requisições se o usuário estiver autenticado
+    if (!user) {
+      return;
+    }
+
     fetchNotifications();
     
     // conectar websocket
@@ -157,7 +164,7 @@ export const NotificationProvider = ({ children }) => {
         socketRef.current.disconnect();
       }
     };
-  }, []);
+  }, [user]);
 
   const value = {
     notifications,

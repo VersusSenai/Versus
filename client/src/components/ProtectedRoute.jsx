@@ -1,4 +1,4 @@
-import api from '@/api';
+import api from '../api';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -12,26 +12,20 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await api.get("/user/me");
-        dispatch(login(response.data));
-      } catch (error) {
-        navigate('/login', { replace: true });
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    // se não tem usuário no Redux, vai direto para login
     if (!user) {
-      fetchUser();
+      navigate('/login', { replace: true });
     } else {
       setLoading(false);
     }
-  }, [dispatch, navigate]); // ❌ não inclui `user` aqui
+  }, [user, navigate]);
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-lg text-gray-600">Carregando...</div>
+      </div>
+    );
   }
 
   if (!user) {
