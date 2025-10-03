@@ -11,8 +11,7 @@ const prisma = new PrismaClient()
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI =  process.env.BACKEND_URL + "/auth/google/callback" || 'http://localhost:8080' + "/auth/google/callback";
-
+const REDIRECT_URI =  (process.env.BACKEND_URL|| 'http://localhost:8080') + "/auth/google/callback";
 const oauth2Client = new OAuth2Client(
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -98,7 +97,7 @@ class Auth {
                 }
             )
             
-        await prisma.userRefreshToken.create({
+        const tokenObj = await prisma.userRefreshToken.create({
             data: {
                 token: refreshToken,
                 userId: user.id,
@@ -108,8 +107,6 @@ class Auth {
         }).catch(e=>{
             throw new DataBaseException("Internal Server Error");
         })
-
-
         return refreshToken;
         
     }
@@ -130,7 +127,10 @@ class Auth {
         }).catch(e=>{
             throw new DataBaseException("Internal Server Error");
         })
-
+        if(!storedToken){
+            throw new BadRequestException("Refresh token is invalid");
+            
+        }
         if(!storedToken.status || storedToken.status != "A"){
             
             await prisma.userRefreshToken.updateMany({  
@@ -221,7 +221,6 @@ class Auth {
 
 
         } catch (error) {
-            console.log(error)
             throw new DataBaseException("Internal Server Error");
             
         }
@@ -229,7 +228,7 @@ class Auth {
 
     discordAuthUrl = async(req)=>{
         const clientId = process.env.DISCORD_CLIENT_ID;
-        const redirectUri = encodeURIComponent(process.env.BACKEND_URL + "/auth/discord/callback" || 'http://localhost:8080' + "/auth/discord/callback");
+        const redirectUri = encodeURIComponent((process.env.BACKEND_URL|| 'http://localhost:8080')  +"/auth/discord/callback");
         const scope = "identify email";
 
 

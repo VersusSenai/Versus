@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import ProfessionalBracket from '../components/Bracket';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 import {
   Dialog,
@@ -26,6 +27,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 import defaultTournamentImage from '../assets/solo.jpg';
+import { useDeleteEvent } from '@/hooks/useDeleteEvent';
+import CustomDialog from '@/components/CustomDialog';
 
 const formatDate = (iso) => new Date(iso).toLocaleString();
 
@@ -42,11 +45,25 @@ export default function Tournaments() {
   const [eventMatchesMap, setEventMatchesMap] = useState({});
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [filterInscribedOnly, setFilterInscribedOnly] = useState(false);
   const [filterMode, setFilterMode] = useState('all');
 
   const user = useSelector((state) => state.user.user);
+
+  const { deleteEvent, loading: deleting, error: deleteError } = useDeleteEvent();
+
+  const handleDeleteConfirm = async (eventId) => {
+    const success = await deleteEvent(eventId);
+    if (success) {
+      toast.success('Torneio apagado com sucesso!');
+      await fetchEvents();
+      setDeleteDialogOpen(false);
+    } else {
+      toast.error(deleteError);
+    }
+  };
 
   // Função que determina o status do evento
   const getEventStatus = (event, winnerName) => {
@@ -113,7 +130,7 @@ export default function Tournaments() {
       setUserInscriptions(inscriptionsMap);
       setEventMatchesMap(matchesMap);
     } catch {
-      alert('Falha ao buscar torneios ou inscrições');
+      toast.error('Falha ao buscar torneios ou inscrições');
     } finally {
       setLoading(false);
     }
@@ -126,31 +143,31 @@ export default function Tournaments() {
   const handleStartEvent = async (eventId) => {
     try {
       await api.post(`/event/${eventId}/start`);
-      alert('Evento iniciado!');
+      toast.success('Evento iniciado!');
       await fetchEvents();
       setDialogOpen(false);
     } catch (err) {
-      alert(err.response?.data?.message || 'Falha ao iniciar evento');
+      toast.error(err.response?.data?.message || 'Falha ao iniciar evento');
     }
   };
 
   const handleSubscribe = async (eventId) => {
     try {
       await api.post(`/event/${eventId}/inscribe`);
-      alert('Inscrição realizada!');
+      toast.success('Inscrição realizada!');
       await fetchEvents();
     } catch (err) {
-      alert(err.response?.data?.message || 'Falha ao inscrever');
+      toast.error(err.response?.data?.message || 'Falha ao inscrever');
     }
   };
 
   const handleUnsubscribe = async (eventId) => {
     try {
       await api.post(`/event/${eventId}/unsubscribe`);
-      alert('Inscrição cancelada!');
+      toast.success('Inscrição cancelada!');
       await fetchEvents();
     } catch (err) {
-      alert(err.response?.data?.message || 'Falha ao cancelar inscrição');
+      toast.error(err.response?.data?.message || 'Falha ao cancelar inscrição');
     }
   };
 
@@ -294,6 +311,30 @@ export default function Tournaments() {
                       <Button variant="secondary" onClick={() => handleStartEvent(event.id)}>
                         Iniciar Torneio
                       </Button>
+                    )}
+                    {user && (user.role === 'A' || user.role === 'O') && (
+                      <CustomDialog
+                        open={deleteDialogOpen}
+                        setOpen={setDeleteDialogOpen}
+                        title="Atenção!"
+                        description="Você tem certeza que deseja apagar este torneio? Esta ação não pode ser desfeita."
+                        submitText={deleting ? 'Apagando...' : 'Apagar'}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleDeleteConfirm(event.id);
+                        }}
+                        triggerButton={
+                          <Button
+                            className="text-red-200 bg-red-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            Apagar Torneio
+                          </Button>
+                        }
+                      />
                     )}
                   </div>
 

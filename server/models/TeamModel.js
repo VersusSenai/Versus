@@ -7,6 +7,7 @@ import NotAllowedException from "../exceptions/NotAllowedException.js";
 import ConflictException from "../exceptions/ConflictException.js";
 import { pagination } from "prisma-extension-pagination";
 import ImageService from "../services/ImageService.js";
+import InternalServerError from "../exceptions/InternalServerError.js";
 
 class TeamModel {
   constructor() {
@@ -31,7 +32,7 @@ class TeamModel {
 
     return await this.prisma.team
       .paginate({
-        where: { status: { in: status } },
+        where: { status: { in: status }, private: false },
       })
       .withPages({
         page,
@@ -53,6 +54,22 @@ class TeamModel {
       const team = await this.prisma.team.findUnique({
         where: { id: Number(req.params.id) },
       });
+      if(team.private){
+        await this.prisma.teamUsers.findFirst({
+          where:{
+            userId: req.user.id,
+            teamId: team.id
+          }
+        }).then(data=>{
+          if(data){
+            return team
+          }else{
+            throw new NotAllowedException("You are not allowed to get this team")
+          }
+        }).catch(e=>{
+          throw new InternalServerError()
+        })
+      }
       if (!team) {
         throw new NotFoundException("Team not found");
       }
@@ -70,11 +87,9 @@ class TeamModel {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        console.log(error)
         throw new DataBaseException("Intenal Server error"); 
       }
     }
-    console.log(file)
     let isPrivate = req.body.private;
     if (!name || !description) {
       throw new BadRequestException("Missing required fields");

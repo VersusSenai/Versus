@@ -9,6 +9,8 @@ import MailSender from "../services/MailSender.js";
 import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
 import ImageService from "../services/ImageService.js";
+import fs from "fs";
+import path from "path";
 const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
 class UserModel {
@@ -109,7 +111,6 @@ class UserModel {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        console.log(error)
         throw new DataBaseException("Intenal Server error"); 
       }
     }
@@ -255,17 +256,32 @@ class UserModel {
         throw new DataBaseException("Internal Server Error");
       });
 
+    const templatePath = path.join(process.cwd(), 'templates', 'email', 'forgetpassword.html');
+    let htmlTemplate;
+    
+    try {
+      htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Erro ao ler template HTML:', error);
+      htmlTemplate = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2>Recupere sua senha da Versus</h2>
+          <p>Clique no link abaixo para redefinir sua senha:</p>
+          <a href="{{reset_link}}" style="background: #8a2be2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Redefinir Senha</a>
+        </div>
+      `;
+    }
+    
+    const resetLink = `${frontEndUrl}/forgetPassword?token=${userPasswordRecover.token}`;
+    const htmlContent = htmlTemplate.replace('{{reset_link}}', resetLink);
+
     let mailSender = MailSender;
 
     await mailSender.sendMail({
       to: user.email,
-      subject: "Token para recuperação de senha",
-      text:
-        "Aqui está seu token para recuperar sua senha: " +
-        frontEndUrl +
-        "/forgetPassword?token=" +
-        userPasswordRecover.token,
-      html: "",
+      subject: "Recupere sua senha da Versus ⚡",
+      text: `Recupere sua senha da Versus. Acesse: ${resetLink}`,
+      html: htmlContent,
     });
 
     return "";
@@ -278,7 +294,6 @@ class UserModel {
         include: { user: true },
       })
       .catch((e) => {
-        console.log(e);
         throw new DataBaseException("Internal Server Error");
       });
     if (!userPasswordRecover) {

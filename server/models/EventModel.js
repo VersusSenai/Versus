@@ -78,7 +78,6 @@ class EventModel {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        console.log(error)
         throw new DataBaseException("Intenal Server error"); 
       }
     }
@@ -140,7 +139,6 @@ class EventModel {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        console.log(error)
         throw new DataBaseException("Intenal Server error"); 
       }
     }

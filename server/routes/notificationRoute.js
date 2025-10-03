@@ -34,7 +34,6 @@ notificationRoute.get("/",verifyToken ,async (req,res, next)=>{
     return await notificationModel.getAllFromUser(req).then(r=>{
         res.status(200).json(r)
     }).catch(e=>{
-        console.log(e)
         next(e)
     })
 });
@@ -57,7 +56,6 @@ notificationRoute.patch("/read/:id",verifyToken ,async (req,res, next)=>{
     return await notificationModel.markAsRead(req).then(r=>{
         res.status(200).json(r)
     }).catch(e=>{
-        console.log(e)
         next(e)
     })
 });
