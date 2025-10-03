@@ -20,6 +20,7 @@ import { Teams } from './pages/TeamsPage';
 import { DataTableProvider } from './context/DataTableContext';
 import { NavbarProvider } from './context/NavbarContext';
 import { TeamsPageProvider } from './context/TeamsPageContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -137,22 +138,24 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <Provider store={store}>
-      <NavbarProvider>
-        <Router>
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
-          <AnimatedRoutes />
-        </Router>
-      </NavbarProvider>
+      <NotificationProvider>
+        <NavbarProvider>
+          <Router>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
+            <AnimatedRoutes />
+          </Router>
+        </NavbarProvider>
+      </NotificationProvider>
     </Provider>
   );
 }

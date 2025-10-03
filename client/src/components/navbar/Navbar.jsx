@@ -5,8 +5,8 @@ import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox } from 'react
 import { AiOutlineMenu } from 'react-icons/ai';
 import { motion } from 'framer-motion';
 import { logout } from '../../redux/userSlice';
-import { NavbarDesktop } from './NavBarDesktop';
-import { NavbarMobile } from './NavBarMobile';
+import NavbarDesktop from './NavBarDesktop';
+import NavbarMobile from './NavBarMobile';
 import { FaUser } from 'react-icons/fa';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { useNavbar } from '../../context/NavbarContext';
@@ -46,14 +46,6 @@ const Navbar = ({ onWidthChange }) => {
         icon: <MdOutlineAddBox />,
         path: 'createTournaments',
         roles: ['A', 'O'],
-        variant: 'outlined',
-      },
-
-      {
-        label: 'Conta',
-        icon: <FaUser />,
-        path: 'account',
-        roles: ['A', 'P', 'O'],
         variant: 'outlined',
       },
 
