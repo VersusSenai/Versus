@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -5,7 +6,7 @@ import HomePage from './pages/HomePage';
 import Tournaments from './pages/Tournaments';
 import CreateTournaments from './pages/CreateTournaments';
 import Layout from './components/Layout';
-import { Provider, useDispatch } from 'react-redux';
+import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { AnimatePresence } from 'framer-motion';
 import PageWrapper from './components/transition/PageTransition';
@@ -17,9 +18,9 @@ import AccountPage from './pages/AccountPage';
 import AccountEditPage from './pages/AccountEditPage';
 import { Teams } from './pages/TeamsPage';
 import { DataTableProvider } from './context/DataTableContext';
+import { NavbarProvider } from './context/NavbarContext';
 import { TeamsPageProvider } from './context/TeamsPageContext';
-import { login } from './redux/userSlice';
-import { useEffect } from 'react';
+import { NotificationProvider } from './context/NotificationContext';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -134,40 +135,29 @@ const AnimatedRoutes = () => {
   );
 };
 
-function AppContent() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-
-    if (token && userId) {
-      dispatch(login({ id: userId, token }));
-    }
-  }, [dispatch]);
-
-  return (
-    <Router>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      <AnimatedRoutes />
-    </Router>
-  );
-}
 function App() {
   return (
     <Provider store={store}>
-      <AppContent />
+      <NotificationProvider>
+        <NavbarProvider>
+          <Router>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
+            <AnimatedRoutes />
+          </Router>
+        </NavbarProvider>
+      </NotificationProvider>
     </Provider>
   );
 }
+
 export default App;

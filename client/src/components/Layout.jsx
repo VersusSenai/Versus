@@ -3,7 +3,7 @@ import Navbar from './navbar/Navbar';
 import Aurora from '../ui/blocks/Backgrounds/Aurora/Aurora'; // ajuste o caminho conforme necessário
 
 const Layout = ({ children }) => {
-  const [navbarWidth, setNavbarWidth] = useState(256);
+  const [navbarWidth, setNavbarWidth] = useState(320);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   useEffect(() => {
