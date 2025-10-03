@@ -1,75 +1,87 @@
 import { PrismaClient } from '@prisma/client';
-import BadRequestException from "../exceptions/BadRequestException.js";
-import DataBaseException from "../exceptions/DataBaseException.js";
-import { pagination } from "prisma-extension-pagination";
 
-class NotificationModel {
+const prisma = new PrismaClient();
 
-    constructor() {
-        this.prisma = new PrismaClient().$extends(pagination());
-    }
-
-    markAsRead = async (req) => {
+const notificationModel = {
+    
+    markAsRead: async (req) => {
         const { id } = req.params;
         const user = req.user;
 
         if (!id) {
-            throw new BadRequestException("Notification ID is required");
+            throw new Error("ID da notificação é obrigatório");
         }
-        await this.prisma.notification.update({
-            where: {
-                id: parseInt(id),
-                userId: user.id,
-                read: false
-            },
-            data: {
-                read: true
-            }
-        }).catch(err => {
-            if(err.code === 'P2025'){
-                throw new BadRequestException("Notification not found or already read");
-            }
-            throw new DataBaseException("Internal Server Error");
-        })
-        return { msg: "Notification marked as read" };
-    }
 
-    create= async (notification) => {
-        
-        return await this.prisma.notification.create({
-            data: {
-                userId: notification.userId,
-                title: notification.title,
-                message: notification.message,
-                link: notification.link,
-                read: false
-            }
-        })
-    }
-    getAllFromUser = async (req) => {
+        try {
+            await prisma.notification.update({
+                where: {
+                    id: parseInt(id),
+                    userId: user.id,
+                    read: false
+                },
+                data: { read: true }
+            });
+            return { msg: "Notificação marcada como lida" };
+        } catch (error) {
+            throw new Error("Erro ao marcar notificação como lida");
+        }
+    },
+
+    create: async (notification) => {
+        try {
+            return await prisma.notification.create({
+                data: {
+                    userId: notification.userId,
+                    title: notification.title,
+                    message: notification.message,
+                    link: notification.link,
+                    read: false
+                }
+            });
+        } catch (error) {
+            throw new Error("Erro ao criar notificação");
+        }
+    },
+
+    getAllFromUser: async (req) => {
         const userId = req.user.id;
-        let { page, limit, read } = req.query;
-        page = page ? parseInt(page) : 1;
-        limit = limit ? parseInt(limit) : 10;
-        read = read === 'true' ? true : read === 'false' ? false : undefined;
-        if(limit > 50){
-            limit = 50;
+        let { page = 1, limit = 10, read } = req.query;
+        
+        page = parseInt(page);
+        limit = parseInt(limit);
+        
+        if (limit > 50) limit = 50;
+        
+        const where = { userId };
+        if (read === 'true') where.read = true;
+        if (read === 'false') where.read = false;
+
+        try {
+            const notifications = await prisma.notification.findMany({
+                where,
+                orderBy: [
+                    { read: 'asc' },
+                    { createdAt: 'desc' }
+                ],
+                skip: (page - 1) * limit,
+                take: limit
+            });
+
+            const total = await prisma.notification.count({ where });
+
+            return {
+                data: notifications,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            };
+        } catch (error) {
+            throw new Error("Erro ao buscar notificações");
         }
-
-        return await this.prisma.notification.paginate({
-            where: {
-                userId: userId,
-                read
-            },
-            orderBy: {
-                read: 'asc',
-                createdAt: 'desc'
-            }
-        }).withPages({page, limit});
     }
+};
 
-     
-
-}
-
-export default new NotificationModel();
+export default notificationModel;
