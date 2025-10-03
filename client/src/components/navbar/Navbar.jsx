@@ -1,15 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox } from 'react-icons/md';
+import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox, MdOutlineGroups } from 'react-icons/md';
 import { AiOutlineMenu } from 'react-icons/ai';
 import { motion } from 'framer-motion';
 import { logout } from '../../redux/userSlice';
 import NavbarDesktop from './NavBarDesktop';
 import NavbarMobile from './NavBarMobile';
-import { FaUser } from 'react-icons/fa';
-import { FaSignOutAlt } from 'react-icons/fa';
 import { useNavbar } from '../../context/NavbarContext';
+import api from '../../api';
 
 const Navbar = ({ onWidthChange }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -25,10 +24,18 @@ const Navbar = ({ onWidthChange }) => {
     onWidthChange(collapsed ? 96 : 320);
   }, [collapsed, onWidthChange]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-    setShowMobileMenu(false);
+  const handleLogout = async () => {
+    try {
+      // chamar rota de logout do backend
+      await api.post('/auth/logout', {}, { withCredentials: true });
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    } finally {
+      // sempre limpar estado local
+      dispatch(logout());
+      navigate('/login');
+      setShowMobileMenu(false);
+    }
   };
 
   const links = useMemo(
@@ -50,11 +57,11 @@ const Navbar = ({ onWidthChange }) => {
       },
 
       {
-        label: 'Sair',
-        icon: <FaSignOutAlt />,
-        action: handleLogout,
-        roles: ['A', 'P', 'O'],
-        variant: 'text',
+        label: 'Times',
+        icon: <MdOutlineGroups />,
+        path: 'teams',
+        roles: ['A'],
+        variant: 'outlined',
       },
     ],
     [handleLogout]

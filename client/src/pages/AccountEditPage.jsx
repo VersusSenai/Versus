@@ -2,13 +2,13 @@ import { FaUserCircle, FaTimes } from 'react-icons/fa';
 import { VersusIconButton } from '../ui/versus/versusIconButton';
 import { VersusInput } from '../ui/versus/versusInput';
 import { VersusButton } from '../ui/versus/versusButton';
-import { useUser } from '../hooks/useUser';
 import { useUpdateUser } from '../hooks/useUpdateUser';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 export default function AccountEditPage() {
-  const { user, loading } = useUser();
+  const user = useSelector((state) => state.user.user);
   const { handleUpdate, loading: updating } = useUpdateUser();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -39,14 +39,14 @@ export default function AccountEditPage() {
 
           <VersusInput
             placeholder="Nome de usuário"
-            value={loading ? 'Carregando...' : username}
+            value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <div className="mt-4 w-full">
             <VersusInput
               type="email"
               placeholder="Email"
-              value={loading ? 'Carregando...' : email}
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
