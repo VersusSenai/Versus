@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
-import Tournaments from './pages/Tournaments';
+import Tournaments from './pages/Tournaments/Tournament';
 import CreateTournaments from './pages/CreateTournaments';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
@@ -138,20 +138,20 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <Provider store={store}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <NotificationProvider>
         <NavbarProvider>
           <Router>
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-            />
             <AnimatedRoutes />
           </Router>
         </NavbarProvider>

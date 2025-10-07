@@ -52,6 +52,7 @@ const CreateTournaments = ({ fetchTorneios }) => {
     const now = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
+    console.log(start, end, now);
 
     if (start < now) {
       toast.error('A data de início deve ser no futuro.');
