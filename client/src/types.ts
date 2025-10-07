@@ -32,4 +32,6 @@ export type TeamsPageProviderProps = {
   setSearchTerm: (term: string) => void;
   fetchTeams: () => Promise<void>;
   refreshTeams: () => Promise<void>;
+  selectedTeam: TeamProps | null;
+  setSelectedTeam: (team: TeamProps | null) => void;
 };

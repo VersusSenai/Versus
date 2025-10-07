@@ -33,8 +33,11 @@ export const Teams = () => {
     setTeams,
     loading,
     responseData,
+    selectedTeam,
+    setSelectedTeam,
   } = useTeamsPageContext();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogCreateOpen, setIsDialogCreateOpen] = useState(false);
+  const [isDialogEditOpen, setIsDialogEditOpen] = useState(false);
   const { width } = useWindowSize();
 
   const handleFetchTeams = () => {
@@ -43,7 +46,7 @@ export const Teams = () => {
 
   useEffect(() => {
     if (searchTerm.length > 0) {
-      const filteredTeams = teams.filter((team) => 
+      const filteredTeams = teams.filter((team) =>
         team.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setTeams(filteredTeams);
@@ -67,11 +70,53 @@ export const Teams = () => {
     resolver: zodResolver(createTeamSchema),
   });
 
-  async function onSubmit(data: z.infer<typeof createTeamSchema>) {
+  async function onCreateSubmit(data: z.infer<typeof createTeamSchema>) {
     const response = await api.post('/team', data);
     console.log(response.data);
   }
 
+  const editTeamSchema = z.object({
+    name: z
+      .string('O nome do time deve ter pelo menos 3 caracteres')
+      .min(3, 'O nome do time deve ter pelo menos 3 caracteres'),
+    description: z
+      .string('A descrição deve ter pelo menos 10 caracteres')
+      .min(10, 'A descrição deve ter pelo menos 10 caracteres'),
+    private: z.boolean().optional().default(false),
+    // photo: z.url('A foto deve ser uma URL válida').optional(), // A ser implementado no futuro
+  });
+
+  const editTeamForm = useForm({
+    resolver: zodResolver(editTeamSchema),
+  });
+
+  async function onEditSubmit(data: z.infer<typeof editTeamSchema>) {
+    if (!selectedTeam) return;
+    console.log('Edit data submitted:', data);
+    try {
+      const response = await api.put(`/team/${selectedTeam.id}`, data);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error updating team:', error);
+    } finally {
+      setSelectedTeam(null);
+      setIsDialogEditOpen(false);
+      refreshTeams();
+    }
+  }
+
+  useEffect(() => {
+    if (selectedTeam) {
+      editTeamForm.setValue('name', selectedTeam.name);
+      editTeamForm.setValue('description', selectedTeam.description);
+      editTeamForm.setValue('private', selectedTeam.private);
+      // editTeamForm.setValue('photo', selectedTeam.photo); // A ser implementado no futuro
+      setIsDialogEditOpen(true);
+    } else {
+      editTeamForm.reset();
+    }
+  }, [selectedTeam]);
+  
   return (
     <>
       <div className="flex flex-col max-h-screen h-screen p-4 gap-2">
@@ -87,7 +132,7 @@ export const Teams = () => {
             }}
             className="w-1/3 text-background placeholder:text-background/60"
           />
-          <Button variant="default" size="sm" onClick={() => setIsDialogOpen(true)}>
+          <Button variant="default" size="sm" onClick={() => setIsDialogCreateOpen(true)}>
             Criar novo time
           </Button>
         </div>
@@ -126,14 +171,15 @@ export const Teams = () => {
         </div>
       </div>
 
+      {/* Dialog para criar novo time */}
       {width >= 768 ? (
-        <Dialog open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
+        <Dialog open={isDialogCreateOpen} onOpenChange={() => setIsDialogCreateOpen(false)}>
           <DialogContent>
             <DialogTitle>Criar novo time</DialogTitle>
             <DialogDescription>Crie seu time para começar a competir!</DialogDescription>
             <Form {...createTeamForm}>
               <form
-                onSubmit={createTeamForm.handleSubmit((data) => onSubmit(data))}
+                onSubmit={createTeamForm.handleSubmit((data) => onCreateSubmit(data))}
                 className="grid gap-2"
               >
                 <FormField
@@ -187,13 +233,13 @@ export const Teams = () => {
           </DialogContent>
         </Dialog>
       ) : (
-        <Drawer open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
+        <Drawer open={isDialogCreateOpen} onOpenChange={() => setIsDialogCreateOpen(false)}>
           <DrawerContent className="p-4">
             <DrawerTitle>Criar novo time</DrawerTitle>
             <DrawerDescription>Crie seu time para começar a competir!</DrawerDescription>
             <Form {...createTeamForm}>
               <form
-                onSubmit={createTeamForm.handleSubmit((data) => onSubmit(data))}
+                onSubmit={createTeamForm.handleSubmit((data) => onCreateSubmit(data))}
                 className="grid gap-2"
               >
                 <FormField
@@ -224,6 +270,158 @@ export const Teams = () => {
                 />
                 <FormField
                   control={createTeamForm.control}
+                  name="private"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="private">Privado</FormLabel>
+                      <FormDescription>Marque aqui para que o time seja privado</FormDescription>
+                      <FormControl>
+                        <Switch
+                          className="m-0"
+                          id="private"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit">Criar time</Button>
+              </form>
+            </Form>
+          </DrawerContent>
+        </Drawer>
+      )}
+
+      {/* Dialog para editar time */}
+      {width >= 768 ? (
+        <Dialog
+          open={isDialogEditOpen}
+          onOpenChange={() => {
+            setSelectedTeam(null);
+            setIsDialogEditOpen(false);
+          }}
+        >
+          <DialogContent>
+            <DialogTitle>Atualizar</DialogTitle>
+            <DialogDescription>Atualize os dados do time</DialogDescription>
+            <Form {...editTeamForm}>
+              <form
+                onSubmit={editTeamForm.handleSubmit((data) => onEditSubmit(data))}
+                className="grid gap-2"
+              >
+                <FormField
+                  control={editTeamForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="name">Nome do time</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="name"
+                          type='text'
+                          placeholder="Nome do time"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editTeamForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="description">Descrição</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="description"
+                          type='text'
+                          placeholder="Descrição"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editTeamForm.control}
+                  name="private"
+                  render={({ field }) => (
+                    <FormItem className="grid">
+                      <FormLabel htmlFor="private">Privado</FormLabel>
+                      <FormControl>
+                        <Switch
+                          className="m-0"
+                          id="private"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit">Atualizar</Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer
+          open={isDialogEditOpen}
+          onOpenChange={() => {
+            setSelectedTeam(null);
+            setIsDialogEditOpen(false);
+          }}
+        >
+          <DrawerContent className="p-4">
+            <DrawerTitle>Atualizar</DrawerTitle>
+            <DrawerDescription>Atualize os dados do time</DrawerDescription>
+            <Form {...editTeamForm}>
+              <form
+                onSubmit={editTeamForm.handleSubmit((data) => onEditSubmit(data))}
+                className="grid gap-2"
+              >
+                <FormField
+                  control={editTeamForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="name">Nome do time</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="name"
+                          placeholder="Nome do time"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editTeamForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="description">Descrição</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="description"
+                          placeholder="Descrição"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editTeamForm.control}
                   name="private"
                   render={({ field }) => (
                     <FormItem>

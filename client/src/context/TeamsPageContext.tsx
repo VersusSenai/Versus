@@ -10,6 +10,7 @@ export const TeamsPageProvider = ({ children }: { children: React.ReactNode }) =
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState<TeamProps | null>(null);
 
   const fetchTeams = async ({ page = 1, search = '' }) => {
     try {
@@ -57,6 +58,8 @@ export const TeamsPageProvider = ({ children }: { children: React.ReactNode }) =
         setSearchTerm,
         refreshTeams: () => fetchTeams({ page: 1, search: '' }),
         fetchTeams: () => fetchTeams({ page: currentPage, search: searchTerm }),
+        selectedTeam,
+        setSelectedTeam,
       }}
     >
       {children}
