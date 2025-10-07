@@ -4,7 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
 import Tournaments from './pages/Tournaments/Tournament';
-import CreateTournaments from './pages/CreateTournaments';
+import CreateTournaments from './pages/Tournaments/CreateTournaments/CreateTournaments';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';

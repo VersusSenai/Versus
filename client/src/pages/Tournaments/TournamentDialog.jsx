@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTrigger,
@@ -9,13 +9,14 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import Tag from './Tag';
-
 import { formatDate } from '../../utils/formatDate';
-import CustomDialog from '../CustomDialog';
+import CustomDialog from '@/components/CustomDialog';
 import ProfessionalBracket from '@/components/Bracket';
+import EditTournamentDialog from './EditTournamentDialog';
 
 export default function TournamentDialog({
   event,
+  children, // <- o card vem como children
   dialogOpen,
   setDialogOpen,
   user,
@@ -30,18 +31,21 @@ export default function TournamentDialog({
   setDeleteDialogOpen,
   eventStatus,
   winnerName,
+  fetchEvents,
 }) {
   const isInscribed = userInscriptions[event.id];
   const hasMatches = eventMatches.length > 0;
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const handleUpdateTournament = async () => {
+    await fetchEvents();
+    setDialogOpen(false);
+  };
 
   return (
-    <Dialog
-      open={dialogOpen}
-      onOpenChange={(open) => {
-        setDialogOpen(open);
-      }}
-    >
-      <DialogTrigger asChild>{/* Aqui poderia colocar o Card ou outro trigger */}</DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
+      {/* Aqui o card aparece e funciona como trigger */}
+      <div onClick={() => setDialogOpen(true)}>{children}</div>
 
       <DialogContent
         className="p-6 bg-[var(--color-dark)] text-white rounded-2xl border border-white/20"
@@ -109,6 +113,27 @@ export default function TournamentDialog({
                 </Button>
               }
             />
+          )}
+
+          {user && (user.role === 'A' || user.role === 'O') && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditDialogOpen(true);
+                }}
+              >
+                Editar Torneio
+              </Button>
+
+              <EditTournamentDialog
+                event={event}
+                open={editDialogOpen}
+                setOpen={setEditDialogOpen}
+                onUpdated={handleUpdateTournament}
+              />
+            </>
           )}
         </div>
 

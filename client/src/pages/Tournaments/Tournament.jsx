@@ -188,11 +188,8 @@ export default function Tournaments() {
             <TournamentDialog
               key={event.id}
               event={event}
-              dialogOpen={selectedEvent?.id === event.id && dialogOpen}
-              setDialogOpen={(open) => {
-                setDialogOpen(open);
-                setSelectedEvent(open ? event : null);
-              }}
+              dialogOpen={selectedEvent?.id === event.id}
+              setDialogOpen={(open) => setSelectedEvent(open ? event : null)}
               user={user}
               userInscriptions={userInscriptions}
               eventMatches={eventMatchesMap[event.id] || []}
@@ -205,6 +202,7 @@ export default function Tournaments() {
               setDeleteDialogOpen={setDeleteDialogOpen}
               eventStatus={getEventStatus(event, event.winnerName)}
               winnerName={event.winnerName}
+              fetchEvents={fetchEvents}
             >
               <TournamentCard
                 event={event}

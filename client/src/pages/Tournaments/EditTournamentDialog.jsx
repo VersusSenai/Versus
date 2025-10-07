@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,15 +15,9 @@ import {
 } from '@/components/ui/select';
 import { CalendarHeart, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
-import api from '@/api';
+import api from '../../api';
 
-const variants = {
-  hidden: { opacity: 0, x: 50 },
-  visible: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -50 },
-};
-
-export default function StepSolo({ setStep, fetchTorneios }) {
+export default function EditTournamentDialog({ event, open, setOpen, onUpdated }) {
   const [nome, setNome] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -33,13 +27,21 @@ export default function StepSolo({ setStep, fetchTorneios }) {
   const [model, setModel] = useState('P');
   const [loading, setLoading] = useState(false);
 
-  const criarTorneio = async () => {
+  useEffect(() => {
+    if (event) {
+      setNome(event.name);
+      setDescription(event.description);
+      setStartDate(new Date(event.startDate).toISOString().slice(0, 16));
+      setEndDate(new Date(event.endDate).toISOString().slice(0, 16));
+      setMaxPlayers(event.maxPlayers.toString());
+      setMultiplayer(event.multiplayer);
+      setModel(event.model);
+    }
+  }, [event]);
+
+  const handleUpdate = async () => {
     if (!nome || !description || !startDate || !endDate || !maxPlayers || !model) {
       toast.error('Preencha todos os campos corretamente.');
-      return;
-    }
-    if (description.length > 250) {
-      toast.error('A descrição deve ter no máximo 250 caracteres.');
       return;
     }
 
@@ -58,7 +60,8 @@ export default function StepSolo({ setStep, fetchTorneios }) {
 
     try {
       setLoading(true);
-      await api.post('/event', {
+      await api.put(`/event/${event.id}`, {
+        id: event.id,
         name: nome,
         description,
         startDate: start.toISOString(),
@@ -67,49 +70,31 @@ export default function StepSolo({ setStep, fetchTorneios }) {
         multiplayer,
         model,
       });
-
-      toast.success('Evento criado com sucesso!');
-      setNome('');
-      setDescription('');
-      setStartDate('');
-      setEndDate('');
-      setMaxPlayers('8');
-      setMultiplayer(false);
-      setModel('P');
-      if (fetchTorneios) fetchTorneios();
+      toast.success('Evento atualizado com sucesso!');
+      setOpen(false);
+      if (onUpdated) onUpdated();
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Erro ao criar torneio');
+      toast.error(e.response?.data?.message || 'Erro ao atualizar torneio');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <motion.div
-      key="solo"
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={variants}
-      transition={{ duration: 0.4, ease: 'easeInOut' }}
-      className="relative"
-    >
-      <Button
-        variant="ghost"
-        className="absolute top-4 left-4 flex items-center gap-1 text-white hover:bg-white/10"
-        onClick={() => setStep('choose')}
-      >
-        <ArrowLeft size={18} /> Voltar
-      </Button>
+  if (!event) return null;
 
-      <Card className="bg-[var(--color-dark)] text-white border border-white/10 rounded-3xl shadow-md pt-8">
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent
+        className="p-6 bg-[var(--color-dark)] text-white rounded-2xl border border-white/20"
+        style={{ maxHeight: '90vh', overflow: 'auto' }}
+      >
         <CardHeader className="flex items-center gap-3 pb-4 pt-6 px-6">
           <CalendarHeart className="text-pink-500" size={28} />
-          <CardTitle className="text-2xl font-bold">Criar Novo Torneio</CardTitle>
+          <CardTitle className="text-2xl font-bold">Editar Torneio</CardTitle>
         </CardHeader>
 
         <CardContent className="grid md:grid-cols-2 gap-6 px-6 pb-8 pt-2">
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="nome">Nome do Torneio</Label>
             <Input
               id="nome"
@@ -119,20 +104,7 @@ export default function StepSolo({ setStep, fetchTorneios }) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="modelo">Modelo do Evento</Label>
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger className="bg-white text-black">
-                <SelectValue placeholder="Selecione o modelo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="P">Presencial</SelectItem>
-                <SelectItem value="O">Online</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="descricao">Descrição</Label>
             <Textarea
               id="descricao"
@@ -181,6 +153,19 @@ export default function StepSolo({ setStep, fetchTorneios }) {
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="modelo">Modelo do Evento</Label>
+            <Select value={model} onValueChange={setModel}>
+              <SelectTrigger className="bg-white text-black">
+                <SelectValue placeholder="Selecione o modelo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="P">Presencial</SelectItem>
+                <SelectItem value="O">Online</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="md:col-span-2 flex items-center gap-2 mt-4">
             <Label htmlFor="multiplayer" className="cursor-pointer">
               Evento Multiplayer
@@ -188,22 +173,25 @@ export default function StepSolo({ setStep, fetchTorneios }) {
             <Switch
               id="multiplayer"
               checked={multiplayer}
-              onCheckedChange={(value) => setMultiplayer(!!value)}
+              onCheckedChange={(val) => setMultiplayer(!!val)}
               className="data-[state=checked]:bg-green-500"
             />
           </div>
 
           <div className="md:col-span-2 flex gap-2 mt-6">
             <Button
-              onClick={criarTorneio}
+              onClick={handleUpdate}
               disabled={loading}
               className="bg-pink-600 hover:bg-pink-700 flex-1"
             >
-              {loading ? 'Criando...' : 'Criar Evento'}
+              {loading ? 'Atualizando...' : 'Salvar Alterações'}
+            </Button>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Cancelar
             </Button>
           </div>
         </CardContent>
-      </Card>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 }
