@@ -34,23 +34,76 @@ class EventModel {
     if(limit > 30){
       limit = 30;
     }
-    
+    if(req.user.role == "A"){
+
+      return await this.prisma.event.paginate({where: {
+        status: {
+          in: status,
+        },
+        }, include: {eventInscriptions: true}
+      }).withPages({
+          page, limit
+        }
+      )  
+    }
     return await this.prisma.event.paginate({where: {
       status: {
         in: status,
       },
-      private: false
-    }}).withPages({
-      page, limit
-    })
+        OR: [{
+          private: true,
+          eventInscriptions: {
+          some: {
+              userId: req.user.id
+            }        
+          }
 
+        }, 
+        {private: false}
+      ],
+      }, include: {eventInscriptions: true}
     
+    }).withPages({
+        page, limit
+      }
+    
+    )  
+    
+
   };
   
 
   getById = async (req) => {
+
+    if(req.user.role == "A"){
+          return await this.prisma.event.findUnique({
+      where: { id: parseInt(req.params.id),},
+    }).then(r=>{
+      if(r == null){
+        throw new NotFoundException("Event not found");
+
+      }else{
+        return r
+      }
+    });
+    }
+
     return await this.prisma.event.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(req.params.id), 
+        OR: [{
+          private: true,
+          eventInscriptions: {
+          some: {
+              userId: req.user.id
+            }        
+          }
+
+        }, 
+        {private: false}
+      ],
+
+
+      },
     }).then(r=>{
       if(r == null){
         throw new NotFoundException("Event not found");

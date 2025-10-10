@@ -42,13 +42,14 @@ const teamRoute = express.Router();
  *         description: Lista de times
  */
 teamRoute.get("/",verifyToken ,async (req, res, next) => {
-  const teams = await teamModel.getAll(req).catch(e=>{
-        next(e)
-  });
-  if(teams){
-    res.json(teams);
+  const teams = await teamModel.getAll(req).then(r=>{
+      if(r){
+        res.json(r);
+      }
 
-  }
+    }).catch(e=>{
+          next(e)
+    });
 });
 
 /**

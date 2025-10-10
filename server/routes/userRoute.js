@@ -5,6 +5,7 @@ import isAdmin from "../middlewares/adminMiddleware.js";
 import ImageService from "../services/ImageService.js";
 import multer from 'multer';
 import upload from "../middlewares/uploadMiddleware.js";
+import NotAllowedException from "../exceptions/NotAllowedException.js";
 const userRoute = express.Router();
 
 
@@ -64,9 +65,13 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
  *         description: Acesso não autorizado
  */
 userRoute.get("/me", verifyToken ,async (req, res,next) => {
-
-  const {id, role, email, username, icon} = req.user;
-  res.status(200).json({id, role, email, username, icon})
+  if(req.user){
+    const {id, role, email, username, icon} = req.user;
+    res.status(200).json({id, role, email, username, icon})
+  }else{
+    
+    next(new NotAllowedException("User is not logged"))
+  }
 
 });
 

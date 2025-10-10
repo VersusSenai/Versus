@@ -51,7 +51,9 @@ const eventRoute = express.Router();
  */
 eventRoute.get("/", verifyToken, async (req, res, next) => {
   await eventModel.getAll(req).catch(e=>{
+    console.log(e)
     next(e)
+
   }).then(data=>{
     if(data)
       res.json(data);
@@ -272,7 +274,6 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
-    console.log(err)
     next(err)
   }
 });
