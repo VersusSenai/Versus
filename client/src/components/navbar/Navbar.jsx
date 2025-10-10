@@ -31,9 +31,8 @@ const Navbar = ({ onWidthChange }) => {
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     } finally {
-      // sempre limpar estado local
       dispatch(logout());
-      navigate('/login');
+              window.location.href = "/login";
       setShowMobileMenu(false);
     }
   };
