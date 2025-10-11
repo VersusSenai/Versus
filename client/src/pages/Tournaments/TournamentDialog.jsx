@@ -68,6 +68,7 @@ export default function TournamentDialog({
           <Tag>Fim: {formatDate(event.endDate)}</Tag>
           <Tag>Máximo Jogadores: {event.maxPlayers}</Tag>
           <Tag>Status Evento: {eventStatus}</Tag>
+          <Tag>Privado: {event.private === true ? 'Sim' : 'Não'}</Tag>
         </div>
 
         <div className="flex gap-2 flex-wrap mb-4">

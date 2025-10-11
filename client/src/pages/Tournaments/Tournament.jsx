@@ -58,14 +58,20 @@ export default function Tournaments() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
+
       const eventsResponse = await api.get('/event');
+      const allEvents = eventsResponse.data[0];
+
+      const inscriptionsResponse = await api.get('/event/inscriptions/me');
+      const userEventIds = new Set(inscriptionsResponse.data.map((i) => i.event.id));
 
       const eventsWithDetails = await Promise.all(
-        eventsResponse.data[0].map(async (ev) => {
+        allEvents.map(async (ev) => {
           try {
             const detailRes = await api.get(`/event/${ev.id}`);
             const eventDetail = detailRes.data;
             let winnerName = null;
+
             if (eventDetail.winnerUserId) {
               try {
                 const userRes = await api.get(`/user/${eventDetail.winnerUserId}`);
@@ -74,6 +80,7 @@ export default function Tournaments() {
                 winnerName = null;
               }
             }
+
             return { ...eventDetail, winnerName };
           } catch {
             return ev;
@@ -81,15 +88,18 @@ export default function Tournaments() {
         })
       );
 
-      setEvents(eventsWithDetails);
+      const visibleEvents = eventsWithDetails.filter((event) => {
+        if (user.role === 'A' || user.role === 'O') return true;
+        if (event.private !== true) return true;
+        return userEventIds.has(event.id);
+      });
 
-      const inscriptionsResponse = await api.get('/event/inscriptions/me');
-      const userEventIds = new Set(inscriptionsResponse.data.map((i) => i.event.id));
       const inscriptionsMap = {};
       const matchesMap = {};
 
-      for (const event of eventsWithDetails) {
+      for (const event of visibleEvents) {
         inscriptionsMap[event.id] = userEventIds.has(event.id);
+
         try {
           const matchResponse = await api.get(`/event/${event.id}/match`);
           matchesMap[event.id] = matchResponse.data || [];
@@ -98,9 +108,11 @@ export default function Tournaments() {
         }
       }
 
+      setEvents(visibleEvents);
       setUserInscriptions(inscriptionsMap);
       setEventMatchesMap(matchesMap);
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error('Falha ao buscar torneios ou inscrições');
     } finally {
       setLoading(false);

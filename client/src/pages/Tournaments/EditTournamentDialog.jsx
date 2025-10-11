@@ -25,6 +25,7 @@ export default function EditTournamentDialog({ event, open, setOpen, onUpdated }
   const [maxPlayers, setMaxPlayers] = useState('8');
   const [multiplayer, setMultiplayer] = useState(false);
   const [model, setModel] = useState('P');
+  const [privado, setPrivado] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function EditTournamentDialog({ event, open, setOpen, onUpdated }
       setEndDate(new Date(event.endDate).toISOString().slice(0, 16));
       setMaxPlayers(event.maxPlayers.toString());
       setMultiplayer(event.multiplayer);
+      setPrivado(event.private);
       setModel(event.model);
     }
   }, [event]);
@@ -69,6 +71,7 @@ export default function EditTournamentDialog({ event, open, setOpen, onUpdated }
         maxPlayers: parseInt(maxPlayers),
         multiplayer,
         model,
+        private: privado,
       });
       toast.success('Evento atualizado com sucesso!');
       setOpen(false);
@@ -166,16 +169,29 @@ export default function EditTournamentDialog({ event, open, setOpen, onUpdated }
             </Select>
           </div>
 
-          <div className="md:col-span-2 flex items-center gap-2 mt-4">
-            <Label htmlFor="multiplayer" className="cursor-pointer">
-              Evento Multiplayer
-            </Label>
-            <Switch
-              id="multiplayer"
-              checked={multiplayer}
-              onCheckedChange={(val) => setMultiplayer(!!val)}
-              className="data-[state=checked]:bg-green-500"
-            />
+          <div className="md:col-span-2 flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="multiplayer" className="cursor-pointer">
+                Evento Multiplayer
+              </Label>
+              <Switch
+                id="multiplayer"
+                checked={multiplayer}
+                onCheckedChange={(val) => setMultiplayer(!!val)}
+                className="data-[state=checked]:bg-green-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="privado" className="cursor-pointer">
+                Torneio Privado
+              </Label>
+              <Switch
+                id="privado"
+                checked={privado}
+                onCheckedChange={(val) => setPrivado(!!val)}
+                className="data-[state=checked]:bg-pink-600"
+              />
+            </div>
           </div>
 
           <div className="md:col-span-2 flex gap-2 mt-6">
