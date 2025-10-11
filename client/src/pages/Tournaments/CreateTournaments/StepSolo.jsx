@@ -31,6 +31,7 @@ export default function StepSolo({ setStep, fetchTorneios }) {
   const [maxPlayers, setMaxPlayers] = useState('8');
   const [multiplayer, setMultiplayer] = useState(false);
   const [model, setModel] = useState('P');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const criarTorneio = async () => {
@@ -66,6 +67,7 @@ export default function StepSolo({ setStep, fetchTorneios }) {
         maxPlayers: parseInt(maxPlayers),
         multiplayer,
         model,
+        private: isPrivate,
       });
 
       toast.success('Evento criado com sucesso!');
@@ -76,6 +78,7 @@ export default function StepSolo({ setStep, fetchTorneios }) {
       setMaxPlayers('8');
       setMultiplayer(false);
       setModel('P');
+      setIsPrivate(false);
       if (fetchTorneios) fetchTorneios();
     } catch (e) {
       toast.error(e.response?.data?.message || 'Erro ao criar torneio');
@@ -181,18 +184,30 @@ export default function StepSolo({ setStep, fetchTorneios }) {
             </Select>
           </div>
 
-          <div className="md:col-span-2 flex items-center gap-2 mt-4">
-            <Label htmlFor="multiplayer" className="cursor-pointer">
-              Evento Multiplayer
-            </Label>
-            <Switch
-              id="multiplayer"
-              checked={multiplayer}
-              onCheckedChange={(value) => setMultiplayer(!!value)}
-              className="data-[state=checked]:bg-green-500"
-            />
+          <div className="md:col-span-2 flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="multiplayer" className="cursor-pointer">
+                Evento Multiplayer
+              </Label>
+              <Switch
+                id="multiplayer"
+                checked={multiplayer}
+                onCheckedChange={(value) => setMultiplayer(!!value)}
+                className="data-[state=checked]:bg-green-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="private" className="cursor-pointer">
+                Torneio Privado
+              </Label>
+              <Switch
+                id="private"
+                checked={isPrivate}
+                onCheckedChange={(value) => setIsPrivate(!!value)}
+                className="data-[state=checked]:bg-pink-600"
+              />
+            </div>
           </div>
-
           <div className="md:col-span-2 flex gap-2 mt-6">
             <Button
               onClick={criarTorneio}

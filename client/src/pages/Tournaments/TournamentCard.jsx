@@ -36,6 +36,7 @@ export default function TournamentCard({ event, isInscribed, eventStatus, winner
           <Tag>Fim: {formatDate(event.endDate)}</Tag>
           <Tag>Máx. Jogadores: {event.maxPlayers}</Tag>
           <Tag>Status Evento: {eventStatus}</Tag>
+          <Tag>Privado: {event.private === true ? 'Sim' : 'Não'}</Tag>
           {winnerName && <Tag>🏆 Vencedor: {winnerName}</Tag>}
         </div>
       </CardContent>
