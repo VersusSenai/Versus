@@ -378,32 +378,48 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
  * @swagger
  * /team/updateInvite:
  *   patch:
- *     summary: Responde convite
+ *     summary: Responde convite de time (aceitar/recusar)
  *     tags: [Times]
  *     security:
  *       - cookieAuth: []
-  *     requestBody:
+ *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
+ *               inviteId:
+ *                 type: integer
+ *                 description: ID do convite
+ *                 example: 123
  *               accept:
  *                 type: boolean
- *                 description: resposta do jogador
+ *                 description: Resposta do usuário (true = aceitar, false = recusar)
  *                 example: true
  *     responses:
  *       200:
- *         description: Convite aceito com sucesso
+ *         description: Convite atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
  *       400:
- *         description: Erro com o convite
+ *         description: Requisição inválida
+ *       401:
+ *         description: Não autorizado
  */
 teamRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await teamModel.updateInvite(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
+    next(err);
   }
 });
 

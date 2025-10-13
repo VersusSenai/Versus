@@ -95,6 +95,7 @@ const options = {
           properties: {
             id: { type: 'integer', example: 1 },
             name: { type: 'string', example: "Torneio de Verão" },
+            thumbnail: { type: 'string', nullable: true, example: "https://i.imgur.com/xyz.png" },
             description: { type: 'string', example: "Torneio anual de verão" },
             maxPlayers: { 
               type: 'integer', 
@@ -127,6 +128,36 @@ const options = {
               type: 'boolean',
               description: "Se o evento é para times (true) ou individuais (false)" 
             }
+            ,
+            private: {
+              type: 'boolean',
+              description: 'Se o evento é privado (true) ou público (false)',
+              example: false
+            }
+          }
+        },
+        Team: {
+          type: 'object',
+          required: ['name', 'status'],
+          properties: {
+            id: { type: 'integer', example: 1 },
+            icon: { type: 'string', nullable: true, example: "https://i.imgur.com/team.png" },
+            name: { type: 'string', example: "Equipe Alpha" },
+            description: { type: 'string', nullable: true, example: "Time focado em FPS" },
+            registeredDate: { type: 'string', format: 'date-time' },
+            private: { type: 'boolean', example: false },
+            status: { type: 'string', example: 'O' }
+          }
+        },
+        Application: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            fromUserId: { type: 'integer' },
+            applicationType: { type: 'string', example: 'O' },
+            Description: { type: 'string', example: 'Quero ser organizador' },
+            status: { type: 'string', example: 'P' },
+            applicationDate: { type: 'string', format: 'date-time' }
           }
         },
         EventInscription: {

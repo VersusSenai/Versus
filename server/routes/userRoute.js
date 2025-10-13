@@ -46,7 +46,7 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
 
 /**
  * @swagger
- * /user:
+ * /user/me:
  *   get:
  *     summary: Lista os dados do próprio usuário
  *     tags: [Usuários]
@@ -54,13 +54,11 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
  *       - cookieAuth: []
  *     responses:
  *       200:
- *         description:  Lista os dados do próprio usuário
+ *         description: Lista os dados do próprio usuário
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/UserPublic'
  *       403:
  *         description: Acesso não autorizado
  */
@@ -342,7 +340,7 @@ userRoute.delete("/:id", isAdmin, async (req, res,next) => {
 userRoute.post("/forgetPassword", async (req, res,next) => {
   await userModel.passwordRecoverByEmail(req)
     .then(data => res.status(200).json({msg: "Email enviado com sucesso"}))
-    .catch(e => nexteita (e));
+    .catch(e => next(e));
 });
 
 /**
