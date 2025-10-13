@@ -466,6 +466,25 @@ class TeamModel {
       });
   };
 
+  getByUserId = async (req)=>{
+    let userId = parseInt(req.params.id); 
+    return await this.prisma.team.findFirst({where:{
+      teamUsers: {
+        some: {
+          userId
+        }
+      }
+    }}).catch(e=>{
+      if (e.code === "P2025") {
+        throw new NotFoundException("Team not found");
+      } else {
+        throw new DataBaseException("Internal server error");
+      }
+    }) 
+
+
+  }
+
   isTeamOwner = async (user, teamId) => {
     const isTeamOwner = await this.prisma.teamUsers.findFirst({
       where: { userId: user.id, teamId, role: "O" },

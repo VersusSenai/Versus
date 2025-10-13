@@ -466,4 +466,34 @@ teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
     next(err)
   }
 });
+/**
+ * @swagger
+ * /team/getByUserId/{id}:
+ *   post:
+ *     summary: Busca o time por id de usuário
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do usuário
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 
+ *       400:
+ *         description: Erro ao Buscar
+ */
+teamRoute.get("/getByUserId/:id", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.getByUserId(req);
+    res.status(200).json(resp);
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
+});
 export default teamRoute;
