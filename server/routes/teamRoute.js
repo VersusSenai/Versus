@@ -504,12 +504,11 @@ teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
  *         description: Erro ao Buscar
  */
 teamRoute.get("/getByUserId/:id", verifyToken, async (req, res, next) => {
-  try {
-    const resp = await teamModel.getByUserId(req);
-    res.status(200).json(resp);
-  } catch (err) {
-    console.log(err)
+  await teamModel.getByUserId(req).then(data=>{
+
+    res.status(200).json(data);
+  }).catch (err=>{
     next(err)
-  }
+  })
 });
 export default teamRoute;

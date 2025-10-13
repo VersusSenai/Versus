@@ -468,7 +468,7 @@ class TeamModel {
 
   getByUserId = async (req)=>{
     let userId = parseInt(req.params.id); 
-    return await this.prisma.team.findFirst({where:{
+    let res = await this.prisma.team.findFirst({where:{
       teamUsers: {
         some: {
           userId
@@ -481,6 +481,12 @@ class TeamModel {
         throw new DataBaseException("Internal server error");
       }
     }) 
+
+    if(res){
+      return res
+    }else{
+        throw new NotFoundException("Team not found");
+    }
 
 
   }
