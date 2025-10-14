@@ -478,7 +478,7 @@ eventRoute.get("/inscriptions/me", verifyToken, async (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               targetId:
+ *               id:
  *                 type: integer
  *                 description: ID do time ou jogador convidado
  *                 example: 3

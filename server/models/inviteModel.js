@@ -53,7 +53,7 @@ class InviteModel{
                 userId: to.id,
                 title: "Convite para o Torneio: " + event.name,
                 message: from.username + " convidou você para o torneio: " + event.name,
-                link: {uri: `/team/updateInvite?token=${token}`, method: "PATCH"}
+                link: `/event/updateInvite?token=${token}`
             })
 
             return {msg:"Invite Sent"}
@@ -99,7 +99,7 @@ class InviteModel{
                 userId: to.id,
                 title: "Convite para o Time: " + team.name,
                 message: from.username + " convidou você para o time: " + team.name,
-                link: {uri: `/team/updateInvite?token=${token}`, method: "PATCH"}
+                link: `/team/updateInvite?token=${token}`
             })
 
             return {msg:"Invite Sent"}
