@@ -17,16 +17,24 @@ const matchRoute = express.Router();
  *   get:
  *     summary: Retorna todas as partidas de um evento
  *     tags: [Partidas]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - name: id
  *         in: path
  *         required: true
  *         schema:
- *           type: string
+ *           type: integer
  *         description: ID do evento
  *     responses:
  *       200:
  *         description: Lista de partidas retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Match'
  */
 matchRoute.get("/:id/match",verifyToken ,async (req,res, next)=>{
     return await matchModel.getAll(req).then(r=>{
@@ -42,20 +50,26 @@ matchRoute.get("/:id/match",verifyToken ,async (req,res, next)=>{
  *   get:
  *     summary: Retorna uma partida pelo ID
  *     tags: [Partidas]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - name: id
  *         in: path
  *         required: true
  *         schema:
- *           type: string
+ *           type: integer
  *         description: ID da partida
  *     responses:
  *       200:
  *         description: Partida encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Match'
  *       404:
  *         description: Partida não encontrada
  */
-matchRoute.get("/:id",verifyToken ,async (req, res)=>{
+matchRoute.get("/:id",verifyToken ,async (req, res,next)=>{
     await matchModel.getById(req).then(data =>{
         res.status(201).json(data)
     }).catch(e =>{
@@ -69,23 +83,32 @@ matchRoute.get("/:id",verifyToken ,async (req, res)=>{
  *   post:
  *     summary: Cria uma nova partida
  *     tags: [Partidas]
+ *     security:
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             example:
- *               teamA: "123"
- *               teamB: "456"
- *               eventId: "789"
+ *             properties:
+ *               teamA:
+ *                 type: string
+ *               teamB:
+ *                 type: string
+ *               eventId:
+ *                 type: integer
  *     responses:
  *       201:
  *         description: Partida criada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Match'
  *       400:
  *         description: Erro ao criar a partida
  */
-matchRoute.post("/",verifyToken ,async(req, res)=>{
+matchRoute.post("/",verifyToken ,async(req, res,next)=>{
     await matchModel.create(req).then(data =>{
         res.status(201).json(data)
     }).catch(e =>{
@@ -107,18 +130,24 @@ matchRoute.post("/",verifyToken ,async(req, res)=>{
  *         application/json:
  *           schema:
  *             type: object
- *             example:
- *               id: "match123"
- *               status: "completed"
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               status:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Partida atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Match'
  *       400:
  *         description: Erro ao atualizar a partida
  *       403:
  *         description: Acesso negado
  */
-matchRoute.put("/", verifyToken, async(req,res)=>{
+matchRoute.put("/", verifyToken, async(req,res,next)=>{
     await matchModel.update(req).then(data=>{
         res.status(200).json(data)
     }).catch(e =>{
@@ -132,13 +161,23 @@ matchRoute.put("/", verifyToken, async(req,res)=>{
  *   delete:
  *     summary: Deleta uma partida
  *     tags: [Partidas]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
  *     responses:
  *       204:
  *         description: Partida deletada com sucesso
  *       400:
  *         description: Erro ao deletar a partida
  */
-matchRoute.delete("/",verifyToken ,async(req,res)=>{
+matchRoute.delete("/",verifyToken ,async(req,res,next)=>{
     await matchModel.delete(req).then(data=>{
         res.status(204).json(data)
     }).catch(e =>{

@@ -103,7 +103,9 @@ authRoute.post("/login", async (req, res, next) => {
  *                   example: logout with success
  */
 authRoute.post("/logout", async (req, res) => {
-  res.cookie("token", null).json({ message: "logout with success" });
+  res.cookie("token", null)
+  .cookie("refreshToken", null)
+  .json({ message: "logout with success" });
 });
 
 

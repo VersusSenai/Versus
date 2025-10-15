@@ -5,6 +5,7 @@ import isAdmin from "../middlewares/adminMiddleware.js";
 import ImageService from "../services/ImageService.js";
 import multer from 'multer';
 import upload from "../middlewares/uploadMiddleware.js";
+import NotAllowedException from "../exceptions/NotAllowedException.js";
 const userRoute = express.Router();
 
 
@@ -45,7 +46,7 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
 
 /**
  * @swagger
- * /user:
+ * /user/me:
  *   get:
  *     summary: Lista os dados do próprio usuário
  *     tags: [Usuários]
@@ -53,20 +54,22 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
  *       - cookieAuth: []
  *     responses:
  *       200:
- *         description:  Lista os dados do próprio usuário
+ *         description: Lista os dados do próprio usuário
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/UserPublic'
  *       403:
  *         description: Acesso não autorizado
  */
 userRoute.get("/me", verifyToken ,async (req, res,next) => {
-
-  const {id, role, email, username, icon} = req.user;
-  res.status(200).json({id, role, email, username, icon})
+  if(req.user){
+    const {id, role, email, username, icon} = req.user;
+    res.status(200).json({id, role, email, username, icon})
+  }else{
+    
+    next(new NotAllowedException("User is not logged"))
+  }
 
 });
 
@@ -337,7 +340,7 @@ userRoute.delete("/:id", isAdmin, async (req, res,next) => {
 userRoute.post("/forgetPassword", async (req, res,next) => {
   await userModel.passwordRecoverByEmail(req)
     .then(data => res.status(200).json({msg: "Email enviado com sucesso"}))
-    .catch(e => nexteita (e));
+    .catch(e => next(e));
 });
 
 /**

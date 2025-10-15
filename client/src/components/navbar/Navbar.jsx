@@ -1,47 +1,45 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  MdOutlineEmojiEvents,
-  MdOutlinePeopleAlt,
-  MdOutlineAddBox,
-  MdGroups,
-} from 'react-icons/md';
+import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox, MdOutlineGroups } from 'react-icons/md';
 import { AiOutlineMenu } from 'react-icons/ai';
+import { motion } from 'framer-motion';
 import { logout } from '../../redux/userSlice';
-import { NavbarDesktop } from './NavBarDesktop';
-import { NavbarMobile } from './NavBarMobile';
-import { FaUser } from 'react-icons/fa';
-import { FaSignOutAlt } from 'react-icons/fa';
+import NavbarDesktop from './NavBarDesktop';
+import NavbarMobile from './NavBarMobile';
+import { useNavbar } from '../../context/NavbarContext';
+import api from '../../api';
 
 const Navbar = ({ onWidthChange }) => {
-  const [collapsed, setCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  
+  const { collapsed, toggleCollapse } = useNavbar();
 
   const user = useSelector((state) => state.user.user);
 
   useEffect(() => {
-    onWidthChange(collapsed ? 80 : 256);
+    onWidthChange(collapsed ? 96 : 320);
   }, [collapsed, onWidthChange]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-    setShowMobileMenu(false);
+  const handleLogout = async () => {
+    try {
+      // chamar rota de logout do backend
+      await api.post('/auth/logout', {}, { withCredentials: true });
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    } finally {
+      dispatch(logout());
+              window.location.href = "/login";
+      setShowMobileMenu(false);
+    }
   };
 
   const links = useMemo(
     () => [
-      {
-        label: 'Usuários',
-        icon: <MdOutlinePeopleAlt />,
-        path: 'users',
-        roles: ['A'],
-        variant: 'outlined',
-      },
+      { label: 'Usuários', icon: <MdOutlinePeopleAlt />, path: 'users', roles: ['A'], variant: 'outlined'   },
       {
         label: 'Torneios',
         icon: <MdOutlineEmojiEvents />,
@@ -56,33 +54,18 @@ const Navbar = ({ onWidthChange }) => {
         roles: ['A', 'O'],
         variant: 'outlined',
       },
+
       {
         label: 'Times',
-        icon: <MdGroups />,
+        icon: <MdOutlineGroups />,
         path: 'teams',
         roles: ['A'],
         variant: 'outlined',
-      },
-      {
-        label: 'Conta',
-        icon: <FaUser />,
-        path: 'account',
-        roles: ['A', 'P', 'O'],
-        variant: 'outlined',
-      },
-
-      {
-        label: 'Sair',
-        icon: <FaSignOutAlt />,
-        action: handleLogout,
-        roles: ['A', 'P', 'O'],
-        variant: 'text',
       },
     ],
     [handleLogout]
   );
 
-  // depois filtra só os links do usuário
   const allowedLinks = user ? links.filter((l) => l.roles.includes(user.role)) : [];
 
   const handleNavigate = (path) => {
@@ -90,12 +73,12 @@ const Navbar = ({ onWidthChange }) => {
     setShowMobileMenu(false);
   };
 
-  if (user === null) {
+  if (!user) {
     return (
       <aside
         className={`hidden md:flex flex-col fixed bg-[#f8f9fa] p-5 min-h-screen z-50 ${collapsed ? 'w-20' : 'w-64'}`}
       >
-        <div className="flex items-center justify-center h-full text-gray-500">Carregando...</div>
+        <div className="flex items-center justify-center h-full text-gray-500">carregando...</div>
       </aside>
     );
   }
@@ -104,7 +87,7 @@ const Navbar = ({ onWidthChange }) => {
     <>
       <NavbarDesktop
         collapsed={collapsed}
-        toggleCollapse={() => setCollapsed(!collapsed)}
+        toggleCollapse={toggleCollapse}
         user={user}
         allowedLinks={allowedLinks}
         activePath={location.pathname}
@@ -124,13 +107,16 @@ const Navbar = ({ onWidthChange }) => {
 
       {!showMobileMenu && (
         <div className="md:hidden fixed top-4 left-4 z-50">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowMobileMenu(true)}
-            className="p-2 rounded-full backdrop-blur text-white shadow-md"
-            aria-label="Abrir Menu"
+            className="p-4 rounded-2xl shadow-2xl border border-purple-600/30 text-purple-200 hover:text-white transition-all duration-300 backdrop-blur-sm cursor-pointer"
+            style={{ backgroundColor: 'var(--color-dark)' }}
+            aria-label="abrir menu"
           >
-            <AiOutlineMenu size={24} />
-          </button>
+            <AiOutlineMenu size={28} />
+          </motion.button>
         </div>
       )}
     </>

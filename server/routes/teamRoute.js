@@ -42,13 +42,14 @@ const teamRoute = express.Router();
  *         description: Lista de times
  */
 teamRoute.get("/",verifyToken ,async (req, res, next) => {
-  const teams = await teamModel.getAll(req).catch(e=>{
-        next(e)
-  });
-  if(teams){
-    res.json(teams);
+  const teams = await teamModel.getAll(req).then(r=>{
+      if(r){
+        res.json(r);
+      }
 
-  }
+    }).catch(e=>{
+          next(e)
+    });
 });
 
 /**
@@ -377,32 +378,48 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
  * @swagger
  * /team/updateInvite:
  *   patch:
- *     summary: Responde convite
+ *     summary: Responde convite de time (aceitar/recusar)
  *     tags: [Times]
  *     security:
  *       - cookieAuth: []
-  *     requestBody:
+ *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
+ *               inviteId:
+ *                 type: integer
+ *                 description: ID do convite
+ *                 example: 123
  *               accept:
  *                 type: boolean
- *                 description: resposta do jogador
+ *                 description: Resposta do usuário (true = aceitar, false = recusar)
  *                 example: true
  *     responses:
  *       200:
- *         description: Convite aceito com sucesso
+ *         description: Convite atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
  *       400:
- *         description: Erro com o convite
+ *         description: Requisição inválida
+ *       401:
+ *         description: Não autorizado
  */
 teamRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await teamModel.updateInvite(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
+    next(err);
   }
 });
 
@@ -464,5 +481,34 @@ teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+});
+/**
+ * @swagger
+ * /team/getByUserId/{id}:
+ *   post:
+ *     summary: Busca o time por id de usuário
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do usuário
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 
+ *       400:
+ *         description: Erro ao Buscar
+ */
+teamRoute.get("/getByUserId/:id", verifyToken, async (req, res, next) => {
+  await teamModel.getByUserId(req).then(data=>{
+
+    res.status(200).json(data);
+  }).catch (err=>{
+    next(err)
+  })
 });
 export default teamRoute;

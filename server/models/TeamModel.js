@@ -29,6 +29,17 @@ class TeamModel {
         "Only administrators can see deleted teams"
       );
     }
+    if(req.user.role == "A"){
+      return await this.prisma.team
+        .paginate({
+          where: { status: { in: status } },
+        })
+        .withPages({
+          page,
+          limit,
+        });
+
+    }
 
     return await this.prisma.team
       .paginate({
@@ -52,24 +63,26 @@ class TeamModel {
       return team;
     } else {
       const team = await this.prisma.team.findUnique({
-        where: { id: Number(req.params.id) },
+        where: { 
+          id: Number(req.params.id),
+          OR: [{
+            private: true,
+            teamUsers:{
+              userId: req.user.id
+            }
+          },
+          {private: false}
+        
+        ]
+        },
+        include:{
+          teamUsers: true
+        }
+      
+      
       });
-      if(team.private){
-        await this.prisma.teamUsers.findFirst({
-          where:{
-            userId: req.user.id,
-            teamId: team.id
-          }
-        }).then(data=>{
-          if(data){
-            return team
-          }else{
-            throw new NotAllowedException("You are not allowed to get this team")
-          }
-        }).catch(e=>{
-          throw new InternalServerError()
-        })
-      }
+      
+      
       if (!team) {
         throw new NotFoundException("Team not found");
       }
@@ -95,6 +108,7 @@ class TeamModel {
       throw new BadRequestException("Missing required fields");
     }
     if (!isPrivate) isPrivate = false;
+    
 
     return await this.prisma.team
       .create({
@@ -102,7 +116,7 @@ class TeamModel {
           name,
           description,
           status: "P",
-          private: isPrivate,
+          private: isPrivate == 'true'? true : false,
           icon: image? image.url: undefined,
           teamUsers: {
             create: [{ userId: userData.id, role: "O" }],
@@ -113,6 +127,7 @@ class TeamModel {
         if (e.code == "P2002") {
           throw new ConflictException("User already is owner of a team");
         }
+        console.log(e)
         throw new DataBaseException("Team not created");
       });
   };
@@ -450,6 +465,31 @@ class TeamModel {
         }
       });
   };
+
+  getByUserId = async (req)=>{
+    let userId = parseInt(req.params.id); 
+    let res = await this.prisma.team.findFirst({where:{
+      teamUsers: {
+        some: {
+          userId
+        }
+      }
+    }}).catch(e=>{
+      if (e.code === "P2025") {
+        throw new NotFoundException("Team not found");
+      } else {
+        throw new DataBaseException("Internal server error");
+      }
+    }) 
+
+    if(res){
+      return res
+    }else{
+        throw new NotFoundException("Team not found");
+    }
+
+
+  }
 
   isTeamOwner = async (user, teamId) => {
     const isTeamOwner = await this.prisma.teamUsers.findFirst({

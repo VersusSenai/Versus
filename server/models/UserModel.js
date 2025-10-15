@@ -80,6 +80,8 @@ class UserModel {
       parseInt(process.env.SALT_ROUNDS)
     );
 
+    
+
     await this.prisma.user
       .create({
         data: {
@@ -94,6 +96,7 @@ class UserModel {
         return r;
       })
       .catch((err) => {
+        console.log(err)
         if (err.code == "P2002") {
           throw new ConflictException("Email or Username already in use");
         } else {

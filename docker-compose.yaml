@@ -47,7 +47,8 @@ services:
       AWS_S3_BUCKET: balde-imagem-cachorro
     env_file:
       - ./server/.env 
-    command: npm run dev
+    command: >
+      sh -c "npx prisma migrate deploy && npm run start "
     depends_on:
       mysql:
         condition: service_healthy

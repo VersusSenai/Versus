@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import teamPhoto from '@/assets/team.jpeg';
 import { TeamProps } from '@/types';
 import { Button } from './ui/button';
-import { Ban, Check, Info, Settings, Users2, X } from 'lucide-react';
+import { Ban, Check, Edit2, Info, Users2, X } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import { toast } from 'react-toastify';
 import api from '@/api';
@@ -13,7 +13,7 @@ export type TeamCardProps = {
 };
 
 export const TeamsCardsPage = ({ team }: TeamCardProps) => {
-  const { refreshTeams } = useTeamsPageContext();
+  const { refreshTeams, setSelectedTeam } = useTeamsPageContext();
 
   async function handleBanTeam() {
     try {
@@ -124,12 +124,12 @@ export const TeamsCardsPage = ({ team }: TeamCardProps) => {
             </HoverCard>
             <HoverCard>
               <HoverCardTrigger asChild>
-                <Button size="icon">
-                  <Settings />
+                <Button size="icon" onClick={() => setSelectedTeam(team)}>
+                  <Edit2 />
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
-                Configurações
+                Editar
               </HoverCardContent>
             </HoverCard>
             <HoverCard>

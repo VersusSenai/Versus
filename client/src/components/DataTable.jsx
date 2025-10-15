@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 import { useDataTableContext } from '../context/useDataTableContext';
 import {
@@ -117,7 +118,6 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
 
   const columns = [checkboxColumn, ...TableColumns, actionsColumn];
 
-  // Configura o React Table com todas as funcionalidades necessárias
   const table = useReactTable({
     data,
     columns,
@@ -128,10 +128,10 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
       rowSelection,
       globalFilter,
     },
-    autoResetPageIndex: false, // resetar página ao filtrar/ordenar
-    enableColumnResizing: true, // permitir redimensionar colunas
+    autoResetPageIndex: false,
+    enableColumnResizing: true,
     initialState: {
-      pagination: { pageSize: 25 }, // tamanho da página inicial
+      pagination: { pageSize: 25 },
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -146,17 +146,14 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
       String(row.getValue(columnId)).toLowerCase().includes(filterValue.toLowerCase()),
   });
 
-  // Sincroniza o índice de página do React Table com o contexto externo
   useEffect(() => {
     table.setPageIndex(pageIndex);
   }, [pageIndex]);
 
-  // Ao montar, garante que a página comece em 0
   useEffect(() => {
     setPageIndex(0);
   }, []);
 
-  // Se o filtro global for "clear", reseta todos os filtros de coluna
   useEffect(() => {
     if (filter === 'clear') {
       table.resetColumnFilters();

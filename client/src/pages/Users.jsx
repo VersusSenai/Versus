@@ -15,7 +15,6 @@ import CustomTable from '@/components/CustomTable';
 const columns = [
   { accessorKey: 'id', header: 'ID', cell: (info) => info.getValue() },
   { accessorKey: 'username', header: 'Nome', cell: (info) => info.getValue() },
-  { accessorKey: 'password', header: 'Senha', cell: (info) => info.getValue() },
   { accessorKey: 'email', header: 'Email', cell: (info) => info.getValue() },
   { accessorKey: 'role', header: 'Role', cell: (info) => info.getValue() },
 ];
@@ -32,7 +31,9 @@ const Users = () => {
     api
       .get('/user')
       .then((res) => {
-        setData(res.data);
+        // O backend retorna dados paginados como array [dados, meta]
+        const userData = Array.isArray(res.data) ? res.data[0] : res.data.data || res.data;
+        setData(userData);
         setLoading(false);
       })
       .catch((err) => {

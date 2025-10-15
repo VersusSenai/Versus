@@ -14,13 +14,14 @@ import {
 } from '../components/ui/dialog';
 import { useState } from 'react';
 import { useDeleteUser } from '../hooks/useDeleteUser';
-import { useUser } from '../hooks/useUser';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+
 export default function AccountPage() {
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { handleDelete, loading: deleting } = useDeleteUser();
-  const { user, loading } = useUser();
+  const user = useSelector((state) => state.user.user);
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
@@ -33,7 +34,7 @@ export default function AccountPage() {
 
           <VersusInput
             placeholder="Nome de usuário"
-            value={loading ? 'Carregando...' : user?.username || ''}
+            value={user?.username || ''}
             disabled
             readOnly
           />
@@ -41,7 +42,7 @@ export default function AccountPage() {
             <VersusInput
               type="email"
               placeholder="Email"
-              value={loading ? 'Carregando...' : user?.email || ''}
+              value={user?.email || ''}
               disabled
               readOnly
             />

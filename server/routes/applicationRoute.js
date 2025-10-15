@@ -18,29 +18,30 @@ const applicationRoute = express.Router();
  *   get:
  *     summary: Lista todas as aplicações
  *     tags: [Aplicações]
-*     parameters:
+ *     security:
+ *       - adminAuth: []
+ *     parameters:
  *       - in: query
- *         name: pagina
+ *         name: page
  *         required: false
  *         schema:
  *           type: integer
- *         description: numero da página
+ *         description: Numero da página
  *       - in: query
  *         name: limit
  *         required: false
  *         schema:
  *           type: integer
- *         description: quantidade de dados
+ *         description: Quantidade por página
  *       - in: query
  *         name: status
  *         required: false
  *         schema:
- *           type: Array
- *         description: status
- 
+ *           type: string
+ *         description: Filtro de status
  *     responses:
  *       200:
- *         description: Lista de Aplcações
+ *         description: Lista de aplicações
  */
 applicationRoute.get("/", isAdmin, async (req, res, next) => {
   await ApplicationModel.getAll(req).then(r=>{
@@ -63,18 +64,13 @@ applicationRoute.get("/", isAdmin, async (req, res, next) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - startDate
- *               - maxPlayers
  *             properties:
  *               description:
  *                 type: string
  *                 example: "Aplicação para me tornar Organizador de Evento"
  *     responses:
  *       201:
- *         description: Aplicacao criado com sucesso
- *         content:
+ *         description: Aplicacao criada com sucesso
  *       400:
  *         description: Erro na validação dos dados
  *       403:
@@ -96,8 +92,15 @@ applicationRoute.post("/", verifyToken, async (req, res, next) => {
  *     tags: [Aplicações]
  *     security:
  *       - adminAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID da aplicação
  *     responses:
- *       201:
+ *       200:
  *         description: Aplicacao aprovada com sucesso
  *       400:
  *         description: Erro na validação dos dados

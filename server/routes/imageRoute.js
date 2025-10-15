@@ -5,7 +5,32 @@ import isAdmin from "../middlewares/adminMiddleware.js";
 import ImageService from "../services/ImageService.js";
 const imageRoute = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Imagens
+ *   description: Endpoints para servir imagens armazenadas
+ */
 
+/**
+ * @swagger
+ * /image/{key}:
+ *   get:
+ *     summary: Recupera a imagem pelo key
+ *     tags: [Imagens]
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Identificador da imagem
+ *     responses:
+ *       200:
+ *         description: Imagem retornada com sucesso (binary)
+ *       404:
+ *         description: Imagem não encontrada
+ */
 imageRoute.get("/:key", async (req, res)=>{
     const fileKey = req.params.key;
 
