@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import 'dotenv/config';
 import InternalServerError from "../exceptions/InternalServerError.js";
 
@@ -69,7 +69,22 @@ class ImageService{
         }
     }
 
-    
+    delete = async(fileKey)=>{
+        try {
+            const params = {
+                Bucket: process.env.AWS_S3_BUCKET,
+                Key: fileKey
+            }
+
+            const command = new DeleteObjectCommand(params)
+
+            const response = await this.client.send(command);
+            return response;
+        } catch (error) {
+            throw new InternalServerError();
+
+        }
+    }
 
 
 }

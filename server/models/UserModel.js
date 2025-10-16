@@ -108,8 +108,21 @@ class UserModel {
   async update(req) {
     const userData = req.user;
 
+
     const file = req.file;
-    let image;
+    let image = {};
+    if( typeof req.body.image == "string"){
+      image["url"] = null
+    }
+
+    if((userData.icon && file) || (userData.icon && typeof req.body.image == "string" ) ){
+      
+      let url = req.user.icon.replace(/\/+$/, "");
+      const partes = url.split("/");
+      let toDelete = partes[partes.length - 1];  
+      await ImageService.delete(toDelete)
+
+    }
     if(file){
       try {
         image = await ImageService.upload(file);
@@ -123,7 +136,7 @@ class UserModel {
           parseInt(process.env.SALT_ROUNDS)
         )
       : userData.password;
-
+    
     return await this.prisma.user
       .update({
         where: { id: parseInt(userData.id) },
@@ -175,6 +188,7 @@ class UserModel {
           password: hash,
           role: req.body.role,
           status: req.body.status,
+          icon: req.body.image
           
         },
         select: {

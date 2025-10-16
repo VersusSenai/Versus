@@ -133,10 +133,26 @@ class TeamModel {
   };
 
   update = async (req) => {
+
+    const team = await this.prisma.team.findFirst({
+      where: { id: parseInt(req.params.id), status: { in: ["O", "P"] } },
+    });
     const userData = await serviceUtils.getUserByToken(req);
     const { name, description } = req.body;
-    const file = req.file;
-    let image;
+    let image = {};
+      if( typeof req.body.image == "string"){
+        image["url"] = null
+      }
+      const file = req.file;
+
+      if((team.icon && file) || (team.icon && typeof req.body.image == "string" ) ){
+        
+        let url = team.icon.replace(/\/+$/, "");
+        const partes = url.split("/");
+        let toDelete = partes[partes.length - 1];  
+        await ImageService.delete(toDelete)
+
+      }
     if(file){
       try {
         image = await ImageService.upload(file);
@@ -145,7 +161,6 @@ class TeamModel {
         throw new DataBaseException("Intenal Server error"); 
       }
     }
-    console.log(image)
 
 
     const teamOwner = await this.isTeamOwner(userData, parseInt(req.params.id));
@@ -153,9 +168,7 @@ class TeamModel {
       throw new NotAllowedException("You are not the owner of this team");
     }
 
-    const team = await this.prisma.team.findFirst({
-      where: { id: parseInt(req.params.id), status: { in: ["O", "P"] } },
-    });
+
 
     if (team == null) {
       throw new NotFoundException("Team not found");

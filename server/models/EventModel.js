@@ -185,9 +185,20 @@ class EventModel {
     if(event.status != "P"){
       throw new ConflictException("Only events with status 'Pending' can be updated");
     }
-
+    let image = {};
+    if( typeof req.body.image == "string"){
+      image["url"] = null
+    }
     const file = req.file;
-    let image;
+
+    if((event.thumbnail && file) || (event.thumbnail && typeof req.body.image == "string" ) ){
+      
+      let url = event.thumbnail.replace(/\/+$/, "");
+      const partes = url.split("/");
+      let toDelete = partes[partes.length - 1];  
+      await ImageService.delete(toDelete)
+
+    }
     if(file){
       try {
         image = await ImageService.upload(file);
