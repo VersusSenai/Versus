@@ -248,7 +248,7 @@ userRoute.put("/:id", isAdmin, async (req, res,next) => {
 userRoute.put("/", verifyToken, upload.single('image') ,async (req, res,next) => {
   await userModel.update(req)
     .then(data => res.status(200).json(data))
-    .catch(e => next(e));
+    .catch(e => console.log(e));
 });
 
 /**
