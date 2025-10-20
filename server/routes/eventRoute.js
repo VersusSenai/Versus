@@ -506,55 +506,57 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
     const result = await eventModel.invitePlayer(req);
     res.status(200).json(result);
   } catch (err) {
+
     next(err);
-    /**
-     * @swagger
-     * /event/updateInvite:
-     *   patch:
-     *     summary: Responde convite de evento (aceitar/recusar)
-     *     tags: [Eventos]
-     *     security:
-     *       - cookieAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               inviteId:
-     *                 type: integer
-     *                 description: ID do convite
-     *                 example: 123
-     *               accept:
-     *                 type: boolean
-     *                 description: Resposta do usuário (true = aceitar, false = recusar)
-     *                 example: true
-     *     responses:
-     *       200:
-     *         description: Convite atualizado com sucesso
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 message:
-     *                   type: string
-     *       400:
-     *         description: Requisição inválida
-     *       401:
-     *         description: Não autorizado
-     */
-    eventRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
-      try {
-        const result = await eventModel.updateInvite(req);
-        res.status(200).json(result);
-      } catch (err) {
-        next(err);
-      }
-    });
+  }
+});
+
+/**
+ * @swagger
+ * /event/updateInvite:
+ *   patch:
+ *     summary: Responde convite de evento (aceitar/recusar)
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               inviteId:
+ *                 type: integer
+ *                 description: ID do convite
+ *                 example: 123
+ *               accept:
+ *                 type: boolean
+ *                 description: Resposta do usuário (true = aceitar, false = recusar)
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Convite atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Requisição inválida
+ *       401:
+ *         description: Não autorizado
+ */
+eventRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await eventModel.updateInvite(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
 });
 
