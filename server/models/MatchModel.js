@@ -3,18 +3,16 @@ import eventModel from "./EventModel.js";
 import NotFoundException from "../exceptions/NotFoundException.js";
 import DataBaseException from "../exceptions/DataBaseException.js";
 import ConflictException from "../exceptions/ConflictException.js";
-
+import prisma from "../ config/prismaClient.js";
 class MatchModel {
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+
 
   getAll = async (req) => {
     if (!parseInt(req.params.id)) {
       throw new NotFoundException("Event ID is required");
     }
 
-    return await this.prisma.match.findMany({
+    return await prisma.match.findMany({
       where: { eventId: parseInt(req.params.id) },
       include: {
         firstUser: {
@@ -36,7 +34,7 @@ class MatchModel {
   };
 
   getById = async (id) => {
-    const match = await this.prisma.match.findUnique({
+    const match = await prisma.match.findUnique({
       where: { id: Number(id) },
       include: {
         firstUser: {
@@ -75,7 +73,7 @@ class MatchModel {
       secondUserId,
     } = matchData;
 
-    const newMatch = await this.prisma.match
+    const newMatch = await prisma.match
       .create({
         data: {
           eventId,
@@ -108,7 +106,7 @@ class MatchModel {
     } = matchData;
 
     try {
-      const updated = await this.prisma.match.update({
+      const updated = await prisma.match.update({
         where: { id: Number(id) },
         data: {
           eventId,
@@ -132,7 +130,7 @@ class MatchModel {
 
   delete = async (id) => {
     try {
-      const deleted = await this.prisma.match.delete({
+      const deleted = await prisma.match.delete({
         where: { id: Number(id) },
       });
 
@@ -147,7 +145,7 @@ class MatchModel {
 
   declareWinner = async (req) => {
     const userData = req.user;
-    const match = await this.prisma.match
+    const match = await prisma.match
       .findFirst({
         where: { id: parseInt(req.params.id) },
         include: { event: true },
@@ -193,7 +191,7 @@ class MatchModel {
       throw new ConflictException("Match Already decided");
     }
 
-    const inscriptions = await this.prisma.eventInscriptions
+    const inscriptions = await prisma.eventInscriptions
       .findMany({ where: { eventId: match.event.id, role: "P" } })
       .catch((e) => {
         DataBaseException("Interal Server Error");
@@ -205,7 +203,7 @@ class MatchModel {
 
     if (match.keyNumber == maxKeys) {
       if (!match.event.multiplayer) {
-        const response = this.prisma
+        const response = prisma
           .$transaction(async (tx) => {
             await tx.match.update({
               where: { id: match.id },
@@ -235,7 +233,7 @@ class MatchModel {
 
         return { response, msg: "Tournment Ended" };
       } else {
-        const res = this.prisma
+        const res = prisma
           .$transaction(async (tx) => {
             await tx.match.update({
               where: { id: match.id },
@@ -265,7 +263,7 @@ class MatchModel {
       return { response, msg: "Tournment Ended" };
     }
 
-    const pendingMatchInActualKey = await this.prisma.match.findFirst({
+    const pendingMatchInActualKey = await prisma.match.findFirst({
       where: {
         eventId: match.event.id,
         secondUserId: null,
@@ -276,7 +274,7 @@ class MatchModel {
 
     if (pendingMatchInActualKey) {
       if (!match.event.multiplayer) {
-        return this.prisma
+        return prisma
           .$transaction(async (tx) => {
             await tx.match.update({
               where: { id: match.id },
@@ -304,7 +302,7 @@ class MatchModel {
             throw new DataBaseException("Interal Server Error");
           });
       } else {
-        return this.prisma
+        return prisma
           .$transaction(async (tx) => {
             await tx.match.update({
               where: { id: match.id },
@@ -333,7 +331,7 @@ class MatchModel {
       }
     } else {
       if (!match.event.multiplayer) {
-        return await this.prisma
+        return await prisma
           .$transaction(async (tx) => {
             await tx.match.update({
               where: { id: match.id },
@@ -363,7 +361,7 @@ class MatchModel {
             throw new DataBaseException("Interal Server Error");
           });
       } else {
-        return this.prisma
+        return prisma
           .$transaction(async (tx) => {
             await tx.match.update({
               where: { id: match.id },
@@ -398,7 +396,7 @@ class MatchModel {
 
   declareWinnerBatch = async ({ teamId, userId }) => {
     if (teamId) {
-      const matches = await this.prisma.match.findMany({
+      const matches = await prisma.match.findMany({
         where: { OR: [{ firstTeamId: teamId }, { secondTeamId: teamId }] },
       });
       matches.forEach(async (match) => {
@@ -412,7 +410,7 @@ class MatchModel {
       });
     }
     if (userId) {
-      const matches = await this.prisma.match.findMany({
+      const matches = await prisma.match.findMany({
         where: { OR: [{ firstUserId: userId }, { secondUserId: userId }] },
       });
       matches.forEach(async (match) => {

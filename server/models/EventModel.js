@@ -9,12 +9,8 @@ import NotAllowedException from "../exceptions/NotAllowedException.js";
 import ConflictException from "../exceptions/ConflictException.js";
 import notificationService from "../services/notificationService.js";
 import ImageService from "../services/ImageService.js";
-
+import prisma from "../ config/prismaClient.js";
 class EventModel {
-  constructor() {
-    this.prisma = new PrismaClient().$extends(pagination());
-  }
-
   getAll = async (req) => {
     let page = req.query.page ? parseInt(req.query.page) : 1;
     let limit = req.query.limit ? parseInt(req.query.limit) : 10;
@@ -32,7 +28,7 @@ class EventModel {
       limit = 30;
     }
     if (req.user.role == "A") {
-      return await this.prisma.event
+      return await prisma.event
         .paginate({
           where: {
             status: { in: status },
@@ -56,7 +52,7 @@ class EventModel {
         .withPages({ page, limit });
     }
 
-    return await this.prisma.event
+    return await prisma.event
       .paginate({
         where: {
           status: { in: status },
@@ -91,10 +87,7 @@ class EventModel {
         include: {
           eventInscriptions: {
             where: {
-              OR: [
-                { team: { status: "O" } }, 
-                { user: { status: "A" } }, 
-              ],
+              OR: [{ team: { status: "O" } }, { user: { status: "A" } }],
             },
           },
         },
@@ -107,7 +100,7 @@ class EventModel {
 
   getById = async (req) => {
     if (req.user.role == "A") {
-      return await this.prisma.event
+      return await prisma.event
         .findUnique({
           where: { id: parseInt(req.params.id) },
         })
@@ -120,7 +113,7 @@ class EventModel {
         });
     }
 
-    return await this.prisma.event
+    return await prisma.event
       .findUnique({
         where: {
           id: parseInt(req.params.id),
@@ -183,7 +176,7 @@ class EventModel {
       throw new BadRequestException("Player quantity must be even");
     }
 
-    const newEvent = await this.prisma.event.create({
+    const newEvent = await prisma.event.create({
       data: {
         model,
         name,
@@ -217,7 +210,7 @@ class EventModel {
       );
     }
     const isPrivate = req.body.private;
-    const event = await this.prisma.event.findFirst({
+    const event = await prisma.event.findFirst({
       where: { id: parseInt(req.params.id) },
     });
     if (!event) {
@@ -262,7 +255,7 @@ class EventModel {
     } = req.body;
     maxPlayers = maxPlayers === undefined ? undefined : parseInt(maxPlayers);
 
-    return await this.prisma.event
+    return await prisma.event
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
@@ -289,7 +282,7 @@ class EventModel {
     const userData = req.user;
     const eventId = parseInt(req.params.id);
 
-    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+    const event = await prisma.event.findFirst({ where: { id: eventId } });
 
     if (!event) throw new BadRequestException("Event not found");
     if (event.keysQuantity != null) {
@@ -305,7 +298,7 @@ class EventModel {
       const teamId = req.body.id ? parseInt(req.body.id) : null;
 
       if (teamId != null && !isNaN(teamId)) {
-        const team = await this.prisma.team.findFirst({
+        const team = await prisma.team.findFirst({
           where: { id: teamId },
         });
 
@@ -313,18 +306,19 @@ class EventModel {
           throw new BadRequestException("Team does not exist");
         }
 
-        const isTeamAlreadyInscribed =
-          await this.prisma.eventInscriptions.findFirst({
+        const isTeamAlreadyInscribed = await prisma.eventInscriptions.findFirst(
+          {
             where: {
               teamId: teamId,
               eventId: eventId,
             },
-          });
+          },
+        );
 
         if (isTeamAlreadyInscribed) {
           throw new ConflictException("Team already inscribed");
         }
-        const userTeamInscription = await this.prisma.teamUsers.findFirst({
+        const userTeamInscription = await prisma.teamUsers.findFirst({
           where: {
             teamId: team.id,
             userId: userData.id,
@@ -332,7 +326,7 @@ class EventModel {
         });
 
         if (userTeamInscription.role == "O") {
-          return this.prisma.eventInscriptions.create({
+          return prisma.eventInscriptions.create({
             data: {
               teamId: team.id,
               eventId: eventId,
@@ -345,20 +339,19 @@ class EventModel {
         }
       }
     } else {
-      const isUserAlreadyInscribed =
-        await this.prisma.eventInscriptions.findFirst({
-          where: {
-            userId: userData.id,
-            eventId: eventId,
-          },
-        });
+      const isUserAlreadyInscribed = await prisma.eventInscriptions.findFirst({
+        where: {
+          userId: userData.id,
+          eventId: eventId,
+        },
+      });
 
       if (isUserAlreadyInscribed) {
         throw new ConflictException("User already inscribed");
       }
 
       // Caso seja inscrição individual
-      return this.prisma.eventInscriptions.create({
+      return prisma.eventInscriptions.create({
         data: {
           userId: userData.id,
           eventId: eventId,
@@ -374,7 +367,7 @@ class EventModel {
       req.user,
       parseInt(req.params.id),
     );
-    const event = await this.prisma.event.findFirst({
+    const event = await prisma.event.findFirst({
       where: { id: parseInt(req.params.id) },
     });
 
@@ -390,7 +383,7 @@ class EventModel {
       throw new NotAllowedException("User is not owner of this event");
     }
 
-    return await this.prisma.event
+    return await prisma.event
       .delete({ where: { id: parseInt(req.params.id) } })
       .catch((e) => {
         throw new DataBaseException("Error while trying to delete tournment");
@@ -401,7 +394,7 @@ class EventModel {
     const userData = req.user;
     const eventId = parseInt(req.params.id);
 
-    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+    const event = await prisma.event.findFirst({ where: { id: eventId } });
 
     if (!event) throw new Error("Event not found");
 
@@ -409,7 +402,7 @@ class EventModel {
       throw new ConflictException("Event already started");
     }
 
-    const userInscription = await this.prisma.eventInscriptions.findFirst({
+    const userInscription = await prisma.eventInscriptions.findFirst({
       where: { userId: userData.id, eventId },
     });
     if (!userInscription || userInscription.status == "R") {
@@ -417,7 +410,7 @@ class EventModel {
     }
 
     if (userInscription != null && userInscription.role == "P") {
-      await this.prisma.eventInscriptions.update({
+      await prisma.eventInscriptions.update({
         where: { id: userInscription.id },
         data: { status: "R" },
       });
@@ -431,7 +424,7 @@ class EventModel {
     const userId = parseInt(req.params.userId);
     const teamId = parseInt(req.params.teamId);
 
-    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+    const event = await prisma.event.findFirst({ where: { id: eventId } });
 
     if (!event) throw new Error("Event not found");
     if (event.status != "P") {
@@ -445,7 +438,7 @@ class EventModel {
     }
 
     if (!isNaN(teamId) && teamId != null) {
-      const teamInscription = await this.prisma.eventInscriptions.findFirst({
+      const teamInscription = await prisma.eventInscriptions.findFirst({
         where: { userId: userId, eventId },
       });
 
@@ -453,7 +446,7 @@ class EventModel {
         throw new ConflictException("Team not inscribed");
       }
       if (teamInscription != null && teamInscription.role == "P") {
-        await this.prisma.eventInscriptions
+        await prisma.eventInscriptions
           .delete({ where: { id: teamInscription.id }, data: { status: "R" } })
           .catch((e) => {
             throw new DataBaseException("Internal Server Error");
@@ -462,7 +455,7 @@ class EventModel {
         throw new ConflictException("Owner cannot unsubscribe himself");
       }
     }
-    const userInscription = await this.prisma.eventInscriptions.findFirst({
+    const userInscription = await prisma.eventInscriptions.findFirst({
       where: { userId: userId, eventId },
     });
 
@@ -470,7 +463,7 @@ class EventModel {
       throw new ConflictException("User not inscribed");
     }
     if (userInscription != null && userInscription.role == "P") {
-      await this.prisma.eventInscriptions.delete({
+      await prisma.eventInscriptions.delete({
         where: { id: userInscription.id },
         data: { role: "R" },
       });
@@ -489,7 +482,7 @@ class EventModel {
       );
     }
 
-    return await this.prisma.eventInscriptions
+    return await prisma.eventInscriptions
       .findMany({
         where: { eventId: parseInt(req.params.id), role: "P" },
         select: {
@@ -512,7 +505,7 @@ class EventModel {
   getMyInscriptions = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
 
-    return await this.prisma.eventInscriptions
+    return await prisma.eventInscriptions
       .findMany({
         where: {
           userId: userData.id,
@@ -536,7 +529,7 @@ class EventModel {
 
   startEvent = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
-    const event = await this.prisma.event.findFirst({
+    const event = await prisma.event.findFirst({
       where: { id: parseInt(req.params.id) },
     });
 
@@ -544,7 +537,7 @@ class EventModel {
       throw new NotFoundException("Event not Found");
     }
 
-    const inscriptions = await this.prisma.eventInscriptions.findMany({
+    const inscriptions = await prisma.eventInscriptions.findMany({
       where: {
         eventId: event.id,
         role: "P",
@@ -558,8 +551,8 @@ class EventModel {
         ],
       },
     });
-    
-    const matchesAlreadyExists = await this.prisma.match.findMany({
+
+    const matchesAlreadyExists = await prisma.match.findMany({
       where: { eventId: event.id },
     });
 
@@ -596,7 +589,7 @@ class EventModel {
 
     const matches = [];
     let currentTime = new Date(Date.now() + 10 * 60 * 1000);
-    await this.prisma.event.update({
+    await prisma.event.update({
       where: { id: eventId },
       data: {
         keysQuantity: totalRounds,
@@ -610,7 +603,7 @@ class EventModel {
         const firstUserId = inscriptions[i].userId;
         const secondUserId = inscriptions[i + 1].userId;
 
-        const match = await this.prisma.match
+        const match = await prisma.match
           .create({
             data: {
               eventId,
@@ -664,7 +657,7 @@ class EventModel {
       for (let i = 0; i < total; i += 2) {
         const firstTeamId = inscriptions[i].teamId;
         const secondTeamId = inscriptions[i + 1].teamId;
-        const match = await this.prisma.match
+        const match = await prisma.match
           .create({
             data: {
               eventId,
@@ -690,21 +683,12 @@ class EventModel {
 
   invitePlayer = async (req) => {
     const userData = req.user;
-    const event = await this.prisma.event
+    const event = await prisma.event
       .findFirst({ where: { id: parseInt(req.params.id) } })
       .catch((e) => {
         throw new NotFoundException("Event not found");
       });
 
-    const userTo = await this.prisma.user
-      .findFirst({ where: { id: parseInt(req.body.id) } })
-      .catch((e) => {
-        throw new NotFoundException("User not Found");
-      });
-
-    if (!userTo) {
-      throw new NotFoundException("User not found");
-    }
     if (!event) {
       throw new NotFoundException("Event not found");
     }
@@ -712,9 +696,35 @@ class EventModel {
     if (!(await this.isUserOwner(userData, event.id))) {
       throw new NotAllowedException("You are not the owner of this tournment");
     }
+    if (event.multiplayer) {
+      const team = await prisma.team.findFirst({
+        where: { id: parseInt(req.body.id) },
+        include: {
+          teamUsers: { where: { role: "O" }, include: { user: true } },
+        },
+      });
+      if (!team) {
+        throw new NotFoundException("Team not found");
+      }
+      const userTo = team.teamUsers[0].user;
+      return await inviteModel
+        .inviteToTournment(userTo, userData, team, event, req)
+        .then((r) => {
+          return { msg: "Invite Sent" };
+        });
+    }
 
-    await inviteModel
-      .inviteToTournment(userTo, userData, event, req)
+    const userTo = await prisma.user
+      .findFirst({ where: { id: parseInt(req.body.id) } })
+      .catch((e) => {
+        throw new NotFoundException("User not Found");
+      });
+    if (!userTo) {
+      throw new NotFoundException("User not found");
+    }
+
+    return await inviteModel
+      .inviteToTournment(userTo, userData, null, event, req)
       .then((r) => {
         return { msg: "Invite Sent" };
       });
@@ -738,34 +748,53 @@ class EventModel {
     }
 
     if (req.body.accept == undefined || accept == true) {
-      await this.prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx) => {
         await tx.invite.update({
           where: { id: invite.id },
           data: {
             status: "A",
           },
         });
-
-        await tx.eventInscriptions
-          .create({
-            data: {
-              userId: userData.id,
-              eventId: event.id,
-              role: "P",
-              status: "O",
-            },
-          })
-          .catch((e) => {
-            if ((e.code = "P2002")) {
-              throw new ConflictException("User already inscribed");
-            } else {
-              throw new DataBaseException("Internal server error");
-            }
-          });
+        if (event.multiplayer) {
+          await tx.eventInscriptions
+            .create({
+              data: {
+                teamId: invite.teamId,
+                eventId: event.id,
+                role: "P",
+                status: "O",
+              },
+            })
+            .catch((e) => {
+              if ((e.code = "P2002")) {
+                throw new ConflictException("User already inscribed");
+              } else {
+                throw new DataBaseException("Internal server error");
+              }
+            });
+        } else {
+          await tx.eventInscriptions
+            .create({
+              data: {
+                userId: userData.id,
+                eventId: event.id,
+                role: "P",
+                status: "O",
+              },
+            })
+            .catch((e) => {
+              if ((e.code = "P2002")) {
+                throw new ConflictException("User already inscribed");
+              } else {
+                throw new DataBaseException("Internal server error");
+              }
+            });
+        }
       });
+      return { msg: "Invite Accepted" };
     }
     if (accept == false) {
-      await this.prisma.invite.update({
+      await prisma.invite.update({
         where: { id: invite.id },
         data: {
           status: "D",
@@ -780,7 +809,7 @@ class EventModel {
 
   //verifica se o user é dono do evento
   isUserOwner = async (user, eventId) => {
-    const ownerInscrition = await this.prisma.eventInscriptions.findFirst({
+    const ownerInscrition = await prisma.eventInscriptions.findFirst({
       where: { userId: user.id, eventId: eventId, role: "O" },
     });
 
@@ -792,12 +821,12 @@ class EventModel {
   };
 
   notificateUsersOfEvent = async (eventId, message) => {
-    const event = await this.prisma.event.findFirst({ where: { id: eventId } });
+    const event = await prisma.event.findFirst({ where: { id: eventId } });
     if (!event) {
       throw new NotFoundException("Event not found");
     }
     if (event.multiplayer == true) {
-      const teams = await this.prisma.eventInscriptions.findMany({
+      const teams = await prisma.eventInscriptions.findMany({
         where: { eventId, role: "P", teamId: { not: null } },
         include: { team: { include: { teamUsers: true } } },
       });
@@ -813,7 +842,7 @@ class EventModel {
         }
       }
     } else {
-      const inscriptions = await this.prisma.eventInscriptions.findMany({
+      const inscriptions = await prisma.eventInscriptions.findMany({
         where: { eventId, role: "P" },
         select: {
           userId: true,

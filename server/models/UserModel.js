@@ -13,18 +13,16 @@ import ImageService from "../services/ImageService.js";
 import fs from "fs";
 import path from "path";
 const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
+import prisma from "../ config/prismaClient.js";
 class UserModel {
-  constructor() {
-    this.prisma = new PrismaClient().$extends(pagination());
-  }
+
 
   async getAll(req) {
     const userData = req.user;
     let page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
     let limit = parseInt(req.query.limit) ? parseInt(req.query.limit) : 10;
 
-    return await this.prisma.user
+    return await prisma.user
       .paginate({
         select: {
           id: true,
@@ -46,7 +44,7 @@ class UserModel {
     const userData = req.user;
 
     if (userData.role == "A") {
-      const user = await this.prisma.user.findFirst({
+      const user = await prisma.user.findFirst({
         where: { id: parseInt(req.params.id), status: "A" },
       });
       if (user == null) {
@@ -57,7 +55,7 @@ class UserModel {
     }
 
     if (userData.role == "P" || userData.role == "O") {
-      const user = await this.prisma.user.findFirst({
+      const user = await prisma.user.findFirst({
         where: { id: parseInt(req.params.id), status: "A" },
         select: {
           email: true,
@@ -80,7 +78,7 @@ class UserModel {
       parseInt(process.env.SALT_ROUNDS),
     );
 
-    await this.prisma.user
+    await prisma.user
       .create({
         data: {
           username: req.body.username,
@@ -135,7 +133,7 @@ class UserModel {
         )
       : userData.password;
 
-    return await this.prisma.user
+    return await prisma.user
       .update({
         where: { id: parseInt(userData.id) },
         data: {
@@ -165,7 +163,7 @@ class UserModel {
   async updateById(req) {
     const userData = req.user;
 
-    const user = this.prisma.user.findFirst({ where: { id: req.params.id } });
+    const user = prisma.user.findFirst({ where: { id: req.params.id } });
 
     if (!user) {
       throw new NotFoundException("User not found");
@@ -177,7 +175,7 @@ class UserModel {
         )
       : user.password;
 
-    return await this.prisma.user
+    return await prisma.user
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
@@ -209,7 +207,7 @@ class UserModel {
   async delete(req) {
     const userData = req.user;
 
-    await this.prisma.user
+    await prisma.user
       .update({
         where: { id: userData.id },
         data: {
@@ -226,7 +224,7 @@ class UserModel {
   }
 
   async deleteById(req) {
-    await this.prisma.user
+    await prisma.user
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
@@ -243,7 +241,7 @@ class UserModel {
   }
 
   async passwordRecoverByEmail(req) {
-    const user = await this.prisma.user
+    const user = await prisma.user
       .findUnique({ where: { email: req.body.email } })
       .catch((e) => {
         throw new DataBaseException("Internal Server error");
@@ -266,7 +264,7 @@ class UserModel {
       },
     );
 
-    const userPasswordRecover = await this.prisma.userPasswordRecover
+    const userPasswordRecover = await prisma.userPasswordRecover
       .create({
         data: {
           userId: user.id,
@@ -315,7 +313,7 @@ class UserModel {
   }
 
   async passwordRecoverByToken(req) {
-    const userPasswordRecover = await this.prisma.userPasswordRecover
+    const userPasswordRecover = await prisma.userPasswordRecover
       .findUnique({
         where: { token: req.query.token },
         include: { user: true },
@@ -344,7 +342,7 @@ class UserModel {
       parseInt(process.env.SALT_ROUNDS),
     );
 
-    await this.prisma.user
+    await prisma.user
       .update({
         where: { id: userPasswordRecover.userId },
         data: {
