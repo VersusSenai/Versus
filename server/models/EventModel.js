@@ -558,6 +558,7 @@ class EventModel {
         ],
       },
     });
+    
     const matchesAlreadyExists = await this.prisma.match.findMany({
       where: { eventId: event.id },
     });
