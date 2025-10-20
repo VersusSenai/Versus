@@ -48,10 +48,7 @@ class EventModel {
           include: {
             eventInscriptions: {
               where: {
-                OR: [
-                  { team: { status: "O" } },
-                  { user: { status: "A" } },
-                ],
+                OR: [{ team: { status: "O" } }, { user: { status: "A" } }],
               },
             },
           },
@@ -69,9 +66,7 @@ class EventModel {
                 {
                   private: true,
                   eventInscriptions: {
-                    some: {
-                      userId: req.user.id,
-                    },
+                    some: { userId: req.user.id },
                   },
                 },
                 { private: false },
@@ -81,23 +76,28 @@ class EventModel {
               OR: [
                 {
                   eventInscriptions: {
-                    some: {
-                      team: { status: "O" },
-                    },
+                    some: { team: { status: "O" } },
                   },
                 },
                 {
                   eventInscriptions: {
-                    some: {
-                      user: { status: "A" },
-                    },
+                    some: { user: { status: "A" } },
                   },
                 },
               ],
             },
           ],
         },
-        include: { eventInscriptions: true },
+        include: {
+          eventInscriptions: {
+            where: {
+              OR: [
+                { team: { status: "O" } }, 
+                { user: { status: "A" } }, 
+              ],
+            },
+          },
+        },
       })
       .withPages({
         page,
