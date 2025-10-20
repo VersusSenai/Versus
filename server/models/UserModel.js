@@ -8,6 +8,7 @@ import { pagination } from "prisma-extension-pagination";
 import MailSender from "../services/MailSender.js";
 import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
+import MatchModel from "./MatchModel.js";
 import ImageService from "../services/ImageService.js";
 import fs from "fs";
 import path from "path";
@@ -32,14 +33,13 @@ class UserModel {
           role: true,
           registeredDate: true,
           status: true,
-          icon: true
+          icon: true,
         },
       })
       .withPages({
         limit,
         page,
       });
-
   }
 
   async getById(req) {
@@ -77,10 +77,8 @@ class UserModel {
   async create(req) {
     const hash = bcrypt.hashSync(
       req.body.password,
-      parseInt(process.env.SALT_ROUNDS)
+      parseInt(process.env.SALT_ROUNDS),
     );
-
-    
 
     await this.prisma.user
       .create({
@@ -96,7 +94,7 @@ class UserModel {
         return r;
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
         if (err.code == "P2002") {
           throw new ConflictException("Email or Username already in use");
         } else {
@@ -108,35 +106,35 @@ class UserModel {
   async update(req) {
     const userData = req.user;
 
-
     const file = req.file;
     let image = {};
-    if( typeof req.body.image == "string"){
-      image["url"] = null
+    if (typeof req.body.image == "string") {
+      image["url"] = null;
     }
 
-    if((userData.icon && file) || (userData.icon && typeof req.body.image == "string" ) ){
-      
+    if (
+      (userData.icon && file) ||
+      (userData.icon && typeof req.body.image == "string")
+    ) {
       let url = req.user.icon.replace(/\/+$/, "");
       const partes = url.split("/");
-      let toDelete = partes[partes.length - 1];  
-      await ImageService.delete(toDelete)
-
+      let toDelete = partes[partes.length - 1];
+      await ImageService.delete(toDelete);
     }
-    if(file){
+    if (file) {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        throw new DataBaseException("Intenal Server error"); 
+        throw new DataBaseException("Intenal Server error");
       }
     }
     const hash = req.body.password
       ? bcrypt.hashSync(
           req.body.password ? req.body.password : "mokup",
-          parseInt(process.env.SALT_ROUNDS)
+          parseInt(process.env.SALT_ROUNDS),
         )
       : userData.password;
-    
+
     return await this.prisma.user
       .update({
         where: { id: parseInt(userData.id) },
@@ -144,7 +142,7 @@ class UserModel {
           email: req.body.email,
           username: req.body.username,
           password: hash,
-          icon: image? image.url: undefined
+          icon: image ? image.url : undefined,
         },
         select: {
           username: true,
@@ -175,7 +173,7 @@ class UserModel {
     const hash = req.body.password
       ? bcrypt.hashSync(
           req.body.password ? req.body.password : "mokup",
-          parseInt(process.env.SALT_ROUNDS)
+          parseInt(process.env.SALT_ROUNDS),
         )
       : user.password;
 
@@ -188,8 +186,7 @@ class UserModel {
           password: hash,
           role: req.body.role,
           status: req.body.status,
-          icon: req.body.image
-          
+          icon: req.body.image,
         },
         select: {
           username: true,
@@ -219,6 +216,10 @@ class UserModel {
           status: "D",
         },
       })
+      .then(async (data) => {
+        console.log(data);
+        await MatchModel.declareWinnerBatch({ userId: data.id });
+      })
       .catch((e) => {
         throw new DataBaseException("Error while deleting User");
       });
@@ -232,7 +233,11 @@ class UserModel {
           status: "D",
         },
       })
+      .then(async (data) => {
+        await MatchModel.declareWinnerBatch({ userId: data.id });
+      })
       .catch((e) => {
+        console.log(e);
         throw new DataBaseException("Error while deleting User");
       });
   }
@@ -258,7 +263,7 @@ class UserModel {
       process.env.PASSWORD_RECOVER_SECRET,
       {
         expiresIn: "5 days",
-      }
+      },
     );
 
     const userPasswordRecover = await this.prisma.userPasswordRecover
@@ -273,13 +278,18 @@ class UserModel {
         throw new DataBaseException("Internal Server Error");
       });
 
-    const templatePath = path.join(process.cwd(), 'templates', 'email', 'forgetpassword.html');
+    const templatePath = path.join(
+      process.cwd(),
+      "templates",
+      "email",
+      "forgetpassword.html",
+    );
     let htmlTemplate;
-    
+
     try {
-      htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+      htmlTemplate = fs.readFileSync(templatePath, "utf8");
     } catch (error) {
-      console.error('Erro ao ler template HTML:', error);
+      console.error("Erro ao ler template HTML:", error);
       htmlTemplate = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>Recupere sua senha da Versus</h2>
@@ -288,9 +298,9 @@ class UserModel {
         </div>
       `;
     }
-    
+
     const resetLink = `${frontEndUrl}/forgetPassword?token=${userPasswordRecover.token}`;
-    const htmlContent = htmlTemplate.replace('{{reset_link}}', resetLink);
+    const htmlContent = htmlTemplate.replace("{{reset_link}}", resetLink);
 
     let mailSender = MailSender;
 
@@ -327,11 +337,11 @@ class UserModel {
             throw new DataBaseException("Internal Server Error");
           }
         }
-      }
+      },
     );
     const hash = bcrypt.hashSync(
       req.body.password,
-      parseInt(process.env.SALT_ROUNDS)
+      parseInt(process.env.SALT_ROUNDS),
     );
 
     await this.prisma.user

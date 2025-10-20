@@ -8,7 +8,7 @@ import ConflictException from "../exceptions/ConflictException.js";
 import { pagination } from "prisma-extension-pagination";
 import ImageService from "../services/ImageService.js";
 import InternalServerError from "../exceptions/InternalServerError.js";
-
+import MatchModel from "./MatchModel.js";
 class TeamModel {
   constructor() {
     this.prisma = new PrismaClient().$extends(pagination());
@@ -207,6 +207,9 @@ class TeamModel {
         data: {
           status: "B",
         },
+      })
+      .then(async (data) => {
+        await MatchModel.declareWinnerBatch({ teamId: data.id });
       })
       .catch((e) => {
         if (e.code === "P2025") {
