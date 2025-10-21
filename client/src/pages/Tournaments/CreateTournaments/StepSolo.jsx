@@ -70,7 +70,6 @@ export default function StepSolo({ setStep, fetchTorneios, multiplayer }) {
       formData.append('model', model);
       formData.append('private', isPrivate);
       setLoading(true);
-      console.log(formData);
       await api.post('/event', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
