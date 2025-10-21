@@ -10,6 +10,7 @@ import ConflictException from "../exceptions/ConflictException.js";
 import notificationService from "../services/notificationService.js";
 import ImageService from "../services/ImageService.js";
 import prisma from "../ config/prismaClient.js";
+
 class EventModel {
   getAll = async (req) => {
     let page = req.query.page ? parseInt(req.query.page) : 1;
@@ -183,8 +184,9 @@ class EventModel {
         description,
         startDate,
         endDate,
-        multiplayer: multiplayer == "true" ? true : false,
-        private: isPrivate == "true" ? true : false,
+        multiplayer:
+          multiplayer == "true" || multiplayer == true ? true : false,
+        private: isPrivate == "true" || isPrivate == true ? true : false,
         status: "P",
         maxPlayers: parseInt(req.body.maxPlayers),
         thumbnail: image ? image.url : undefined,
@@ -504,25 +506,34 @@ class EventModel {
 
   getMyInscriptions = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
+    let role = req.query.role;
+    if (role === undefined || role.length === 0) {
+      role = ["P", "O"];
+    }
 
-    return await prisma.eventInscriptions
+    if (!Array.isArray(role)) {
+      role = [role];
+    }
+    return await prisma.event
       .findMany({
         where: {
-          userId: userData.id,
+          eventInscriptions: {
+            some: {
+              userId: userData.id,
+              role: { in: role },
+            },
+          },
         },
-        select: {
-          id: true,
-          role: true,
-          event: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
+        include: {
+          eventInscriptions: {
+            where: {
+              userId: userData.id,
             },
           },
         },
       })
       .catch((e) => {
+        console.log(e);
         throw new DataBaseException("Internal Server Error");
       });
   };
