@@ -8,11 +8,10 @@ import ConflictException from "../exceptions/ConflictException.js";
 import { pagination } from "prisma-extension-pagination";
 import ImageService from "../services/ImageService.js";
 import InternalServerError from "../exceptions/InternalServerError.js";
-
+import MatchModel from "./MatchModel.js";
+import prisma from "../ config/prismaClient.js";
 class TeamModel {
-  constructor() {
-    this.prisma = new PrismaClient().$extends(pagination());
-  }
+
 
   getAll = async (req) => {
     let page = req.query.page ? parseInt(req.query.page) : 1;
@@ -30,7 +29,7 @@ class TeamModel {
       );
     }
     if(req.user.role == "A"){
-      return await this.prisma.team
+      return await prisma.team
         .paginate({
           where: { status: { in: status } },
         })
@@ -41,7 +40,7 @@ class TeamModel {
 
     }
 
-    return await this.prisma.team
+    return await prisma.team
       .paginate({
         where: { status: { in: status }, private: false },
       })
@@ -53,7 +52,7 @@ class TeamModel {
 
   getById = async (req) => {
     if (req.user.role != "A") {
-      const team = await this.prisma.team.findUnique({
+      const team = await prisma.team.findUnique({
         where: { id: Number(req.params.id), status: { notIn: ["B"] } },
       });
       if (!team) {
@@ -62,7 +61,7 @@ class TeamModel {
 
       return team;
     } else {
-      const team = await this.prisma.team.findUnique({
+      const team = await prisma.team.findUnique({
         where: { 
           id: Number(req.params.id),
           OR: [{
@@ -110,7 +109,7 @@ class TeamModel {
     if (!isPrivate) isPrivate = false;
     
 
-    return await this.prisma.team
+    return await prisma.team
       .create({
         data: {
           name,
@@ -134,7 +133,7 @@ class TeamModel {
 
   update = async (req) => {
 
-    const team = await this.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { id: parseInt(req.params.id), status: { in: ["O", "P"] } },
     });
     const userData = await serviceUtils.getUserByToken(req);
@@ -178,7 +177,7 @@ class TeamModel {
       throw new NotAllowedException("You do not own this team");
     }
 
-    return await this.prisma.team
+    return await prisma.team
       .update({
         where: { id: team.id },
         data: {
@@ -201,12 +200,15 @@ class TeamModel {
       throw new NotAllowedException("You are not the owner of this team");
     }
 
-    return await this.prisma.team
+    return await prisma.team
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
           status: "B",
         },
+      })
+      .then(async (data) => {
+        await MatchModel.declareWinnerBatch({ teamId: data.id });
       })
       .catch((e) => {
         if (e.code === "P2025") {
@@ -218,7 +220,7 @@ class TeamModel {
 
   inscribe = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
-    const team = await this.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { id: parseInt(req.params.id) },
     });
 
@@ -229,7 +231,7 @@ class TeamModel {
       throw new NotAllowedException("User cannot inscribe in this team");
     }
 
-    return await this.prisma.teamUsers.create({
+    return await prisma.teamUsers.create({
       data: {
         userId: userData.id,
         teamId: parseInt(req.params.id),
@@ -240,7 +242,7 @@ class TeamModel {
   unsubscribe = async (req) => {
     const userData = await serviceUtils.getUserByToken(req);
 
-    const team = await this.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { id: parseInt(req.params.id) },
     });
 
@@ -248,7 +250,7 @@ class TeamModel {
       throw new NotFoundException("Team not found");
     }
 
-    const userInscriptionByToken = await this.prisma.teamUsers.findFirst({
+    const userInscriptionByToken = await prisma.teamUsers.findFirst({
       where: {
         userId: userData.id,
         teamId: parseInt(req.params.id),
@@ -263,7 +265,7 @@ class TeamModel {
     }
 
     if (userInscriptionByToken != null) {
-      return await this.prisma.teamUsers.delete({
+      return await prisma.teamUsers.delete({
         where: { id: userInscriptionByToken.id },
       });
     }
@@ -272,14 +274,14 @@ class TeamModel {
   unsubscribeById = async (req) => {
     const userData = req.user;
 
-    const team = await this.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { id: parseInt(req.params.id) },
     });
 
     if (team == null) {
       throw new NotFoundException("Team not found");
     }
-    const isTeamOwner = await this.prisma.teamUsers
+    const isTeamOwner = await prisma.teamUsers
       .findFirst({
         where: {
           userId: userData.id,
@@ -297,7 +299,7 @@ class TeamModel {
       );
     }
 
-    const userInscriptionByToken = await this.prisma.teamUsers
+    const userInscriptionByToken = await prisma.teamUsers
       .findFirst({
         where: {
           userId: parseInt(req.params.userId),
@@ -321,7 +323,7 @@ class TeamModel {
     ) {
       throw new NotAllowedException("Only a Owner can Unsubscribe an Admin");
     }
-    return await this.prisma.teamUsers.delete({
+    return await prisma.teamUsers.delete({
       where: { id: userInscriptionByToken.id },
     });
   };
@@ -329,7 +331,7 @@ class TeamModel {
   getAllInscriptions = async (req) => {
     const userData = req.user;
 
-    return await this.prisma.teamUsers.findMany({
+    return await prisma.teamUsers.findMany({
       where: { teamId: parseInt(req.params.id) },
       include: {
         user: {
@@ -352,14 +354,14 @@ class TeamModel {
       throw new NotAllowedException("Only Team Owner can Update Inscriptions");
     }
 
-    const tu = await this.prisma.teamUsers.findFirst({
+    const tu = await prisma.teamUsers.findFirst({
       where: { teamId, userId },
     });
     if (!tu) {
       throw new NotFoundException("Inscription not Found");
     }
 
-    return await this.prisma.teamUsers
+    return await prisma.teamUsers
       .update({
         where: { id: tu.id },
         data: {
@@ -374,13 +376,13 @@ class TeamModel {
 
   invitePlayer = async (req) => {
     const userData = req.user;
-    const team = await this.prisma.team
+    const team = await prisma.team
       .findFirst({ where: { id: parseInt(req.params.id) } })
       .catch((e) => {
         throw new DataBaseException("Internal Server Error");
       });
 
-    const userTo = await this.prisma.user
+    const userTo = await prisma.user
       .findFirst({ where: { id: parseInt(req.body.id) } })
       .catch((e) => {
         throw new DataBaseException("Internal Server Error");
@@ -424,7 +426,7 @@ class TeamModel {
     }
 
     if (req.body.accept == undefined || accept == true) {
-      await this.prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx) => {
         await tx.invite.update({
           where: { id: invite.id },
           data: {
@@ -451,7 +453,7 @@ class TeamModel {
       return { msg: "Invite Accepted" };
     }
     if (accept == false) {
-      await this.prisma.invite.update({
+      await prisma.invite.update({
         where: { id: invite.id },
         data: {
           status: "D",
@@ -463,7 +465,7 @@ class TeamModel {
   };
 
   approveTeam = async (req) => {
-    return await this.prisma.team
+    return await prisma.team
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
@@ -481,7 +483,7 @@ class TeamModel {
 
   getByUserId = async (req)=>{
     let userId = parseInt(req.params.id); 
-    let res = await this.prisma.team.findFirst({where:{
+    let res = await prisma.team.findFirst({where:{
       teamUsers: {
         some: {
           userId
@@ -505,14 +507,14 @@ class TeamModel {
   }
 
   isTeamOwner = async (user, teamId) => {
-    const isTeamOwner = await this.prisma.teamUsers.findFirst({
+    const isTeamOwner = await prisma.teamUsers.findFirst({
       where: { userId: user.id, teamId, role: "O" },
     });
     return isTeamOwner != null || user.role == "A";
   };
 
   isTeamOwnerOrTeamAdmin = async (user, teamId) => {
-    const isTeamOwner = await this.prisma.teamUsers.findFirst({
+    const isTeamOwner = await prisma.teamUsers.findFirst({
       where: { userId: user.id, teamId, OR: [{ role: "O" }, { role: "A" }] },
     });
 

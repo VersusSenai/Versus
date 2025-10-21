@@ -8,22 +8,21 @@ import { pagination } from "prisma-extension-pagination";
 import MailSender from "../services/MailSender.js";
 import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
+import MatchModel from "./MatchModel.js";
 import ImageService from "../services/ImageService.js";
 import fs from "fs";
 import path from "path";
 const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
+import prisma from "../ config/prismaClient.js";
 class UserModel {
-  constructor() {
-    this.prisma = new PrismaClient().$extends(pagination());
-  }
+
 
   async getAll(req) {
     const userData = req.user;
     let page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
     let limit = parseInt(req.query.limit) ? parseInt(req.query.limit) : 10;
 
-    return await this.prisma.user
+    return await prisma.user
       .paginate({
         select: {
           id: true,
@@ -32,21 +31,20 @@ class UserModel {
           role: true,
           registeredDate: true,
           status: true,
-          icon: true
+          icon: true,
         },
       })
       .withPages({
         limit,
         page,
       });
-
   }
 
   async getById(req) {
     const userData = req.user;
 
     if (userData.role == "A") {
-      const user = await this.prisma.user.findFirst({
+      const user = await prisma.user.findFirst({
         where: { id: parseInt(req.params.id), status: "A" },
       });
       if (user == null) {
@@ -57,7 +55,7 @@ class UserModel {
     }
 
     if (userData.role == "P" || userData.role == "O") {
-      const user = await this.prisma.user.findFirst({
+      const user = await prisma.user.findFirst({
         where: { id: parseInt(req.params.id), status: "A" },
         select: {
           email: true,
@@ -77,12 +75,10 @@ class UserModel {
   async create(req) {
     const hash = bcrypt.hashSync(
       req.body.password,
-      parseInt(process.env.SALT_ROUNDS)
+      parseInt(process.env.SALT_ROUNDS),
     );
 
-    
-
-    await this.prisma.user
+    await prisma.user
       .create({
         data: {
           username: req.body.username,
@@ -96,7 +92,7 @@ class UserModel {
         return r;
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
         if (err.code == "P2002") {
           throw new ConflictException("Email or Username already in use");
         } else {
@@ -108,43 +104,43 @@ class UserModel {
   async update(req) {
     const userData = req.user;
 
-
     const file = req.file;
     let image = {};
-    if( typeof req.body.image == "string"){
-      image["url"] = null
+    if (typeof req.body.image == "string") {
+      image["url"] = null;
     }
 
-    if((userData.icon && file) || (userData.icon && typeof req.body.image == "string" ) ){
-      
+    if (
+      (userData.icon && file) ||
+      (userData.icon && typeof req.body.image == "string")
+    ) {
       let url = req.user.icon.replace(/\/+$/, "");
       const partes = url.split("/");
-      let toDelete = partes[partes.length - 1];  
-      await ImageService.delete(toDelete)
-
+      let toDelete = partes[partes.length - 1];
+      await ImageService.delete(toDelete);
     }
-    if(file){
+    if (file) {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        throw new DataBaseException("Intenal Server error"); 
+        throw new DataBaseException("Intenal Server error");
       }
     }
     const hash = req.body.password
       ? bcrypt.hashSync(
           req.body.password ? req.body.password : "mokup",
-          parseInt(process.env.SALT_ROUNDS)
+          parseInt(process.env.SALT_ROUNDS),
         )
       : userData.password;
-    
-    return await this.prisma.user
+
+    return await prisma.user
       .update({
         where: { id: parseInt(userData.id) },
         data: {
           email: req.body.email,
           username: req.body.username,
           password: hash,
-          icon: image? image.url: undefined
+          icon: image ? image.url : undefined,
         },
         select: {
           username: true,
@@ -167,7 +163,7 @@ class UserModel {
   async updateById(req) {
     const userData = req.user;
 
-    const user = this.prisma.user.findFirst({ where: { id: req.params.id } });
+    const user = prisma.user.findFirst({ where: { id: req.params.id } });
 
     if (!user) {
       throw new NotFoundException("User not found");
@@ -175,11 +171,11 @@ class UserModel {
     const hash = req.body.password
       ? bcrypt.hashSync(
           req.body.password ? req.body.password : "mokup",
-          parseInt(process.env.SALT_ROUNDS)
+          parseInt(process.env.SALT_ROUNDS),
         )
       : user.password;
 
-    return await this.prisma.user
+    return await prisma.user
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
@@ -188,8 +184,7 @@ class UserModel {
           password: hash,
           role: req.body.role,
           status: req.body.status,
-          icon: req.body.image
-          
+          icon: req.body.image,
         },
         select: {
           username: true,
@@ -212,12 +207,16 @@ class UserModel {
   async delete(req) {
     const userData = req.user;
 
-    await this.prisma.user
+    await prisma.user
       .update({
         where: { id: userData.id },
         data: {
           status: "D",
         },
+      })
+      .then(async (data) => {
+        console.log(data);
+        await MatchModel.declareWinnerBatch({ userId: data.id });
       })
       .catch((e) => {
         throw new DataBaseException("Error while deleting User");
@@ -225,20 +224,24 @@ class UserModel {
   }
 
   async deleteById(req) {
-    await this.prisma.user
+    await prisma.user
       .update({
         where: { id: parseInt(req.params.id) },
         data: {
           status: "D",
         },
       })
+      .then(async (data) => {
+        await MatchModel.declareWinnerBatch({ userId: data.id });
+      })
       .catch((e) => {
+        console.log(e);
         throw new DataBaseException("Error while deleting User");
       });
   }
 
   async passwordRecoverByEmail(req) {
-    const user = await this.prisma.user
+    const user = await prisma.user
       .findUnique({ where: { email: req.body.email } })
       .catch((e) => {
         throw new DataBaseException("Internal Server error");
@@ -258,10 +261,10 @@ class UserModel {
       process.env.PASSWORD_RECOVER_SECRET,
       {
         expiresIn: "5 days",
-      }
+      },
     );
 
-    const userPasswordRecover = await this.prisma.userPasswordRecover
+    const userPasswordRecover = await prisma.userPasswordRecover
       .create({
         data: {
           userId: user.id,
@@ -273,13 +276,18 @@ class UserModel {
         throw new DataBaseException("Internal Server Error");
       });
 
-    const templatePath = path.join(process.cwd(), 'templates', 'email', 'forgetpassword.html');
+    const templatePath = path.join(
+      process.cwd(),
+      "templates",
+      "email",
+      "forgetpassword.html",
+    );
     let htmlTemplate;
-    
+
     try {
-      htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+      htmlTemplate = fs.readFileSync(templatePath, "utf8");
     } catch (error) {
-      console.error('Erro ao ler template HTML:', error);
+      console.error("Erro ao ler template HTML:", error);
       htmlTemplate = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>Recupere sua senha da Versus</h2>
@@ -288,9 +296,9 @@ class UserModel {
         </div>
       `;
     }
-    
+
     const resetLink = `${frontEndUrl}/forgetPassword?token=${userPasswordRecover.token}`;
-    const htmlContent = htmlTemplate.replace('{{reset_link}}', resetLink);
+    const htmlContent = htmlTemplate.replace("{{reset_link}}", resetLink);
 
     let mailSender = MailSender;
 
@@ -305,7 +313,7 @@ class UserModel {
   }
 
   async passwordRecoverByToken(req) {
-    const userPasswordRecover = await this.prisma.userPasswordRecover
+    const userPasswordRecover = await prisma.userPasswordRecover
       .findUnique({
         where: { token: req.query.token },
         include: { user: true },
@@ -327,14 +335,14 @@ class UserModel {
             throw new DataBaseException("Internal Server Error");
           }
         }
-      }
+      },
     );
     const hash = bcrypt.hashSync(
       req.body.password,
-      parseInt(process.env.SALT_ROUNDS)
+      parseInt(process.env.SALT_ROUNDS),
     );
 
-    await this.prisma.user
+    await prisma.user
       .update({
         where: { id: userPasswordRecover.userId },
         data: {
