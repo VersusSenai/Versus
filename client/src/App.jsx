@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
-import Tournaments from './pages/Tournaments/Tournament';
-import CreateTournaments from './pages/Tournaments/CreateTournaments/CreateTournaments';
+import Tournaments from './pages/TournamentPage';
+import CreateTournaments from './pages/CreateTournamentsPage';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';

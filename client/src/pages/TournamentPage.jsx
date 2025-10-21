@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import api from '../api';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 
-import TournamentCard from './TournamentCard';
-import TournamentDialog from './TournamentDialog';
+import TournamentCard from '../components/tournaments/TournamentCard';
+import TournamentDialog from '../components/tournaments/TournamentDialog';
 import { Switch } from '@/components/ui/switch';
 import {
   Select,
@@ -16,7 +16,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useDeleteEvent } from '@/hooks/useDeleteEvent';
-import { formatDate } from '../../utils/formatDate';
+import { formatDate } from '../utils/formatDate';
 
 export default function Tournaments() {
   const [events, setEvents] = useState([]);

@@ -8,11 +8,11 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import Tag from './Tag';
+import Tag from '@/components/tournaments/Tag';
 import { formatDate } from '../../utils/formatDate';
 import CustomDialog from '@/components/CustomDialog';
 import ProfessionalBracket from '@/components/Bracket';
-import EditTournamentDialog from './EditTournamentDialog';
+import EditTournamentDialog from '@/components/tournaments/EditTournamentDialog';
 
 export default function TournamentDialog({
   event,

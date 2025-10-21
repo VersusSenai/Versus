@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import Tag from './Tag';
+import Tag from '@/components/tournaments/Tag';
 import defaultTournamentImage from '../../assets/solo.jpg';
 import { formatDate } from '../../utils/formatDate';
 
