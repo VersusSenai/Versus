@@ -59,7 +59,7 @@ const Navbar = ({ onWidthChange }) => {
         label: 'Times',
         icon: <MdOutlineGroups />,
         path: 'teams',
-        roles: ['A'],
+        roles: ['A', 'P'],
         variant: 'outlined',
       },
     ],
