@@ -23,17 +23,15 @@ const variants = {
   exit: { opacity: 0, x: -50 },
 };
 
-export default function StepSolo({ setStep, fetchTorneios }) {
+export default function StepSolo({ setStep, fetchTorneios, multiplayer }) {
   const [nome, setNome] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [maxPlayers, setMaxPlayers] = useState('8');
-  const [multiplayer, setMultiplayer] = useState(false);
   const [model, setModel] = useState('P');
   const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const criarTorneio = async () => {
     if (!nome || !description || !startDate || !endDate || !maxPlayers || !model) {
       toast.error('Preencha todos os campos corretamente.');
@@ -59,13 +57,15 @@ export default function StepSolo({ setStep, fetchTorneios }) {
 
     try {
       setLoading(true);
+      console.log(multiplayer);
+
       await api.post('/event', {
         name: nome,
         description,
         startDate: start.toISOString(),
         endDate: end.toISOString(),
         maxPlayers: parseInt(maxPlayers),
-        multiplayer,
+        multiplayer: multiplayer,
         model,
         private: isPrivate,
       });
@@ -76,7 +76,6 @@ export default function StepSolo({ setStep, fetchTorneios }) {
       setStartDate('');
       setEndDate('');
       setMaxPlayers('8');
-      setMultiplayer(false);
       setModel('P');
       setIsPrivate(false);
       if (fetchTorneios) fetchTorneios();
@@ -108,7 +107,9 @@ export default function StepSolo({ setStep, fetchTorneios }) {
       <Card className="bg-[var(--color-dark)] text-white border border-white/10 rounded-3xl shadow-md pt-8">
         <CardHeader className="flex items-center gap-3 pb-4 pt-6 px-6">
           <CalendarHeart className="text-pink-500" size={28} />
-          <CardTitle className="text-2xl font-bold">Criar Novo Torneio</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Criar Novo Torneio {multiplayer ? 'Para Times' : 'Solo'}
+          </CardTitle>
         </CardHeader>
 
         <CardContent className="grid md:grid-cols-2 gap-6 px-6 pb-8 pt-2">
@@ -185,17 +186,7 @@ export default function StepSolo({ setStep, fetchTorneios }) {
           </div>
 
           <div className="md:col-span-2 flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="multiplayer" className="cursor-pointer">
-                Evento Multiplayer
-              </Label>
-              <Switch
-                id="multiplayer"
-                checked={multiplayer}
-                onCheckedChange={(value) => setMultiplayer(!!value)}
-                className="data-[state=checked]:bg-green-500"
-              />
-            </div>
+            <div className="flex items-center gap-2"></div>
             <div className="flex items-center gap-2">
               <Label htmlFor="private" className="cursor-pointer">
                 Torneio Privado

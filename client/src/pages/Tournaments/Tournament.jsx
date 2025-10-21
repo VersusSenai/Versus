@@ -63,7 +63,7 @@ export default function Tournaments() {
       const allEvents = eventsResponse.data[0];
 
       const inscriptionsResponse = await api.get('/event/inscriptions/me');
-      const userEventIds = new Set(inscriptionsResponse.data.map((i) => i.event.id));
+      const userEventIds = new Set(inscriptionsResponse.data.map((event) => event.id));
 
       const eventsWithDetails = await Promise.all(
         allEvents.map(async (ev) => {
