@@ -2,6 +2,7 @@ import { FaUserCircle, FaTrash } from 'react-icons/fa';
 import { VersusIconButton } from '../ui/versus/versusIconButton';
 import { VersusInput } from '../ui/versus/versusInput';
 import { VersusButton } from '../ui/versus/versusButton';
+import { AvatarUpload } from '../components/ui/inputs/AvatarUpload';
 import {
   Dialog,
   DialogTrigger,
@@ -29,7 +30,7 @@ export default function AccountPage() {
         <h1 className="text-5xl font-bold mb-6 text-center text-white">Conta do Usuário</h1>
         <div className="flex items-center justify-center rounded-xl p-8 w-full max-w-md flex-col">
           <div className="mb-6">
-            <FaUserCircle className="text-[120px] text-white drop-shadow-lg" />
+            <AvatarUpload currentImage={user?.icon} disabled />
           </div>
 
           <VersusInput
