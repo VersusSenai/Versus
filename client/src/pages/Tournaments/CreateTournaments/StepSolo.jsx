@@ -32,7 +32,10 @@ export default function StepSolo({ setStep, fetchTorneios, multiplayer }) {
   const [model, setModel] = useState('P');
   const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState(null);
+
   const criarTorneio = async () => {
+    console.log(image);
     if (!nome || !description || !startDate || !endDate || !maxPlayers || !model) {
       toast.error('Preencha todos os campos corretamente.');
       return;
@@ -56,18 +59,22 @@ export default function StepSolo({ setStep, fetchTorneios, multiplayer }) {
     }
 
     try {
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('name', nome);
+      formData.append('description', description);
+      formData.append('startDate', start.toISOString());
+      formData.append('endDate', end.toISOString());
+      formData.append('maxPlayers', parseInt(maxPlayers));
+      formData.append('multiplayer', multiplayer);
+      formData.append('model', model);
+      formData.append('private', isPrivate);
       setLoading(true);
-      console.log(multiplayer);
-
-      await api.post('/event', {
-        name: nome,
-        description,
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        maxPlayers: parseInt(maxPlayers),
-        multiplayer: multiplayer,
-        model,
-        private: isPrivate,
+      console.log(formData);
+      await api.post('/event', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       toast.success('Evento criado com sucesso!');
@@ -75,6 +82,7 @@ export default function StepSolo({ setStep, fetchTorneios, multiplayer }) {
       setDescription('');
       setStartDate('');
       setEndDate('');
+      setImage('');
       setMaxPlayers('8');
       setModel('P');
       setIsPrivate(false);
@@ -113,6 +121,16 @@ export default function StepSolo({ setStep, fetchTorneios, multiplayer }) {
         </CardHeader>
 
         <CardContent className="grid md:grid-cols-2 gap-6 px-6 pb-8 pt-2">
+          <div className="md:col-span-2 space-y-2">
+            <Label htmlFor="nome">Imagem do torneio</Label>
+            <Input
+              type="file"
+              id="nome"
+              className="bg-white text-black"
+              value={image?.filename}
+              onChange={(e) => setImage(e.target.files[0])}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="nome">Nome do Torneio</Label>
             <Input

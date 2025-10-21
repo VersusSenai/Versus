@@ -158,6 +158,7 @@ eventRoute.post(
       const event = await eventModel.create(req);
       res.status(201).json(event);
     } catch (err) {
+      console.error(err);
       next(err);
     }
   },
@@ -506,7 +507,6 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
     const result = await eventModel.invitePlayer(req);
     res.status(200).json(result);
   } catch (err) {
-
     next(err);
   }
 });
