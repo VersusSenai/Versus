@@ -104,11 +104,6 @@ export default function Tournaments() {
       const allEvents = eventsResponse.data[0] || [];
       const pagination = eventsResponse.data[1] || {};
 
-      console.log('📊 Paginação do backend:', {
-        eventsCount: allEvents.length,
-        pagination,
-      });
-
       // Atualizar paginação com os campos corretos do backend
       setPaginationInfo({
         isFirstPage: pagination.isFirstPage ?? true,

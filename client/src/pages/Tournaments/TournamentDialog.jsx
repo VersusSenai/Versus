@@ -45,7 +45,7 @@ export default function TournamentDialog({
   return (
     <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
       {/* Aqui o card aparece e funciona como trigger */}
-      <div onClick={() => setDialogOpen(true)}>{children}</div>
+      <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent
         className="p-6 bg-[var(--color-dark)] text-white rounded-2xl border border-white/20"

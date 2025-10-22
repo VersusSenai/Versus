@@ -8,7 +8,7 @@ export default function TournamentCard({ event, isInscribed, eventStatus, winner
   const hasMatches = matches.length > 0;
 
   return (
-    <Card className="cursor-pointer pt-0 hover:shadow-lg transition-shadow flex flex-col bg-[var(--color-dark)] text-white border border-white/10 rounded-2xl shadow-md">
+    <Card className="cursor-pointer pt-0 hover:shadow-lg transition-shadow flex flex-col bg-[var(--color-dark)] text-white border border-white/10 rounded-2xl shadow-md select-none">
       <div className="w-full h-48 overflow-hidden rounded-t-2xl bg-gray-800">
         <img
           src={event.thumbnail ? event.thumbnail : defaultTournamentImage}
