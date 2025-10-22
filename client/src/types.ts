@@ -1,3 +1,10 @@
+export type UserProps = {
+  id: number;
+  username: string;
+  email: string;
+  role: 'A' | 'O' | 'P';
+};
+
 export type TeamProps = {
   id: number;
   name: string;
@@ -6,6 +13,17 @@ export type TeamProps = {
   registeredDate: Date;
   private: boolean;
   status: 'P' | 'O' | 'B';
+  inscriptions: TeamUserProps[];
+};
+
+export type TeamUserProps = {
+  id: number;
+  user: UserProps;
+  role: 'O' | 'P';
+  status: 'O' | 'B';
+  inscriptionDate: Date;
+  teamId: number;
+  userId: number;
 };
 
 export type ResponseGetTeams = {
