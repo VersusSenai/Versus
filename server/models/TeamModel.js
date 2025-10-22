@@ -11,8 +11,6 @@ import InternalServerError from "../exceptions/InternalServerError.js";
 import MatchModel from "./MatchModel.js";
 import prisma from "../ config/prismaClient.js";
 class TeamModel {
-
-
   getAll = async (req) => {
     let page = req.query.page ? parseInt(req.query.page) : 1;
     let limit = req.query.limit ? parseInt(req.query.limit) : 10;
@@ -25,10 +23,10 @@ class TeamModel {
     }
     if (status.includes("B") && req.user.role != "A") {
       throw new NotAllowedException(
-        "Only administrators can see deleted teams"
+        "Only administrators can see deleted teams",
       );
     }
-    if(req.user.role == "A"){
+    if (req.user.role == "A") {
       return await prisma.team
         .paginate({
           where: { status: { in: status } },
@@ -37,7 +35,6 @@ class TeamModel {
           page,
           limit,
         });
-
     }
 
     return await prisma.team
@@ -62,26 +59,23 @@ class TeamModel {
       return team;
     } else {
       const team = await prisma.team.findUnique({
-        where: { 
+        where: {
           id: Number(req.params.id),
-          OR: [{
-            private: true,
-            teamUsers:{
-              userId: req.user.id
-            }
-          },
-          {private: false}
-        
-        ]
+          OR: [
+            {
+              private: true,
+              teamUsers: {
+                userId: req.user.id,
+              },
+            },
+            { private: false },
+          ],
         },
-        include:{
-          teamUsers: true
-        }
-      
-      
+        include: {
+          teamUsers: true,
+        },
       });
-      
-      
+
       if (!team) {
         throw new NotFoundException("Team not found");
       }
@@ -95,11 +89,11 @@ class TeamModel {
     const { name, description } = req.body;
     const file = req.file;
     let image;
-    if(file){
+    if (file) {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        throw new DataBaseException("Intenal Server error"); 
+        throw new DataBaseException("Intenal Server error");
       }
     }
     let isPrivate = req.body.private;
@@ -107,7 +101,6 @@ class TeamModel {
       throw new BadRequestException("Missing required fields");
     }
     if (!isPrivate) isPrivate = false;
-    
 
     return await prisma.team
       .create({
@@ -115,8 +108,8 @@ class TeamModel {
           name,
           description,
           status: "P",
-          private: isPrivate == 'true'? true : false,
-          icon: image? image.url: undefined,
+          private: isPrivate == "true" ? true : false,
+          icon: image ? image.url : undefined,
           teamUsers: {
             create: [{ userId: userData.id, role: "O" }],
           },
@@ -126,48 +119,45 @@ class TeamModel {
         if (e.code == "P2002") {
           throw new ConflictException("User already is owner of a team");
         }
-        console.log(e)
+        console.log(e);
         throw new DataBaseException("Team not created");
       });
   };
 
   update = async (req) => {
-
     const team = await prisma.team.findFirst({
       where: { id: parseInt(req.params.id), status: { in: ["O", "P"] } },
     });
     const userData = await serviceUtils.getUserByToken(req);
     const { name, description } = req.body;
     let image = {};
-      if( typeof req.body.image == "string"){
-        image["url"] = null
-      }
-      const file = req.file;
+    if (typeof req.body.image == "string") {
+      image["url"] = null;
+    }
+    const file = req.file;
 
-      if((team.icon && file) || (team.icon && typeof req.body.image == "string" ) ){
-        
-        let url = team.icon.replace(/\/+$/, "");
-        const partes = url.split("/");
-        let toDelete = partes[partes.length - 1];  
-        await ImageService.delete(toDelete)
-
-      }
-    if(file){
+    if (
+      (team.icon && file) ||
+      (team.icon && typeof req.body.image == "string")
+    ) {
+      let url = team.icon.replace(/\/+$/, "");
+      const partes = url.split("/");
+      let toDelete = partes[partes.length - 1];
+      await ImageService.delete(toDelete);
+    }
+    if (file) {
       try {
         image = await ImageService.upload(file);
       } catch (error) {
-        console.log(error)
-        throw new DataBaseException("Intenal Server error"); 
+        console.log(error);
+        throw new DataBaseException("Intenal Server error");
       }
     }
-
 
     const teamOwner = await this.isTeamOwner(userData, parseInt(req.params.id));
     if (!teamOwner) {
       throw new NotAllowedException("You are not the owner of this team");
     }
-
-
 
     if (team == null) {
       throw new NotFoundException("Team not found");
@@ -183,8 +173,7 @@ class TeamModel {
         data: {
           name,
           description,
-          icon: image? image.url: undefined,
-          
+          icon: image ? image.url : undefined,
         },
       })
       .catch((e) => {
@@ -295,7 +284,7 @@ class TeamModel {
 
     if (!isTeamOwner) {
       throw new NotAllowedException(
-        "Only administrators of this team can unsubscribe another member"
+        "Only administrators of this team can unsubscribe another member",
       );
     }
 
@@ -421,7 +410,7 @@ class TeamModel {
     const team = invite.team;
     if (invite.toUser.id != userData.id) {
       throw new NotAllowedException(
-        "Only the user invited can accept his invite"
+        "Only the user invited can accept his invite",
       );
     }
 
@@ -481,30 +470,39 @@ class TeamModel {
       });
   };
 
-  getByUserId = async (req)=>{
-    let userId = parseInt(req.params.id); 
-    let res = await prisma.team.findFirst({where:{
-      teamUsers: {
-        some: {
-          userId
+  getByUserId = async (req) => {
+    let userId = parseInt(req.params.id);
+    let res = await prisma.team
+      .findFirst({
+        where: {
+          teamUsers: {
+            some: {
+              userId,
+            },
+          },
+        },
+        include: {
+          teamUsers: {
+            where: {
+              userId,
+            },
+          },
+        },
+      })
+      .catch((e) => {
+        if (e.code === "P2025") {
+          throw new NotFoundException("Team not found");
+        } else {
+          throw new DataBaseException("Internal server error");
         }
-      }
-    }}).catch(e=>{
-      if (e.code === "P2025") {
-        throw new NotFoundException("Team not found");
-      } else {
-        throw new DataBaseException("Internal server error");
-      }
-    }) 
+      });
 
-    if(res){
-      return res
-    }else{
-        throw new NotFoundException("Team not found");
+    if (res) {
+      return res;
+    } else {
+      throw new NotFoundException("Team not found");
     }
-
-
-  }
+  };
 
   isTeamOwner = async (user, teamId) => {
     const isTeamOwner = await prisma.teamUsers.findFirst({

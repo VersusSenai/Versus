@@ -22,6 +22,7 @@ export default function TournamentDialog({
   user,
   userInscriptions,
   eventMatches,
+  loadingMatches,
   handleSubscribe,
   handleUnsubscribe,
   handleStartEvent,
@@ -30,7 +31,6 @@ export default function TournamentDialog({
   deleteDialogOpen,
   setDeleteDialogOpen,
   eventStatus,
-  winnerName,
   fetchEvents,
 }) {
   const isInscribed = userInscriptions[event.id];
@@ -138,7 +138,11 @@ export default function TournamentDialog({
           )}
         </div>
 
-        {hasMatches ? (
+        {loadingMatches ? (
+          <div className="text-center py-8">
+            <p className="text-white/70">Carregando chaves do torneio...</p>
+          </div>
+        ) : hasMatches ? (
           <div
             className="border-none rounded p-4 bg-[var(--color-dark)]"
             style={{
