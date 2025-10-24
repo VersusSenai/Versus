@@ -67,6 +67,7 @@ class ImageService {
       const buffer = Buffer.concat(chunks);
       return buffer;
     } catch (e) {
+      console.log(e);
       throw new InternalServerError();
     }
   };
@@ -79,10 +80,11 @@ class ImageService {
       };
 
       const command = new DeleteObjectCommand(params);
-
+      
       const response = await this.client.send(command);
       return response;
     } catch (error) {
+      console.log(error);
       throw new InternalServerError();
     }
   };

@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import serviceUtils from "../services/util.js";
 import NotFoundException from "../exceptions/NotFoundException.js";
 import inviteModel from "./inviteModel.js";
 import DataBaseException from "../exceptions/DataBaseException.js";
 import NotAllowedException from "../exceptions/NotAllowedException.js";
 import ConflictException from "../exceptions/ConflictException.js";
-import { pagination } from "prisma-extension-pagination";
 import ImageService from "../services/ImageService.js";
 import InternalServerError from "../exceptions/InternalServerError.js";
 import MatchModel from "./MatchModel.js";
@@ -48,9 +46,9 @@ class TeamModel {
   };
 
   getById = async (req) => {
-    if (req.user.role != "A") {
+    if (req.user.role == "A") {
       const team = await prisma.team.findUnique({
-        where: { id: Number(req.params.id), status: { notIn: ["B"] } },
+        where: { id: Number(req.params.id) },
       });
       if (!team) {
         throw new NotFoundException("Team not found");
@@ -58,23 +56,29 @@ class TeamModel {
 
       return team;
     } else {
-      const team = await prisma.team.findUnique({
-        where: {
-          id: Number(req.params.id),
-          OR: [
-            {
-              private: true,
-              teamUsers: {
-                userId: req.user.id,
+      const team = await prisma.team
+        .findUnique({
+          where: {
+            id: Number(req.params.id),
+            OR: [
+              {
+                private: true,
+                teamUsers: {
+                  some: {
+                    userId: req.user.id,
+                  },
+                },
               },
-            },
-            { private: false },
-          ],
-        },
-        include: {
-          teamUsers: true,
-        },
-      });
+              { private: false },
+            ],
+          },
+          include: {
+            teamUsers: true,
+          },
+        })
+        .catch((e) => {
+          throw new InternalServerError("Internal Server Error");
+        });
 
       if (!team) {
         throw new NotFoundException("Team not found");
@@ -96,10 +100,10 @@ class TeamModel {
         throw new DataBaseException("Intenal Server error");
       }
     }
-    let isPrivate = req.body.private;
     if (!name || !description) {
       throw new BadRequestException("Missing required fields");
     }
+    let isPrivate = req.body.private;
     if (!isPrivate) isPrivate = false;
 
     return await prisma.team
@@ -166,12 +170,14 @@ class TeamModel {
     if (!(await this.isTeamOwner(userData, parseInt(req.params.id)))) {
       throw new NotAllowedException("You do not own this team");
     }
-
+    let isPrivate = req.body.private;
+    if (!isPrivate) isPrivate = false;
     return await prisma.team
       .update({
         where: { id: team.id },
         data: {
           name,
+          private: isPrivate == "true" ? true : false,
           description,
           icon: image ? image.url : undefined,
         },

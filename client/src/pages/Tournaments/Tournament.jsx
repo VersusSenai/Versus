@@ -95,8 +95,7 @@ export default function Tournaments() {
         params.append('multiplayer', 'true');
       } else if (filterMode === 'singleplayer') {
         params.append('multiplayer', 'false');
-      }
-      if (!hasTeam && user?.role !== 'A') {
+      } else if (!hasTeam && user?.role !== 'A') {
         params.append('multiplayer', 'false');
       }
 
