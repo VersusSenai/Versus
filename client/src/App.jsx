@@ -83,7 +83,7 @@ const AnimatedRoutes = () => {
         <Route
           path="/teams"
           element={
-            <ProtectedRoute allowedRoles={['A']}>
+            <ProtectedRoute allowedRoles={['A', 'P']}>
               <Layout>
                 <PageWrapper>
                   <TeamsPageProvider>
