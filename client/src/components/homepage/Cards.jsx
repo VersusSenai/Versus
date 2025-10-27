@@ -3,6 +3,7 @@ import BasicIcon from './../../assets/plano1.png';
 import ProIcon from './../../assets/plano2.png';
 import EnterpriseIcon from './../../assets/plano3.png';
 import ScrollArrow from '../../components/ScrollArrow';
+import GlassButton from './GlassButton';
 import { motion } from 'framer-motion';
 
 const plans = [
@@ -74,7 +75,7 @@ const Cards = () => {
               className={`
               group relative flex flex-col items-center rounded-2xl pt-20 pb-8 px-8
               transition-all duration-300
-              ${highlight ? 'md:scale-105 z-10 ring-2 ring-[var(--color-2)]' : 'hover:-translate-y-1.5'}
+              ${highlight ? 'md:scale-105 z-10 shadow-[0_0_30px_rgba(132,92,245,0.4)]' : 'hover:-translate-y-1.5'}
               border border-white/10 bg-white/10 backdrop-blur-xl text-white shadow-[0_10px_30px_rgba(0,0,0,0.15)]
             `}
               variants={cardVariants}
@@ -111,13 +112,14 @@ const Cards = () => {
                   </li>
                 ))}
               </ul>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className={`px-10 py-3 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-2)] cursor-pointer ${btnClass}`}
+              
+              <GlassButton
+                variant={highlight ? 'primary' : 'secondary'}
+                className="px-10"
               >
                 {btnText}
-              </motion.button>
+              </GlassButton>
+              
               {/* Shine effect */}
               <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"
                    style={{

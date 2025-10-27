@@ -6,7 +6,9 @@ const ScrollArrow = ({ targetId, direction = 'down' }) => {
   const scrollToSection = () => {
     const section = document.getElementById(targetId);
     if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      console.warn(`ScrollArrow: Seção com id "${targetId}" não encontrada`);
     }
   };
 

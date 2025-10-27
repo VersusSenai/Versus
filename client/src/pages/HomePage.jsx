@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Cards from '../components/homepage/Cards';
@@ -6,11 +6,12 @@ import Footer from '../components/homepage/Footer';
 import Hero from '../components/homepage/Hero';
 import Aurora from '../ui/blocks/Backgrounds/Aurora/Aurora';
 import Showcase from '../components/homepage/Showcase';
-import Navbar from '../components/Navbar';
+import Header from '../components/homepage/Header';
 
 function HomePage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const logoRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.toast) {
@@ -19,6 +20,10 @@ function HomePage() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
 
   return (
     <>
@@ -30,8 +35,8 @@ function HomePage() {
           speed={0.5}
         />
       </div>
-      <Navbar />
-      <Hero />
+      <Header logoRef={logoRef} onLoginClick={handleLoginClick} />
+      <Hero logoRef={logoRef} />
       <Cards />
       <Showcase />
       <Footer />

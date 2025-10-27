@@ -40,20 +40,14 @@ const Showcase = () => {
   const items = [...logos, ...logos];
   return (
     <section id="showcase" className="w-full bg-transparent min-h-screen relative flex items-center px-6 py-16">
-      {/* orbs de fundo */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-24 right-10 h-72 w-72 rounded-full blur-3xl" style={{ background: 'radial-gradient(closest-side, var(--color-2), transparent 70%)' }} />
-        <div className="absolute bottom-0 left-10 h-64 w-64 rounded-full blur-3xl" style={{ background: 'radial-gradient(closest-side, var(--color-1), transparent 70%)' }} />
-      </div>
-
       <div className="max-w-[1240px] mx-auto w-full">
         <h3 className="text-center text-white text-2xl font-bold mb-10">Parcerias e depoimentos</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 p-4 sm:p-6 lg:p-8">
             <p className="text-white/70 mb-4">Integrado com as maiores publishers</p>
-            <div className="relative overflow-hidden rounded-2xl border border-white/10">
-              <div className="pointer-events-none absolute left-0 top-0 h-full w-16" style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.65), rgba(0,0,0,0))' }} />
-              <div className="pointer-events-none absolute right-0 top-0 h-full w-16" style={{ background: 'linear-gradient(270deg, rgba(0,0,0,0.65), rgba(0,0,0,0))' }} />
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[var(--color-dark)] via-[#1a0d2e] to-[var(--color-dark)]">
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10" style={{ background: 'linear-gradient(90deg, var(--color-dark) 0%, rgba(13, 2, 33, 0.8) 40%, transparent 100%)' }} />
+              <div className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10" style={{ background: 'linear-gradient(270deg, var(--color-dark) 0%, rgba(13, 2, 33, 0.8) 40%, transparent 100%)' }} />
               <div className="overflow-hidden py-4">
                 <motion.div
                   className="flex gap-12 px-6 items-center"
