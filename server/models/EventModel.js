@@ -50,7 +50,7 @@ class EventModel {
 
     const baseWhere = {
       status: { in: status },
-      ...multiplayerFilter, 
+      ...multiplayerFilter,
     };
 
     if (req.user.role === "A") {
@@ -857,7 +857,7 @@ class EventModel {
             userId: user.userId,
             title: "Notificação do Torneio: " + event.name,
             message: message,
-            link: `/event/${event.id}`,
+            link: ``,
           });
         }
       }
@@ -875,7 +875,7 @@ class EventModel {
           title: "Torneio " + event.name + " foi iniciado!",
           message:
             "O Torneio " + event.name + " começou!. se prepare para jogar!",
-          link: `/event/${event.id}`,
+          link: ``,
         });
       }
     }
