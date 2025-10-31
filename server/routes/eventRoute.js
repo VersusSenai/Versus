@@ -51,14 +51,15 @@ const eventRoute = express.Router();
  *                 $ref: '#/components/schemas/Event'
  */
 eventRoute.get("/", verifyToken, async (req, res, next) => {
-  await eventModel.getAll(req).catch(e=>{
-    next(e)
-
-  }).then(data=>{
-    if(data)
-      res.json(data);
-
-  })
+  await eventModel
+    .getAll(req)
+    .catch((e) => {
+      console.log(e);
+      next(e);
+    })
+    .then((data) => {
+      if (data) res.json(data);
+    });
 });
 
 /**
@@ -89,7 +90,7 @@ eventRoute.get("/:id", verifyToken, async (req, res, next) => {
     const event = await eventModel.getById(req);
     res.status(200).json(event);
   } catch (err) {
-    next(err)
+    next(err);
   }
 });
 
@@ -148,14 +149,20 @@ eventRoute.get("/:id", verifyToken, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.post("/", isOrganizer, upload.single('image'), async (req, res, next) => {
-  try {
-    const event = await eventModel.create(req);
-    res.status(201).json(event);
-  } catch (err) {
-    next(err)
-  }
-});
+eventRoute.post(
+  "/",
+  isOrganizer,
+  upload.single("image"),
+  async (req, res, next) => {
+    try {
+      const event = await eventModel.create(req);
+      res.status(201).json(event);
+    } catch (err) {
+      console.error(err);
+      next(err);
+    }
+  },
+);
 
 /**
  * @swagger
@@ -190,14 +197,19 @@ eventRoute.post("/", isOrganizer, upload.single('image'), async (req, res, next)
  *       403:
  *         description: Acesso não autorizado
  */
-eventRoute.put("/:id", isOrganizer, upload.single('image'), async (req, res, next) => {
-  try {
-    const updated = await eventModel.update(req);
-    res.status(200).json(updated);
-  } catch (err) {
-    next(err)
-  }
-});
+eventRoute.put(
+  "/:id",
+  isOrganizer,
+  upload.single("image"),
+  async (req, res, next) => {
+    try {
+      const updated = await eventModel.update(req);
+      res.status(200).json(updated);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 /**
  * @swagger
@@ -273,7 +285,7 @@ eventRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.inscribe(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
+    next(err);
   }
 });
 
@@ -305,8 +317,8 @@ eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res, next) => {
     const result = await eventModel.unsubscribe(req);
     res.status(200).json(result);
   } catch (err) {
-    console.log(err)
-    next(err)
+    console.log(err);
+    next(err);
   }
 });
 
@@ -339,14 +351,18 @@ eventRoute.delete("/:id/unsubscribe", verifyToken, async (req, res, next) => {
  *       403:
  *         description: Acesso não autorizado ou evento já iniciado
  */
-eventRoute.delete("/:id/unsubscribe/:userId", verifyToken, async (req, res, next) => {
-  try {
-    const result = await eventModel.unsubscribeByUserId(req);
-    res.status(200).json(result);
-  } catch (err) {
-    next(err)
-  }
-});
+eventRoute.delete(
+  "/:id/unsubscribe/:userId",
+  verifyToken,
+  async (req, res, next) => {
+    try {
+      const result = await eventModel.unsubscribeByUserId(req);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 /**
  * @swagger
@@ -382,8 +398,7 @@ eventRoute.post("/:id/start", isOrganizer, async (req, res, next) => {
     const result = await eventModel.startEvent(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
-
+    next(err);
   }
 });
 
@@ -421,7 +436,7 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res, next) => {
     const result = await eventModel.getAllInscriptions(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
+    next(err);
   }
 });
 
@@ -446,12 +461,11 @@ eventRoute.get("/:id/inscriptions", isOrganizer, async (req, res, next) => {
  *         description: Erro ao buscar inscrições
  */
 eventRoute.get("/inscriptions/me", verifyToken, async (req, res, next) => {
-  
-  const result = await eventModel.getMyInscriptions(req).catch(err=>{
-    console.log(err)
-    next(err)
-  })
-  if(result){
+  const result = await eventModel.getMyInscriptions(req).catch((err) => {
+    console.log(err);
+    next(err);
+  });
+  if (result) {
     res.status(200).json(result);
   }
 });
@@ -478,7 +492,7 @@ eventRoute.get("/inscriptions/me", verifyToken, async (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               targetId:
+ *               id:
  *                 type: integer
  *                 description: ID do time ou jogador convidado
  *                 example: 3
@@ -493,55 +507,56 @@ eventRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
     const result = await eventModel.invitePlayer(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
-  /**
-   * @swagger
-   * /event/updateInvite:
-   *   patch:
-   *     summary: Responde convite de evento (aceitar/recusar)
-   *     tags: [Eventos]
-   *     security:
-   *       - cookieAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               inviteId:
-   *                 type: integer
-   *                 description: ID do convite
-   *                 example: 123
-   *               accept:
-   *                 type: boolean
-   *                 description: Resposta do usuário (true = aceitar, false = recusar)
-   *                 example: true
-   *     responses:
-   *       200:
-   *         description: Convite atualizado com sucesso
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                 message:
-   *                   type: string
-   *       400:
-   *         description: Requisição inválida
-   *       401:
-   *         description: Não autorizado
-   */
-  eventRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
-    try {
-      const result = await eventModel.updateInvite(req);
-      res.status(200).json(result);
-    } catch (err) {
-      next(err)
-    }
-  });
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /event/updateInvite:
+ *   patch:
+ *     summary: Responde convite de evento (aceitar/recusar)
+ *     tags: [Eventos]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               inviteId:
+ *                 type: integer
+ *                 description: ID do convite
+ *                 example: 123
+ *               accept:
+ *                 type: boolean
+ *                 description: Resposta do usuário (true = aceitar, false = recusar)
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Convite atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Requisição inválida
+ *       401:
+ *         description: Não autorizado
+ */
+eventRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
+  try {
+    const result = await eventModel.updateInvite(req);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
 });
 

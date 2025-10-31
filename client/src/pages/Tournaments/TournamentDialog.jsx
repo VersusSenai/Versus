@@ -23,6 +23,7 @@ export default function TournamentDialog({
   user,
   userInscriptions,
   eventMatches,
+  loadingMatches,
   handleSubscribe,
   handleUnsubscribe,
   handleStartEvent,
@@ -31,7 +32,6 @@ export default function TournamentDialog({
   deleteDialogOpen,
   setDeleteDialogOpen,
   eventStatus,
-  winnerName,
   fetchEvents,
 }) {
   const isInscribed = userInscriptions[event.id];
@@ -46,7 +46,7 @@ export default function TournamentDialog({
   return (
     <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
       {/* Aqui o card aparece e funciona como trigger */}
-      <div onClick={() => setDialogOpen(true)}>{children}</div>
+      <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent
         className="p-6 bg-[var(--color-dark)] text-white rounded-2xl border border-white/20"
@@ -145,7 +145,11 @@ export default function TournamentDialog({
           )}
         </div>
 
-        {hasMatches ? (
+        {loadingMatches ? (
+          <div className="text-center py-8">
+            <p className="text-white/70">Carregando chaves do torneio...</p>
+          </div>
+        ) : hasMatches ? (
           <div
             className="border-none rounded p-4 bg-[var(--color-dark)]"
             style={{
