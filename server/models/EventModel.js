@@ -16,30 +16,51 @@ class EventModel {
     let page = req.query.page ? parseInt(req.query.page) : 1;
     let limit = req.query.limit ? parseInt(req.query.limit) : 10;
     let status = req.query.status ? req.query.status : ["P", "O"];
+
     if (!Array.isArray(status)) {
       status = [status];
     }
 
     status.forEach((e) => {
-      if (e != "P" && e != "O" && e != "E") {
+      if (!["P", "O", "E"].includes(e)) {
         throw new BadRequestException("Status must be in ['P', 'O', 'E']");
       }
     });
-    if (limit > 30) {
-      limit = 30;
+
+    if (limit > 30) limit = 30;
+
+    let multiplayerParam = req.query.multiplayer;
+    let multiplayerFilter = {};
+
+    if (
+      multiplayerParam === undefined ||
+      multiplayerParam === "both" ||
+      multiplayerParam === "all"
+    ) {
+      multiplayerFilter = {};
+    } else if (multiplayerParam === "true" || multiplayerParam === true) {
+      multiplayerFilter = { multiplayer: true };
+    } else if (multiplayerParam === "false" || multiplayerParam === false) {
+      multiplayerFilter = { multiplayer: false };
+    } else {
+      throw new BadRequestException(
+        "Multiplayer must be 'true', 'false' or 'both'",
+      );
     }
-    if (req.user.role == "A") {
+
+    const baseWhere = {
+      status: { in: status },
+      ...multiplayerFilter,
+    };
+
+    if (req.user.role === "A") {
       return await prisma.event
         .paginate({
           where: {
-            status: { in: status },
+            ...baseWhere,
             OR: [
-              {
-                eventInscriptions: { some: { team: { status: "O" } } },
-              },
-              {
-                eventInscriptions: { some: { user: { status: "A" } } },
-              },
+              { eventInscriptions: { some: { team: { status: "O" } } } },
+              { eventInscriptions: { some: { user: { status: "A" } } } },
             ],
           },
           include: {
@@ -56,31 +77,21 @@ class EventModel {
     return await prisma.event
       .paginate({
         where: {
-          status: { in: status },
+          ...baseWhere,
           AND: [
             {
               OR: [
                 {
                   private: true,
-                  eventInscriptions: {
-                    some: { userId: req.user.id },
-                  },
+                  eventInscriptions: { some: { userId: req.user.id } },
                 },
                 { private: false },
               ],
             },
             {
               OR: [
-                {
-                  eventInscriptions: {
-                    some: { team: { status: "O" } },
-                  },
-                },
-                {
-                  eventInscriptions: {
-                    some: { user: { status: "A" } },
-                  },
-                },
+                { eventInscriptions: { some: { team: { status: "O" } } } },
+                { eventInscriptions: { some: { user: { status: "A" } } } },
               ],
             },
           ],
@@ -93,10 +104,7 @@ class EventModel {
           },
         },
       })
-      .withPages({
-        page,
-        limit,
-      });
+      .withPages({ page, limit });
   };
 
   getById = async (req) => {
@@ -849,7 +857,7 @@ class EventModel {
             userId: user.userId,
             title: "Notificação do Torneio: " + event.name,
             message: message,
-            link: `/event/${event.id}`,
+            link: ``,
           });
         }
       }
@@ -867,7 +875,7 @@ class EventModel {
           title: "Torneio " + event.name + " foi iniciado!",
           message:
             "O Torneio " + event.name + " começou!. se prepare para jogar!",
-          link: `/event/${event.id}`,
+          link: ``,
         });
       }
     }
