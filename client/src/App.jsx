@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
@@ -34,6 +34,8 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
