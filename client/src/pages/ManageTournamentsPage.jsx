@@ -46,7 +46,6 @@ export default function ManageTournaments() {
   const fetchMyTournaments = async () => {
     try {
       setLoading(true);
-      // Buscar eventos onde o usuário é organizador (role='O')
       const response = await api.get('/event/inscriptions/me?role=O');
       setTournaments(response.data || []);
     } catch (error) {
@@ -173,7 +172,6 @@ export default function ManageTournaments() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          {/* Title and Create Button */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
@@ -194,9 +192,7 @@ export default function ManageTournaments() {
             </Button>
           </div>
 
-          {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search Bar */}
             <div className="flex-1 relative">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40"
@@ -219,7 +215,6 @@ export default function ManageTournaments() {
               )}
             </div>
 
-            {/* Status Filter */}
             <div className="flex gap-2 bg-[var(--color-dark)]/50 border border-white/10 rounded-lg p-1">
               {[
                 { label: 'Todos', value: 'all', icon: Filter },
@@ -244,7 +239,6 @@ export default function ManageTournaments() {
           </div>
         </motion.div>
 
-        {/* Tournament Cards */}
         <AnimatePresence mode="wait">
           {filteredTournaments.length === 0 ? (
             <motion.div
@@ -294,7 +288,6 @@ export default function ManageTournaments() {
                     transition={{ delay: index * 0.05 }}
                   >
                     <Card className="bg-[var(--color-dark)]/80 border border-white/10 rounded-2xl overflow-hidden hover:border-[var(--color-1)]/50 transition-all hover:shadow-lg group">
-                      {/* Tournament Image */}
                       <div className="relative h-48 overflow-hidden">
                         <img
                           src={tournament.thumbnail || defaultTournamentImage}
@@ -303,12 +296,10 @@ export default function ManageTournaments() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-dark)] via-transparent to-transparent" />
 
-                        {/* Status Badge */}
                         <div className="absolute top-3 right-3">
                           {getStatusBadge(tournament.status)}
                         </div>
 
-                        {/* Private Badge */}
                         {tournament.private && (
                           <div className="absolute top-3 left-3">
                             <div className="px-3 py-1.5 rounded-lg bg-purple-600/90 backdrop-blur-sm">
@@ -328,7 +319,6 @@ export default function ManageTournaments() {
                       </CardHeader>
 
                       <CardContent className="px-4 pb-4 space-y-3">
-                        {/* Progress Bar */}
                         <div>
                           <div className="flex justify-between text-sm mb-2">
                             <span className="text-white/50">Inscrições</span>
@@ -346,7 +336,6 @@ export default function ManageTournaments() {
                           </div>
                         </div>
 
-                        {/* Info Tags */}
                         <div className="flex flex-wrap gap-2 text-xs">
                           <div className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[var(--color-1)]/20 to-[var(--color-2)]/20 border border-[var(--color-1)]/30 text-white font-semibold">
                             {tournament.multiplayer ? 'Multiplayer' : 'Singleplayer'}
@@ -360,7 +349,6 @@ export default function ManageTournaments() {
                           </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <Button
                             onClick={() => handleViewInscriptions(tournament)}
@@ -425,7 +413,6 @@ export default function ManageTournaments() {
         </AnimatePresence>
       </div>
 
-      {/* Dialogs */}
       <InscriptionsDialog
         open={inscriptionsDialogOpen}
         onOpenChange={setInscriptionsDialogOpen}

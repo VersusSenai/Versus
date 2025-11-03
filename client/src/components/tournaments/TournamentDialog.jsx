@@ -34,7 +34,6 @@ export default function TournamentDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent className="p-0 bg-[var(--color-dark)] text-white rounded-2xl border border-white/10 max-w-[95vw] lg:max-w-[85vw] max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header Section */}
         <div className="p-4 lg:p-6 border-b border-white/10">
           <DialogHeader>
             <DialogTitle className="text-2xl lg:text-3xl font-bold mb-2">{event.name}</DialogTitle>
@@ -43,7 +42,6 @@ export default function TournamentDialog({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Info Cards - Compact */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
             <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10">
               <Calendar className="text-[var(--color-1)]" size={16} />
@@ -75,7 +73,6 @@ export default function TournamentDialog({
             </div>
           </div>
 
-          {/* Status Badge - Compact */}
           <div className="mt-3">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[var(--color-1)]/20 to-[var(--color-2)]/20 border border-[var(--color-1)]/30">
               <div className="w-2 h-2 rounded-full bg-[var(--color-1)] animate-pulse" />
@@ -84,7 +81,6 @@ export default function TournamentDialog({
           </div>
         </div>
 
-        {/* Action Buttons - Compact */}
         <div className="px-4 lg:px-6 py-3 bg-white/5 border-b border-white/10">
           <div className="flex flex-wrap gap-2">
             {isInscribed ? (
@@ -109,7 +105,6 @@ export default function TournamentDialog({
           </div>
         </div>
 
-        {/* Bracket Section */}
         <div className="flex-1 overflow-auto p-4 lg:p-6">
           {loadingMatches ? (
             <div className="flex items-center justify-center py-12">

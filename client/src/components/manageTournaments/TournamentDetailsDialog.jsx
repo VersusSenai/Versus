@@ -86,7 +86,6 @@ export default function TournamentDetailsDialog({ open, onOpenChange, tournament
           </div>
         ) : details ? (
           <div className="space-y-4">
-            {/* Header with Image */}
             <div className="relative w-full h-48 -mx-6 -mt-6 mb-4 overflow-hidden">
               <img
                 src={details.thumbnail || defaultTournamentImage}

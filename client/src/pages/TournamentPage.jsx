@@ -31,7 +31,6 @@ export default function Tournaments() {
   const [filterMode, setFilterMode] = useState(searchParams.get('mode') || 'all');
   const [hasTeam, setHasTeam] = useState(false);
 
-  // Paginação - inicializar com valores da URL
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [paginationInfo, setPaginationInfo] = useState({
     isFirstPage: true,
@@ -89,7 +88,6 @@ export default function Tournaments() {
       const allEvents = eventsResponse.data[0] || [];
       const pagination = eventsResponse.data[1] || {};
 
-      // Atualizar paginação com os campos corretos do backend
       setPaginationInfo({
         isFirstPage: pagination.isFirstPage ?? true,
         isLastPage: pagination.isLastPage ?? true,
@@ -101,9 +99,15 @@ export default function Tournaments() {
       setTotalEvents(pagination.total || allEvents.length);
 
       const inscriptionsResponse = await api.get('/event/inscriptions/me');
+
+      const userEventRoles = {};
+      inscriptionsResponse.data.forEach((event) => {
+        if (event.eventInscriptions && event.eventInscriptions.length > 0) {
+          userEventRoles[event.id] = event.eventInscriptions[0].role;
+        }
+      });
       const userEventIds = new Set(inscriptionsResponse.data.map((event) => event.id));
 
-      // Buscar winnerName apenas para eventos que têm winnerUserId
       const eventsWithWinnerNames = await Promise.all(
         allEvents.map(async (ev) => {
           let winnerName = null;
@@ -117,7 +121,7 @@ export default function Tournaments() {
             }
           }
 
-          return { ...ev, winnerName };
+          return { ...ev, winnerName, userRole: userEventRoles[ev.id] || null };
         })
       );
 
@@ -138,7 +142,7 @@ export default function Tournaments() {
 
   const fetchEventMatches = async (eventId) => {
     if (eventMatchesMap[eventId]) {
-      return; // Já carregado
+      return;
     }
 
     setLoadingMatches((prev) => ({ ...prev, [eventId]: true }));
@@ -157,12 +161,10 @@ export default function Tournaments() {
     if (user?.id) {
       checkUserTeams();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   useEffect(() => {
     fetchEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, filterMode]);
 
   const handleSubscribe = async (eventId) => {
@@ -193,7 +195,6 @@ export default function Tournaments() {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
 
-    // Atualizar URL
     const newParams = new URLSearchParams(searchParams);
     newParams.set('page', pageNumber);
     newParams.set('limit', itemsPerPage);
@@ -219,12 +220,10 @@ export default function Tournaments() {
     }
   };
 
-  // Resetar para página 1 quando os filtros mudarem
   useEffect(() => {
     if (currentPage !== 1) {
       handlePageChange(1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterInscribedOnly, filterMode]);
 
   const indexOfFirstItem = (paginationInfo.currentPage - 1) * itemsPerPage + 1;
@@ -233,7 +232,6 @@ export default function Tournaments() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0118] via-[var(--color-dark)] to-[#0a0118]">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
@@ -247,7 +245,6 @@ export default function Tournaments() {
             </div>
           </div>
 
-          {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex items-center gap-3 px-4 py-3 bg-[var(--color-dark)]/50 border border-white/10 rounded-lg">
               <Label htmlFor="filterInscribed" className="text-white text-sm">
@@ -319,6 +316,7 @@ export default function Tournaments() {
                   <TournamentCard
                     event={event}
                     isInscribed={userInscriptions[event.id]}
+                    userRole={event.userRole}
                     eventStatus={getEventStatus(event, event.winnerName)}
                     winnerName={event.winnerName}
                     matches={eventMatchesMap[event.id] || []}
@@ -327,7 +325,6 @@ export default function Tournaments() {
               ))}
             </div>
 
-            {/* Pagination Info */}
             {totalEvents > 0 && (
               <div className="text-center mb-4">
                 <p className="text-white/60 text-sm">
@@ -336,7 +333,6 @@ export default function Tournaments() {
               </div>
             )}
 
-            {/* Pagination */}
             {!(paginationInfo.isFirstPage && paginationInfo.isLastPage) && (
               <div className="flex items-center justify-center gap-2">
                 <Button
