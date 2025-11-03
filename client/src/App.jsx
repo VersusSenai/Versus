@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import HomePage from './pages/HomePage';
 import Tournaments from './pages/TournamentPage';
 import CreateTournaments from './pages/CreateTournamentsPage';
+import ManageTournaments from './pages/ManageTournamentsPage';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
@@ -75,6 +76,18 @@ const AnimatedRoutes = () => {
               <Layout>
                 <PageWrapper>
                   <CreateTournaments />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manageTournaments"
+          element={
+            <ProtectedRoute allowedRoles={['A', 'O']}>
+              <Layout>
+                <PageWrapper>
+                  <ManageTournaments />
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>

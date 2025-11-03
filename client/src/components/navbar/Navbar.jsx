@@ -1,7 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { MdOutlineEmojiEvents, MdOutlinePeopleAlt, MdOutlineAddBox, MdOutlineGroups } from 'react-icons/md';
+import {
+  MdOutlineEmojiEvents,
+  MdOutlinePeopleAlt,
+  MdOutlineAddBox,
+  MdOutlineGroups,
+  MdManageSearch,
+} from 'react-icons/md';
 import { AiOutlineMenu } from 'react-icons/ai';
 import { motion } from 'framer-motion';
 import { logout } from '../../redux/userSlice';
@@ -15,7 +21,7 @@ const Navbar = ({ onWidthChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  
+
   const { collapsed, toggleCollapse } = useNavbar();
 
   const user = useSelector((state) => state.user.user);
@@ -32,14 +38,20 @@ const Navbar = ({ onWidthChange }) => {
       console.error('Erro ao fazer logout:', error);
     } finally {
       dispatch(logout());
-              window.location.href = "/login";
+      window.location.href = '/login';
       setShowMobileMenu(false);
     }
   };
 
   const links = useMemo(
     () => [
-      { label: 'Usuários', icon: <MdOutlinePeopleAlt />, path: 'users', roles: ['A'], variant: 'outlined'   },
+      {
+        label: 'Usuários',
+        icon: <MdOutlinePeopleAlt />,
+        path: 'users',
+        roles: ['A'],
+        variant: 'outlined',
+      },
       {
         label: 'Torneios',
         icon: <MdOutlineEmojiEvents />,
@@ -54,7 +66,13 @@ const Navbar = ({ onWidthChange }) => {
         roles: ['A', 'O'],
         variant: 'outlined',
       },
-
+      {
+        label: 'Gerenciar Torneios',
+        icon: <MdManageSearch />,
+        path: 'manageTournaments',
+        roles: ['A', 'O'],
+        variant: 'outlined',
+      },
       {
         label: 'Times',
         icon: <MdOutlineGroups />,
