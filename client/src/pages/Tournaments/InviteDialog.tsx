@@ -82,7 +82,8 @@ export default function InvitePlayersDialog({ eventId }: InvitePlayersDialogProp
 
     setLoadingIds((prev) => [...prev, targetId]); // marca esse usuário como carregando
     try {
-      await api.post(`/event/${eventId}/invite`, { targetId });
+      await api.post(`/event/${eventId}/invite`, { id: targetId });
+
       toast.success('Convite enviado com sucesso!');
       setSearch('');
       setFiltered([]);
