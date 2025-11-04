@@ -44,7 +44,7 @@ class EventModel {
       multiplayerFilter = { multiplayer: false };
     } else {
       throw new BadRequestException(
-        "Multiplayer must be 'true', 'false' or 'both'",
+        "Multiplayer must be 'true', 'false' or 'both'"
       );
     }
 
@@ -213,11 +213,11 @@ class EventModel {
   update = async (req) => {
     const isUserOwner = await this.isUserOwner(
       req.user,
-      parseInt(req.params.id),
+      parseInt(req.params.id)
     );
     if (!isUserOwner) {
       throw new NotAllowedException(
-        "Only the owner of this event can update it",
+        "Only the owner of this event can update it"
       );
     }
     const isPrivate = req.body.private;
@@ -229,7 +229,7 @@ class EventModel {
     }
     if (event.status != "P") {
       throw new ConflictException(
-        "Only events with status 'Pending' can be updated",
+        "Only events with status 'Pending' can be updated"
       );
     }
     let image = {};
@@ -301,7 +301,7 @@ class EventModel {
     }
     if (event.private) {
       throw new NotAllowedException(
-        "You need to get invited to inscribe in a Private Tournment",
+        "You need to get invited to inscribe in a Private Tournment"
       );
     }
 
@@ -323,7 +323,7 @@ class EventModel {
               teamId: teamId,
               eventId: eventId,
             },
-          },
+          }
         );
 
         if (isTeamAlreadyInscribed) {
@@ -376,7 +376,7 @@ class EventModel {
   delete = async (req) => {
     const isUserOwner = await this.isUserOwner(
       req.user,
-      parseInt(req.params.id),
+      parseInt(req.params.id)
     );
     const event = await prisma.event.findFirst({
       where: { id: parseInt(req.params.id) },
@@ -387,7 +387,7 @@ class EventModel {
     }
     if (event.status != "P") {
       throw new ConflictException(
-        "Only events with status 'Pending' can be deleted",
+        "Only events with status 'Pending' can be deleted"
       );
     }
     if (!isUserOwner) {
@@ -489,16 +489,21 @@ class EventModel {
 
     if (!isOwner) {
       throw new NotAllowedException(
-        "Only the owner of this event can make this call",
+        "Only the owner of this event can make this call"
       );
     }
 
     return await prisma.eventInscriptions
       .findMany({
-        where: { eventId: parseInt(req.params.id), role: "P" },
+        where: {
+          eventId: parseInt(req.params.id),
+          role: "P",
+          NOT: { status: "R" },
+        },
         select: {
           id: true,
           role: true,
+          status: true,
           user: {
             select: {
               id: true,
@@ -530,6 +535,7 @@ class EventModel {
             some: {
               userId: userData.id,
               role: { in: role },
+              NOT: { status: "R" },
             },
           },
         },
@@ -593,13 +599,13 @@ class EventModel {
 
     if (!Number.isInteger(totalRounds)) {
       throw new ConflictException(
-        "The total numbers of players needs to be an perfect square root of 2",
+        "The total numbers of players needs to be an perfect square root of 2"
       );
     }
 
     if (now < eventStartDate) {
       throw new ConflictException(
-        `The event cannot start before its startDate: (${eventStartDate.toLocaleString()}).`,
+        `The event cannot start before its startDate: (${eventStartDate.toLocaleString()}).`
       );
     }
 
@@ -696,7 +702,7 @@ class EventModel {
     }
     this.notificateUsersOfEvent(
       event.id,
-      "O Torneio " + event.name + " começou!. se prepare para jogar!",
+      "O Torneio " + event.name + " começou!. se prepare para jogar!"
     );
     return matches;
   };
@@ -763,7 +769,7 @@ class EventModel {
     const event = invite.event;
     if (invite.toUser.id != userData.id) {
       throw new NotAllowedException(
-        "Only the user invited can accept his invite",
+        "Only the user invited can accept his invite"
       );
     }
 
