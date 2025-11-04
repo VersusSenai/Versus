@@ -50,15 +50,15 @@ export default function TournamentDialog({
         <Tabs defaultValue="info" className="flex-1 flex flex-col min-h-0">
           <div className="px-4 pt-3 pb-0 bg-white/5 border-b border-white/10">
             <TabsList className="bg-transparent border border-white/10 p-1 h-auto">
-              <TabsTrigger 
-                value="info" 
+              <TabsTrigger
+                value="info"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--color-1)] data-[state=active]:to-[var(--color-2)] data-[state=active]:text-white text-white/70 gap-2"
               >
                 <Info size={16} />
                 Informações
               </TabsTrigger>
-              <TabsTrigger 
-                value="bracket" 
+              <TabsTrigger
+                value="bracket"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--color-1)] data-[state=active]:to-[var(--color-2)] data-[state=active]:text-white text-white/70 gap-2"
               >
                 <Swords size={16} />
@@ -93,15 +93,22 @@ export default function TournamentDialog({
                     <Trophy className="text-yellow-400" size={18} />
                     <span className="text-white/50 text-xs">Tipo</span>
                   </div>
-                  <span className="font-semibold text-white">{event.multiplayer ? 'Multiplayer' : 'Solo'}</span>
+                  <span className="font-semibold text-white">
+                    {event.multiplayer ? 'Multiplayer' : 'Solo'}
+                  </span>
                 </div>
 
                 <div className="flex flex-col gap-2 p-4 rounded-lg bg-white/5 border border-white/10 hover:border-purple-400/30 transition-colors">
                   <div className="flex items-center gap-2">
-                    <Lock className={event.private ? 'text-purple-400' : 'text-green-400'} size={18} />
+                    <Lock
+                      className={event.private ? 'text-purple-400' : 'text-green-400'}
+                      size={18}
+                    />
                     <span className="text-white/50 text-xs">Acesso</span>
                   </div>
-                  <span className="font-semibold text-white">{event.private ? 'Privado' : 'Público'}</span>
+                  <span className="font-semibold text-white">
+                    {event.private ? 'Privado' : 'Público'}
+                  </span>
                 </div>
               </div>
 
@@ -156,7 +163,10 @@ export default function TournamentDialog({
           </TabsContent>
 
           {/* Bracket Tab Content */}
-          <TabsContent value="bracket" className="flex-1 overflow-hidden p-4 mt-0 flex flex-col min-h-0">
+          <TabsContent
+            value="bracket"
+            className="flex-1 overflow-hidden p-4 mt-0 flex flex-col min-h-0"
+          >
             {loadingMatches ? (
               <div className="flex items-center justify-center flex-1">
                 <div className="text-center">
