@@ -15,6 +15,7 @@ export default function TournamentCard({
 }) {
   const hasMatches = matches.length > 0;
 
+  // Status badge helper
   const getStatusBadge = () => {
     if (eventStatus === 'Finalizado') {
       return (
@@ -50,8 +51,10 @@ export default function TournamentCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-dark)] via-transparent to-transparent" />
 
+        {/* Status Badge */}
         {!winnerName && <div className="absolute top-3 right-3">{getStatusBadge()}</div>}
 
+        {/* Private Badge */}
         {event.private && (
           <div className="absolute top-3 left-3">
             <div className="px-3 py-1.5 rounded-lg bg-purple-600/90 backdrop-blur-sm">
@@ -60,6 +63,7 @@ export default function TournamentCard({
           </div>
         )}
 
+        {/* Winner Badge */}
         {winnerName && (
           <div className="absolute top-3 right-3">
             <div className="px-3 py-1.5 rounded-lg bg-yellow-500/90 backdrop-blur-sm">
@@ -77,6 +81,7 @@ export default function TournamentCard({
       </CardHeader>
 
       <CardContent className="mt-auto px-4 pb-4 space-y-3">
+        {/* Progress Bar */}
         <div>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-white/50">Inscrições</span>
@@ -95,6 +100,7 @@ export default function TournamentCard({
           </div>
         </div>
 
+        {/* Status de Inscrição */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-white/50">Status:</span>
           {userRole === 'O' ? (
