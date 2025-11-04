@@ -3,10 +3,10 @@ import api from '../api';
 import { Button } from '@/components/ui/button';
 import { Trophy, Crown, Zap } from 'lucide-react';
 
-const horizontalSpacing = 280;
-const boxWidth = 220;
-const boxHeight = 70;
-const verticalSpacing = 20;
+const horizontalSpacing = 240;
+const boxWidth = 200;
+const boxHeight = 64;
+const verticalSpacing = 18;
 
 export default function ProfessionalBracket({ eventId, multiplayer }) {
   const [rounds, setRounds] = useState([]);
@@ -313,16 +313,16 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
           <div className="bg-[var(--color-dark)]/80 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden hover:border-[var(--color-1)]/70 transition-all">
             {/* Team 1 */}
             <div
-              className={`flex items-center justify-between px-3 py-2 border-b border-white/10 ${
+              className={`flex items-center justify-between px-2.5 py-1.5 border-b border-white/10 ${
                 isTeam1Winner
                   ? 'bg-gradient-to-r from-[var(--color-1)]/30 to-transparent'
                   : 'bg-white/5'
               }`}
             >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {isTeam1Winner && <Crown className="text-yellow-400 flex-shrink-0" size={14} />}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                {isTeam1Winner && <Crown className="text-yellow-400 flex-shrink-0" size={13} />}
                 <span
-                  className={`truncate text-sm ${isTeam1Winner ? 'font-bold text-white' : 'text-white/70'}`}
+                  className={`truncate text-xs ${isTeam1Winner ? 'font-bold text-white' : 'text-white/70'}`}
                 >
                   {team1.name || 'TBD'}
                 </span>
@@ -331,25 +331,25 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
                 <Button
                   onClick={() => handleDeclareWinner(team1.id)}
                   size="sm"
-                  className="ml-2 h-6 w-6 p-0 text-xs bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90"
+                  className="ml-1.5 h-5 w-5 p-0 text-xs bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90"
                 >
-                  <Zap size={12} />
+                  <Zap size={11} />
                 </Button>
               )}
             </div>
 
             {/* Team 2 */}
             <div
-              className={`flex items-center justify-between px-3 py-2 ${
+              className={`flex items-center justify-between px-2.5 py-1.5 ${
                 isTeam2Winner
                   ? 'bg-gradient-to-r from-[var(--color-1)]/30 to-transparent'
                   : 'bg-white/5'
               }`}
             >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {isTeam2Winner && <Crown className="text-yellow-400 flex-shrink-0" size={14} />}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                {isTeam2Winner && <Crown className="text-yellow-400 flex-shrink-0" size={13} />}
                 <span
-                  className={`truncate text-sm ${isTeam2Winner ? 'font-bold text-white' : 'text-white/70'}`}
+                  className={`truncate text-xs ${isTeam2Winner ? 'font-bold text-white' : 'text-white/70'}`}
                 >
                   {team2.name || 'TBD'}
                 </span>
@@ -358,19 +358,19 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
                 <Button
                   onClick={() => handleDeclareWinner(team2.id)}
                   size="sm"
-                  className="ml-2 h-6 w-6 p-0 text-xs bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90"
+                  className="ml-1.5 h-5 w-5 p-0 text-xs bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90"
                 >
-                  <Zap size={12} />
+                  <Zap size={11} />
                 </Button>
               )}
             </div>
 
             {/* Winner Badge for Finals */}
             {isLastRound && (isTeam1Winner || isTeam2Winner) && (
-              <div className="bg-gradient-to-r from-yellow-600 to-yellow-500 px-2 py-1 text-center">
-                <div className="flex items-center justify-center gap-1.5">
-                  <Trophy size={12} />
-                  <span className="text-xs font-bold text-white">CAMPEÃO</span>
+              <div className="bg-gradient-to-r from-yellow-600 to-yellow-500 px-2 py-0.5 text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <Trophy size={11} />
+                  <span className="text-[10px] font-bold text-white">CAMPEÃO</span>
                 </div>
               </div>
             )}
@@ -388,16 +388,16 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
         padding: 16,
         borderRadius: 12,
         maxWidth: '100%',
-        maxHeight: '60vh',
+        height: '100%',
         overflow: 'auto',
         whiteSpace: 'nowrap',
         cursor: 'grab',
       }}
       className="bg-[#0a0118]/30 backdrop-blur-sm"
     >
-      <div style={{ position: 'relative', display: 'inline-block', minHeight: '300px' }}>
+      <div style={{ position: 'relative', display: 'inline-block', minHeight: '280px' }}>
         {/* Round Headers */}
-        <div style={{ display: 'flex', marginBottom: 16, gap: 8 }}>
+        <div style={{ display: 'flex', marginBottom: 12, gap: 6 }}>
           {rounds.map((round, idx) => (
             <div
               key={round.round}
@@ -409,14 +409,14 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
               }}
               className="select-none"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[var(--color-1)]/20 to-[var(--color-2)]/20 border border-[var(--color-1)]/30">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-r from-[var(--color-1)]/20 to-[var(--color-2)]/20 border border-[var(--color-1)]/30">
                 {idx === rounds.length - 1 ? (
                   <>
-                    <Trophy className="text-yellow-400" size={16} />
-                    <span className="font-bold text-white text-sm">Final</span>
+                    <Trophy className="text-yellow-400" size={14} />
+                    <span className="font-bold text-white text-xs">Final</span>
                   </>
                 ) : (
-                  <span className="font-bold text-white text-sm">Round {round.round}</span>
+                  <span className="font-bold text-white text-xs">Round {round.round}</span>
                 )}
               </div>
             </div>
@@ -427,7 +427,7 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
         <div
           style={{
             position: 'relative',
-            height: Math.max(300, (rounds[0]?.matches.length || 1) * (boxHeight + verticalSpacing)),
+            height: Math.max(280, (rounds[0]?.matches.length || 1) * (boxHeight + verticalSpacing)),
             minWidth: rounds.length * horizontalSpacing,
           }}
         >
