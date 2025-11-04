@@ -13,8 +13,6 @@ import { formatDate } from '../../utils/formatDate';
 import CustomDialog from '@/components/CustomDialog';
 import ProfessionalBracket from '@/components/Bracket';
 import EditTournamentDialog from './EditTournamentDialog';
-import InvitePlayersDialog from './InviteDialog';
-import InscriptionsDialog from './InscriptionDialog/InscriptionDialog';
 
 export default function TournamentDialog({
   event,
@@ -136,13 +134,6 @@ export default function TournamentDialog({
                 setOpen={setEditDialogOpen}
                 onUpdated={handleUpdateTournament}
               />
-            </>
-          )}
-
-          {user && (user.role === 'A' || user.role === 'O') && (
-            <>
-              <InvitePlayersDialog eventId={event.id} />
-              <InscriptionsDialog eventId={event.id} />
             </>
           )}
         </div>
