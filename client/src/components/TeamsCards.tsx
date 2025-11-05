@@ -1,19 +1,22 @@
 import { Card } from '@/components/ui/card';
 import teamPhoto from '@/assets/team.jpeg';
-import { TeamProps } from '@/types';
+import { TeamProps, UserProps } from '@/types';
 import { Button } from './ui/button';
 import { Ban, Check, Edit2, Info, Users2, X } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import { toast } from 'react-toastify';
 import api from '@/api';
 import { useTeamsPageContext } from '@/context/useTeamPageContext';
+import { IoEnterOutline } from 'react-icons/io5';
 
 export type TeamCardProps = {
   team: TeamProps;
+  myTeam?: TeamProps | null;
 };
 
-export const TeamsCardsPage = ({ team }: TeamCardProps) => {
-  const { refreshTeams, setSelectedTeam } = useTeamsPageContext();
+export const TeamsCardsPage = ({ team, myTeam }: TeamCardProps) => {
+  const { refreshTeams, setSelectedEditTeam, setJoinTeam } = useTeamsPageContext();
+  const user = JSON.parse(localStorage.getItem('user') || '{}') as UserProps;
 
   async function handleBanTeam() {
     try {
@@ -42,7 +45,7 @@ export const TeamsCardsPage = ({ team }: TeamCardProps) => {
   }
 
   return (
-    <Card className="flex bg-[var(--color-dark)] text-white border border-white/10 shadow-md flex-col gap-2 p-4">
+    <Card className="flex flex-1 w-full h-full bg-[var(--color-dark)] text-white border border-white/10 shadow-md flex-col gap-2 p-4">
       <div className="relative w-full h-30 object-cover mb-2 rounded-md">
         {team.status === 'B' && (
           <HoverCard>
@@ -72,7 +75,11 @@ export const TeamsCardsPage = ({ team }: TeamCardProps) => {
             </HoverCardContent>
           </HoverCard>
         )}
-        <img src={teamPhoto} alt={team?.name} className="w-full h-full object-cover rounded-md" />
+        <img
+          src={team?.icon ?? teamPhoto}
+          alt={team?.name}
+          className="w-full h-full object-cover rounded-md"
+        />
       </div>
       <div className="flex-1">
         <div className="flex justify-between items-center mb-2">
@@ -82,67 +89,73 @@ export const TeamsCardsPage = ({ team }: TeamCardProps) => {
           </p>
         </div>
         <p className="text-sm text-gray-300">{team?.description}</p>
-        <div className="flex justify-between items-center gap-2 mt-2">
-          {team.status === 'P' && (
-            <div className="flex gap-2">
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Button
-                    size="icon"
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={handleApproveTeam}
-                  >
-                    <Check />
-                  </Button>
-                </HoverCardTrigger>
-                <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
-                  Aceitar
-                </HoverCardContent>
-              </HoverCard>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Button size="icon" variant="destructive" onClick={handleBanTeam}>
-                    <X />
-                  </Button>
-                </HoverCardTrigger>
-                <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
-                  Recusar
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-          )}
-          <div className="flex gap-2 ml-auto">
+        <div className="flex justify-between items-center gap-2 mt-1">
+          {user.role === 'A' ? (
+            <>
+              {team.status === 'P' && (
+                <div className="flex gap-2">
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button
+                        size="icon"
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={handleApproveTeam}
+                      >
+                        <Check />
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
+                      Aceitar
+                    </HoverCardContent>
+                  </HoverCard>
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button size="icon" variant="destructive" onClick={handleBanTeam}>
+                        <X />
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
+                      Recusar
+                    </HoverCardContent>
+                  </HoverCard>
+                </div>
+              )}
+              <div className="flex gap-2 ml-auto">
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button size="icon" onClick={() => setSelectedEditTeam(team)}>
+                      <Edit2 />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
+                    Editar
+                  </HoverCardContent>
+                </HoverCard>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button size="icon" variant="destructive" onClick={handleBanTeam}>
+                      <Ban />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
+                    Banir
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
+            </>
+          ) : null}
+          {!team.private && (
             <HoverCard>
               <HoverCardTrigger asChild>
-                <Button size="icon">
+                <Button size="icon" onClick={() => setJoinTeam(team)}>
                   <Users2 />
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
-                Membros
+                Entrar no time
               </HoverCardContent>
             </HoverCard>
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button size="icon" onClick={() => setSelectedTeam(team)}>
-                  <Edit2 />
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
-                Editar
-              </HoverCardContent>
-            </HoverCard>
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button size="icon" variant="destructive" onClick={handleBanTeam}>
-                  <Ban />
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="grid justify-items-center whitespace-nowrap w-min">
-                Banir
-              </HoverCardContent>
-            </HoverCard>
-          </div>
+          )}
         </div>
       </div>
     </Card>
