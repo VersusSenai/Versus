@@ -6,7 +6,9 @@ import Footer from '../components/homepage/Footer';
 import Hero from '../components/homepage/Hero';
 import Aurora from '../ui/blocks/Backgrounds/Aurora/Aurora';
 import Showcase from '../components/homepage/Showcase';
+import Testimonials from '../components/homepage/Testimonials';
 import Header from '../components/homepage/Header';
+import FixedNavigation from '../components/homepage/FixedNavigation';
 
 function HomePage() {
   const location = useLocation();
@@ -36,9 +38,11 @@ function HomePage() {
         />
       </div>
       <Header logoRef={logoRef} onLoginClick={handleLoginClick} />
+      <FixedNavigation />
       <Hero logoRef={logoRef} />
       <Cards />
       <Showcase />
+      <Testimonials />
       <Footer />
     </>
   );

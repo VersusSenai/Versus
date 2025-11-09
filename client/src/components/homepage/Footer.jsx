@@ -11,25 +11,34 @@ import GlassButton from './GlassButton';
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-gradient-to-b from-[var(--color-dark)] to-[#0a0015] text-white py-16 px-4 border-t border-white/5">
+    <footer
+      id="footer"
+      className="w-full bg-gradient-to-b from-[var(--color-dark)] to-[#0a0015] text-white py-16 px-4 border-t border-white/5"
+    >
       <div className="max-w-[1240px] mx-auto grid lg:grid-cols-3 gap-12">
         {/* branding e social */}
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[var(--color-2)] to-[var(--color-1)] bg-clip-text text-transparent">Versus</h1>
-          <p className="py-4 text-white/70 leading-relaxed">A melhor plataforma para gerenciar torneios e conectar jogadores do mundo todo.</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[var(--color-2)] to-[var(--color-1)] bg-clip-text text-transparent">
+            Versus
+          </h1>
+          <p className="py-4 text-white/70 leading-relaxed">
+            A melhor plataforma para gerenciar torneios e conectar jogadores do mundo todo.
+          </p>
           <div className="flex justify-start gap-4 mt-6">
-            {[FaFacebookSquare, FaInstagram, FaTwitterSquare, FaGithubSquare, FaDribbbleSquare].map((Icon, i) => (
-              <motion.a 
-                key={i} 
-                whileHover={{ y: -4, scale: 1.1 }} 
-                whileTap={{ scale: 0.95 }}
-                href="#" 
-                className="text-white/60 hover:text-[var(--color-2)] transition-colors duration-300"
-                aria-label={`Rede social ${i + 1}`}
-              >
-                <Icon size={28} />
-              </motion.a>
-            ))}
+            {[FaFacebookSquare, FaInstagram, FaTwitterSquare, FaGithubSquare, FaDribbbleSquare].map(
+              (Icon, i) => (
+                <motion.a
+                  key={i}
+                  whileHover={{ y: -4, scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  href="#"
+                  className="text-white/60 hover:text-[var(--color-2)] transition-colors duration-300"
+                  aria-label={`Rede social ${i + 1}`}
+                >
+                  <Icon size={28} />
+                </motion.a>
+              )
+            )}
           </div>
         </div>
 
@@ -48,12 +57,8 @@ const Footer = () => {
               placeholder="Digite seu melhor e-mail"
               required
             />
-            
-            <GlassButton
-              type="submit"
-              variant="primary"
-              className="px-8 whitespace-nowrap"
-            >
+
+            <GlassButton type="submit" variant="primary" className="px-8 whitespace-nowrap">
               Inscrever-se
             </GlassButton>
           </form>
@@ -72,33 +77,81 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-white mb-3">Produto</h3>
             <ul className="space-y-2 text-white/60">
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Recursos</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Preços</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">API</a></li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Recursos
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Preços
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  API
+                </a>
+              </li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold text-white mb-3">Empresa</h3>
             <ul className="space-y-2 text-white/60">
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Sobre</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Blog</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Carreiras</a></li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Sobre
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Blog
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Carreiras
+                </a>
+              </li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold text-white mb-3">Suporte</h3>
             <ul className="space-y-2 text-white/60">
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Central de Ajuda</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Contato</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Status</a></li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Central de Ajuda
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Contato
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Status
+                </a>
+              </li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold text-white mb-3">Legal</h3>
             <ul className="space-y-2 text-white/60">
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Termos de Uso</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Privacidade</a></li>
-              <li><a href="#" className="hover:text-[var(--color-2)] transition">Cookies</a></li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Termos de Uso
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Privacidade
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[var(--color-2)] transition">
+                  Cookies
+                </a>
+              </li>
             </ul>
           </div>
         </div>
