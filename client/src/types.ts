@@ -8,7 +8,7 @@ export type UserProps = {
 export type TeamProps = {
   id: number;
   name: string;
-  photo: string;
+  icon: string;
   description: string;
   registeredDate: Date;
   private: boolean;
@@ -50,6 +50,8 @@ export type TeamsPageProviderProps = {
   setSearchTerm: (term: string) => void;
   fetchTeams: () => Promise<void>;
   refreshTeams: () => Promise<void>;
-  selectedTeam: TeamProps | null;
-  setSelectedTeam: (team: TeamProps | null) => void;
+  selectedEditTeam: TeamProps | null;
+  setSelectedEditTeam: (team: TeamProps | null) => void;
+  joinTeam: TeamProps | null;
+  setJoinTeam: (team: TeamProps | null) => void;
 };

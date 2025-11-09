@@ -202,7 +202,7 @@ export default function Tournaments() {
 
   const handleUnsubscribe = async (eventId) => {
     try {
-      await api.post(`/event/${eventId}/unsubscribe`);
+      await api.delete(`/event/${eventId}/unsubscribe`);
       toast.success('Inscrição cancelada!');
       await fetchEvents();
     } catch (err) {

@@ -359,6 +359,7 @@ eventRoute.delete(
       const result = await eventModel.unsubscribeByUserId(req);
       res.status(200).json(result);
     } catch (err) {
+      console.log(err);
       next(err);
     }
   },

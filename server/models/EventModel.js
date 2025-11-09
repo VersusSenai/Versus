@@ -50,7 +50,7 @@ class EventModel {
 
     const baseWhere = {
       status: { in: status },
-      ...multiplayerFilter, 
+      ...multiplayerFilter,
     };
 
     if (req.user.role === "A") {
@@ -416,14 +416,16 @@ class EventModel {
     const userInscription = await prisma.eventInscriptions.findFirst({
       where: { userId: userData.id, eventId },
     });
-    if (!userInscription || userInscription.status == "R") {
+    if (!userInscription) {
       throw new ConflictException("User not inscribed");
+    }
+    if (userInscription.status == "R") {
+      throw new ConflictException("User was removed from this tournament");
     }
 
     if (userInscription != null && userInscription.role == "P") {
-      await prisma.eventInscriptions.update({
+      await prisma.eventInscriptions.delete({
         where: { id: userInscription.id },
-        data: { status: "R" },
       });
     } else {
       throw new ConflictException("Owner cannot unsubscribe himself");
@@ -458,7 +460,7 @@ class EventModel {
       }
       if (teamInscription != null && teamInscription.role == "P") {
         await prisma.eventInscriptions
-          .delete({ where: { id: teamInscription.id }, data: { status: "R" } })
+          .delete({ where: { id: teamInscription.id } })
           .catch((e) => {
             throw new DataBaseException("Internal Server Error");
           });
@@ -476,7 +478,6 @@ class EventModel {
     if (userInscription != null && userInscription.role == "P") {
       await prisma.eventInscriptions.delete({
         where: { id: userInscription.id },
-        data: { role: "R" },
       });
     } else {
       throw new ConflictException("Owner cannot unsubscribe himself");
@@ -495,10 +496,15 @@ class EventModel {
 
     return await prisma.eventInscriptions
       .findMany({
-        where: { eventId: parseInt(req.params.id), role: "P" },
+        where: {
+          eventId: parseInt(req.params.id),
+          role: "P",
+          NOT: { status: "R" },
+        },
         select: {
           id: true,
           role: true,
+          status: true,
           user: {
             select: {
               id: true,
@@ -530,6 +536,7 @@ class EventModel {
             some: {
               userId: userData.id,
               role: { in: role },
+              NOT: { status: "R" },
             },
           },
         },
@@ -857,7 +864,7 @@ class EventModel {
             userId: user.userId,
             title: "Notificação do Torneio: " + event.name,
             message: message,
-            link: `/event/${event.id}`,
+            link: ``,
           });
         }
       }
@@ -875,7 +882,7 @@ class EventModel {
           title: "Torneio " + event.name + " foi iniciado!",
           message:
             "O Torneio " + event.name + " começou!. se prepare para jogar!",
-          link: `/event/${event.id}`,
+          link: ``,
         });
       }
     }
