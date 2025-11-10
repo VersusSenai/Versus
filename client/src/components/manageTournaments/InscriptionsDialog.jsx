@@ -73,17 +73,18 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
       setSearching(true);
       const response = await api.get('/user', {
         params: {
-          search: searchTerm
-        }
+          search: searchTerm,
+        },
       });
-      
+
       // Filtra usuários já inscritos
-      const inscribedUserIds = inscriptions.map(i => i.user.id);
-      const availableUsers = (response.data[0] || response.data.data || response.data || [])
-        .filter(user => !inscribedUserIds.includes(user.id));
-      
+      const inscribedUserIds = inscriptions.map((i) => i.user.id);
+      const availableUsers = (response.data[0] || response.data.data || response.data || []).filter(
+        (user) => !inscribedUserIds.includes(user.id)
+      );
+
       setSearchResults(availableUsers);
-      
+
       if (availableUsers.length === 0) {
         toast.info('Nenhum usuário disponível encontrado');
       }
@@ -99,7 +100,7 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
     try {
       setInviting(true);
       await api.post(`/event/${tournament.id}/invite`, {
-        id: userId
+        id: userId,
       });
       toast.success('Convite enviado com sucesso!');
       setInviteDialogOpen(false);
@@ -116,9 +117,7 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent 
-          className="bg-[var(--color-dark)] border-white/20 text-white max-w-2xl max-h-[80vh]"
-        >
+        <DialogContent className="bg-[var(--color-dark)] border-white/20 text-white max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <Users className="text-[var(--color-1)]" />
@@ -149,7 +148,7 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
                     transition={{ delay: index * 0.05 }}
                     className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1">
                       <div className="relative">
                         <Avatar className="h-12 w-12 bg-gradient-to-br from-[var(--color-1)] to-[var(--color-2)]">
                           <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
@@ -162,7 +161,7 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
                           </div>
                         )}
                       </div>
-                      
+
                       <div>
                         <p className="font-semibold text-white flex items-center gap-2">
                           {inscription.user?.username || 'Usuário desconhecido'}
@@ -176,17 +175,26 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
                       </div>
                     </div>
 
-                    {inscription.role !== 'O' && tournament?.status === 'P' && (
+                    {inscription.role !== 'O' && (
                       <Button
                         onClick={() => handleRemoveInscription(inscription.user.id)}
-                        disabled={removingId === inscription.user.id}
+                        disabled={removingId === inscription.user.id || tournament?.status !== 'P'}
                         size="sm"
-                        className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white border-0 shadow-md hover:shadow-red-500/50 transition-all"
+                        variant="destructive"
+                        className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white border-0 shadow-md hover:shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={
+                          tournament?.status !== 'P'
+                            ? 'Não é possível remover após o torneio iniciar'
+                            : 'Remover participante'
+                        }
                       >
                         {removingId === inscription.user.id ? (
                           <Loader2 className="animate-spin" size={16} />
                         ) : (
-                          <UserMinus size={16} />
+                          <>
+                            <UserMinus size={16} className="mr-1" />
+                            Expulsar
+                          </>
                         )}
                       </Button>
                     )}
@@ -199,7 +207,8 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
           <div className="flex justify-between items-center pt-4 border-t border-white/10 gap-3">
             <div className="text-sm text-white/60">
               <span className="font-semibold text-white">{inscriptions.length}</span> de{' '}
-              <span className="font-semibold text-white">{tournament?.maxPlayers}</span> vagas preenchidas
+              <span className="font-semibold text-white">{tournament?.maxPlayers}</span> vagas
+              preenchidas
             </div>
             <div className="flex gap-2">
               {tournament?.status === 'P' && (
@@ -255,11 +264,7 @@ export default function InscriptionsDialog({ open, onOpenChange, tournament }) {
                 disabled={searching}
                 className="bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90 mt-7"
               >
-                {searching ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Search size={18} />
-                )}
+                {searching ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
               </Button>
             </div>
 
