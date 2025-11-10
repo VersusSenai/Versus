@@ -16,13 +16,32 @@ const Header = ({ logoRef, onLoginClick }) => {
   const user = useSelector((state) => state.user.user);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Atualizar estado de scrolled
+      setScrolled(currentScrollY > 8);
+
+      // Controlar visibilidade: ocultar ao rolar para baixo, mostrar ao rolar para cima
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Rolando para baixo e passou de 100px
+        setVisible(false);
+      } else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
+        // Rolando para cima ou no topo
+        setVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [lastScrollY]);
 
   const goTo = (hash) => {
     setOpen(false);
@@ -38,8 +57,11 @@ const Header = ({ logoRef, onLoginClick }) => {
   return (
     <motion.header
       initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      animate={{
+        y: visible ? 0 : -100,
+        opacity: visible ? 1 : 0,
+      }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
       className="fixed top-0 left-0 right-0 z-[1000]"
     >
       <div
