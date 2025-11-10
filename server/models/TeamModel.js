@@ -196,11 +196,8 @@ class TeamModel {
     }
 
     return await prisma.team
-      .update({
+      .delete({
         where: { id: parseInt(req.params.id) },
-        data: {
-          status: "B",
-        },
       })
       .then(async (data) => {
         await MatchModel.declareWinnerBatch({ teamId: data.id });
@@ -374,12 +371,15 @@ class TeamModel {
     const team = await prisma.team
       .findFirst({ where: { id: parseInt(req.params.id) } })
       .catch((e) => {
+                console.log(e)
+
         throw new DataBaseException("Internal Server Error");
       });
 
     const userTo = await prisma.user
-      .findFirst({ where: { id: parseInt(req.body.id) } })
+      .findFirst({ where: { email: req.body.email } })
       .catch((e) => {
+        console.log(e)
         throw new DataBaseException("Internal Server Error");
       });
 
@@ -399,6 +399,8 @@ class TeamModel {
         return { msg: "Invite Sent" };
       })
       .catch((e) => {
+                console.log(e)
+
         DataBaseException("Internal Server Error");
       });
   };
