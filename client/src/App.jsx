@@ -38,7 +38,7 @@ const AnimatedRoutes = () => {
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/homepage" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
 
         {/* Rotas privadas */}
         <Route
