@@ -193,10 +193,10 @@ model Invite {
   fromUserId  Int
   toUserId    Int
   description String
-  token       String
+  token       String @db.VarChar(255)
   expirationDate DateTime
   status  InviteStatus
-  callback  String?
+  callback  String? @db.VarChar(255)
   teamId     Int? 
   eventId     Int? 
   toUser    User  @relation(fields: [toUserId], references: [id], name: "Invite_toUser", onDelete: Cascade)
@@ -259,8 +259,8 @@ model Notification{
   userId    Int
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, name: "Notification_user")
   title   String @db.VarChar(100)
-  message String @db.VarChar(250)
-  link    String? @db.VarChar(250)
+  message String @db.Text
+  link    String? @db.VarChar(255)
   read    Boolean @default(false)
   createdAt DateTime @default(now()) @map("created_at")
 }

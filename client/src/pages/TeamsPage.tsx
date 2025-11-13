@@ -228,7 +228,9 @@ export const Teams = () => {
     if (!myTeam) return;
     try {
       toast.loading('Convidando usuário para o time...');
-      await api.post(`/team/${data.email}/invite`);
+      await api.post(`/team/${myTeam.id}/invite`, {
+        'email':data.email
+      });
       toast.dismiss();
       toast.success('Usuário convidado para o time com sucesso!');
     } catch (error) {
