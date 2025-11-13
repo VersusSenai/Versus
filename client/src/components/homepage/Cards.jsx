@@ -2,7 +2,8 @@ import React from 'react';
 import BasicIcon from './../../assets/plano1.png';
 import ProIcon from './../../assets/plano2.png';
 import EnterpriseIcon from './../../assets/plano3.png';
-import ScrollArrow from '../../components/ScrollArrow';
+import GlassButton from './GlassButton';
+import { motion } from 'framer-motion';
 
 const plans = [
   {
@@ -49,51 +50,97 @@ const plans = [
   },
 ];
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.6, delay: 0.15 * i, ease: 'easeOut' },
+  }),
+};
+
 const Cards = () => {
   return (
     <section
       id="cards"
-      className="w-full min-h-screen bg-transparent px-6 py-16 pb-[8rem] flex justify-center items-center relative"
+      className="w-full min-h-screen bg-transparent px-4 sm:px-6 py-16 sm:py-20 flex justify-center items-center relative"
     >
-      <div className="max-w-[1240px] w-full grid gap-12 md:grid-cols-3">
-        {plans.map(
-          ({ title, price, features, img, btnText, btnClass, bgClass, highlight }, idx) => (
-            <div
+      <div className="max-w-[1240px] w-full">
+        <div className="text-center mb-12 sm:mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex flex-col items-center"
+          >
+            <span className="text-[var(--color-2)] text-sm sm:text-base font-bold tracking-wider uppercase mb-2">
+              Preços
+            </span>
+            <h2 className="text-4xl sm:text-5xl font-black text-white mb-3">
+              Escolha seu{' '}
+              <span className="bg-gradient-to-r from-[var(--color-2)] to-[var(--color-1)] bg-clip-text text-transparent">
+                Plano
+              </span>
+            </h2>
+            <div className="h-1 w-20 bg-gradient-to-r from-[var(--color-2)] to-[var(--color-1)] rounded-full" />
+          </motion.div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {plans.map(({ title, price, features, img, btnText, highlight }, idx) => (
+            <motion.div
               key={idx}
               className={`
-              flex flex-col items-center rounded-xl shadow-lg pt-20 pb-8 px-8 
-              relative transition-all duration-300 hover:scale-105 
-              ${bgClass} 
-              ${highlight ? 'md:scale-110 z-10 border-2 border-[var(--color-2)]' : ''}
-            `}
+                relative flex flex-col rounded-2xl p-6 sm:p-8
+                transition-all duration-300
+                ${highlight ? 'md:scale-105 shadow-[0_0_30px_rgba(132,92,245,0.5)]' : ''}
+                border border-white/10 bg-white/5 backdrop-blur-xl text-white
+              `}
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              custom={idx}
             >
-              {/* Imagem flutuante no topo */}
-              <img
-                src={img}
-                alt={title}
-                className="w-32 h-32 md:w-40 md:h-40 object-contain absolute -top-16 md:-top-20"
-              />
-              <h3 className="text-3xl font-semibold mt-6 text-center">{title}</h3>
-              <p className="text-4xl font-extrabold mt-4 mb-6 text-center text-gray-900">{price}</p>
-              <ul className="text-center text-gray-700 mb-8 space-y-3">
+              {highlight && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="inline-flex items-center rounded-full px-4 py-1 text-xs font-bold text-white bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] shadow-lg">
+                    Recomendado
+                  </span>
+                </div>
+              )}
+
+              <div className="flex flex-col items-center mb-6">
+                <motion.img
+                  src={img}
+                  alt={title}
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-4"
+                  whileHover={{ scale: 1.1 }}
+                />
+                <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+                <p className="text-4xl font-black bg-gradient-to-r from-[var(--color-2)] to-[var(--color-1)] bg-clip-text text-transparent">
+                  {price}
+                </p>
+              </div>
+
+              <ul className="space-y-3 mb-8 flex-grow">
                 {features.map((feature, i) => (
-                  <li key={i} className="border-b border-gray-300 pb-2">
-                    {feature}
+                  <li key={i} className="flex items-start gap-2 text-white/80 text-sm">
+                    <span className="text-[var(--color-2)] shrink-0">✓</span>
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
-              <button
-                className={`px-10 py-3 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-2)] ${btnClass}`}
-              >
-                {btnText}
-              </button>
-            </div>
-          )
-        )}
-      </div>
 
-      {/* Scroll para seção analytics */}
-      <ScrollArrow targetId="analytics" />
+              <GlassButton variant={highlight ? 'primary' : 'secondary'} className="w-full">
+                {btnText}
+              </GlassButton>
+            </motion.div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 };
