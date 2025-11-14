@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import StepChoose from './StepChoose';
-import StepTeams from './StepTeams';
-import StepSolo from './StepSolo';
+import StepChoose from '../components/createTournaments/StepChoose';
+import StepTeams from '../components/createTournaments/StepTeams';
+import StepSolo from '../components/createTournaments/StepSolo';
 
 export default function CreateTournaments({ fetchTorneios }) {
   const [step, setStep] = useState('choose');

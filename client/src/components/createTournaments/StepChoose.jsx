@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Gamepad } from 'lucide-react';
-import teamImage from '../../../assets/team.jpeg';
-import soloImage from '../../../assets/solo.jpg';
+import teamImage from '@/assets/team.jpeg';
+import soloImage from '@/assets/solo.jpg';
 
 const variants = {
   hidden: { opacity: 0, x: 50 },

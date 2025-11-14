@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../api';
+import { Button } from '@/components/ui/button';
+import { Trophy, Crown, Zap } from 'lucide-react';
 
-const horizontalSpacing = 350;
-const boxWidth = 250;
+const horizontalSpacing = 240;
+const boxWidth = 200;
 const boxHeight = 64;
-const verticalSpacing = 44;
+const verticalSpacing = 18;
 
 export default function ProfessionalBracket({ eventId, multiplayer }) {
   const [rounds, setRounds] = useState([]);
@@ -72,7 +74,6 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
   }, [onMouseDown, onMouseLeave, onMouseUp, onMouseMove]);
 
   const declareWinner = async (matchId, winnerId) => {
-    // Verifica se a partida está completa antes de declarar vencedor
     const match = rounds.flatMap((r) => r.matches).find((m) => m.id === matchId);
     if (!match) {
       alert('Partida não encontrada.');
@@ -85,9 +86,7 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
 
     try {
       await api.post(`/event/winner/${matchId}`, { winnerId });
-      alert('Vencedor declarado com sucesso.');
 
-      // Recarrega partidas
       const resUpdated = await api.get(`/event/${eventId}/match`);
       const matches = resUpdated.data;
 
@@ -111,11 +110,13 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
                 teams: [
                   {
                     id: multiplayer ? match.firstTeam?.id : match.firstUser?.id,
-                    name: multiplayer ? match.firstTeam?.name : match.firstUser?.username || '—',
+                    name: multiplayer ? match.firstTeam?.name : match.firstUser?.username || 'TBD',
                   },
                   {
                     id: multiplayer ? match.secondTeam?.id : match.secondUser?.id,
-                    name: multiplayer ? match.secondTeam?.name : match.secondUser?.username || '—',
+                    name: multiplayer
+                      ? match.secondTeam?.name
+                      : match.secondUser?.username || 'TBD',
                   },
                 ],
               }))
@@ -136,7 +137,6 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
     }
   };
 
-  // Fetch inicial e sempre que eventId ou multiplayer mudam
   useEffect(() => {
     async function fetchMatches() {
       try {
@@ -285,83 +285,120 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
     calculateLines();
   }, [positions]);
 
-  // Componente MatchBox
-  const MatchBox = React.forwardRef(({ team1, team2, winnerId, style, onDeclareWinner }, ref) => {
-    const winnerStyle = (teamId) => (teamId === winnerId ? { fontWeight: 'bold' } : {});
-    const isMatchComplete = team1.id && team2.id;
+  // Componente MatchBox moderno e compacto
+  const MatchBox = React.forwardRef(
+    ({ team1, team2, winnerId, style, onDeclareWinner, isLastRound }, ref) => {
+      const isMatchComplete = team1.id && team2.id;
+      const isTeam1Winner = team1.id === winnerId;
+      const isTeam2Winner = team2.id === winnerId;
 
-    // Função segura para chamar onDeclareWinner só se partida estiver completa
-    const handleDeclareWinner = (teamId) => {
-      if (!isMatchComplete) {
-        alert('Partida incompleta. Não é possível declarar vencedor.');
-        return;
-      }
-      onDeclareWinner(teamId);
-    };
+      const handleDeclareWinner = (teamId) => {
+        if (!isMatchComplete) {
+          alert('Partida incompleta. Não é possível declarar vencedor.');
+          return;
+        }
+        onDeclareWinner(teamId);
+      };
 
-    return (
-      <div
-        ref={ref}
-        style={{
-          position: 'absolute',
-          width: boxWidth,
-          padding: '6px 10px',
-          border: '2px solid #ccc',
-          //backgroundColor: '#fafafa',
-          borderRadius: 4,
-          userSelect: 'none',
-          ...style,
-        }}
-        className="text-[--color-dark]"
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={winnerStyle(team1.id)}>{team1.name || '—'}</span>
-          {winnerId == null && isMatchComplete && (
-            <button
-              onClick={() => handleDeclareWinner(team1.id)}
-              style={{ fontSize: 10, marginLeft: 8 }}
-              type="button"
+      return (
+        <div
+          ref={ref}
+          style={{
+            position: 'absolute',
+            width: boxWidth,
+            ...style,
+          }}
+          className="select-none"
+        >
+          <div className="bg-[var(--color-dark)]/80 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden hover:border-[var(--color-1)]/70 transition-all">
+            {/* Team 1 */}
+            <div
+              className={`flex items-center justify-between px-2.5 py-1.5 border-b border-white/10 ${
+                isTeam1Winner
+                  ? 'bg-gradient-to-r from-[var(--color-1)]/30 to-transparent'
+                  : 'bg-white/5'
+              }`}
             >
-              Vencer
-            </button>
-          )}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={winnerStyle(team2.id)}>{team2.name || '—'}</span>
-          {winnerId == null && isMatchComplete && (
-            <button
-              onClick={() => handleDeclareWinner(team2.id)}
-              style={{ fontSize: 10, marginLeft: 8 }}
-              type="button"
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                {isTeam1Winner && <Crown className="text-yellow-400 flex-shrink-0" size={13} />}
+                <span
+                  className={`truncate text-xs ${isTeam1Winner ? 'font-bold text-white' : 'text-white/70'}`}
+                >
+                  {team1.name || 'TBD'}
+                </span>
+              </div>
+              {winnerId == null && isMatchComplete && (
+                <Button
+                  onClick={() => handleDeclareWinner(team1.id)}
+                  size="sm"
+                  className="ml-1.5 h-5 w-5 p-0 text-xs bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90"
+                >
+                  <Zap size={11} />
+                </Button>
+              )}
+            </div>
+
+            {/* Team 2 */}
+            <div
+              className={`flex items-center justify-between px-2.5 py-1.5 ${
+                isTeam2Winner
+                  ? 'bg-gradient-to-r from-[var(--color-1)]/30 to-transparent'
+                  : 'bg-white/5'
+              }`}
             >
-              Vencer
-            </button>
-          )}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                {isTeam2Winner && <Crown className="text-yellow-400 flex-shrink-0" size={13} />}
+                <span
+                  className={`truncate text-xs ${isTeam2Winner ? 'font-bold text-white' : 'text-white/70'}`}
+                >
+                  {team2.name || 'TBD'}
+                </span>
+              </div>
+              {winnerId == null && isMatchComplete && (
+                <Button
+                  onClick={() => handleDeclareWinner(team2.id)}
+                  size="sm"
+                  className="ml-1.5 h-5 w-5 p-0 text-xs bg-gradient-to-r from-[var(--color-1)] to-[var(--color-2)] hover:opacity-90"
+                >
+                  <Zap size={11} />
+                </Button>
+              )}
+            </div>
+
+            {/* Winner Badge for Finals */}
+            {isLastRound && (isTeam1Winner || isTeam2Winner) && (
+              <div className="bg-gradient-to-r from-yellow-600 to-yellow-500 px-2 py-0.5 text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <Trophy size={11} />
+                  <span className="text-[10px] font-bold text-white">CAMPEÃO</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    );
-  });
+      );
+    }
+  );
 
   return (
     <div
       ref={containerRef}
       style={{
         position: 'relative',
-        padding: 24,
-        //backgroundColor: '#fff',
-        borderRadius: 8,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        padding: 16,
+        borderRadius: 12,
         maxWidth: '100%',
-        maxHeight: '100%',
+        height: '100%',
         overflow: 'auto',
         whiteSpace: 'nowrap',
         cursor: 'grab',
       }}
-      className="bg-[var(--color-dark)]]"
+      className="bg-[#0a0118]/30 backdrop-blur-sm"
     >
-      <div style={{ position: 'relative', display: 'inline-block' }}>
-        <div style={{ display: 'flex', marginBottom: 12 }}>
-          {rounds.map((round) => (
+      <div style={{ position: 'relative', display: 'inline-block', minHeight: '280px' }}>
+        {/* Round Headers */}
+        <div style={{ display: 'flex', marginBottom: 12, gap: 6 }}>
+          {rounds.map((round, idx) => (
             <div
               key={round.round}
               style={{
@@ -369,23 +406,29 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
                 textAlign: 'center',
                 paddingLeft: (horizontalSpacing - boxWidth) / 2,
                 paddingRight: (horizontalSpacing - boxWidth) / 2,
-                fontWeight: 'bold',
-                fontSize: 18,
-                borderBottom: '1px solid #ddd',
-                userSelect: 'none',
               }}
+              className="select-none"
             >
-              Round {round.round}
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-r from-[var(--color-1)]/20 to-[var(--color-2)]/20 border border-[var(--color-1)]/30">
+                {idx === rounds.length - 1 ? (
+                  <>
+                    <Trophy className="text-yellow-400" size={14} />
+                    <span className="font-bold text-white text-xs">Final</span>
+                  </>
+                ) : (
+                  <span className="font-bold text-white text-xs">Round {round.round}</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
+        {/* Matches Area */}
         <div
           style={{
             position: 'relative',
-            height: (rounds[0]?.matches.length || 1) * (boxHeight + verticalSpacing),
+            height: Math.max(280, (rounds[0]?.matches.length || 1) * (boxHeight + verticalSpacing)),
             minWidth: rounds.length * horizontalSpacing,
-            userSelect: 'none',
           }}
         >
           {rounds.map((round, rIdx) => (
@@ -408,12 +451,14 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
                     winnerId={match.winnerId}
                     style={{ top }}
                     onDeclareWinner={(winnerId) => declareWinner(match.id, winnerId)}
+                    isLastRound={rIdx === rounds.length - 1}
                   />
                 );
               })}
             </div>
           ))}
 
+          {/* Connection Lines */}
           <svg
             style={{
               position: 'absolute',
@@ -431,9 +476,17 @@ export default function ProfessionalBracket({ eventId, multiplayer }) {
                   key={i}
                   points={line.points.map((p) => p.join(',')).join(' ')}
                   fill="var(--color-1)"
+                  opacity={0.5}
                 />
               ) : (
-                <path key={i} d={line.d} stroke="var(--color-1)" strokeWidth={2} fill="none" />
+                <path
+                  key={i}
+                  d={line.d}
+                  stroke="var(--color-1)"
+                  strokeWidth={2}
+                  fill="none"
+                  opacity={0.3}
+                />
               )
             )}
           </svg>
