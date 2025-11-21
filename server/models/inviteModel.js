@@ -4,17 +4,15 @@ import { PrismaClient } from '@prisma/client';
 import MailSender from "../services/MailSender.js"
 import dayjs from "dayjs"
 import DataBaseException from '../exceptions/DataBaseException.js';
+import util from '../services/util.js';
+import notificationService from '../services/notificationService.js';
+import prisma from '../ config/prismaClient.js';
 
 class InviteModel{
-    prisma;
-    
-    constructor() {
-      this.prisma = new PrismaClient();
-    }
     
 
-    inviteToTournment = async(to, from, event)=>{
-        
+    inviteToTournment = async(to, from, team, event, req)=>{
+        let fullUrl =util.getFullUrl(req)
         const expirationDate = dayjs().add(5, 'day')
         
         const token = jwt.sign(
@@ -28,10 +26,11 @@ class InviteModel{
                 expiresIn: "5 days"
             }
             )
-        return await this.prisma.invite.create({
+        return await prisma.invite.create({
             data:{
                 toUserId: to.id, 
                 fromUserId: from.id, 
+                teamId: team?.id,
                 description: "Convidando Usuário para o Torneio: " + event.name, 
                 status: "P", 
                 token, 
@@ -40,10 +39,17 @@ class InviteModel{
                 eventId: event.id
             }
         }).then(data=>{
+            
             MailSender.sendMail({
                 to: to.email,
                 subject: "Versus - Convite para o Torneio: " + event.name,
-                html: `<a href="http://localhost:8080/event/updateInvite?token=${token}" >Convite </a>`
+                html: `<a href=" ${fullUrl}/event/updateInvite?token=${token} " >Convite:</a>`
+            })
+            notificationService.sendNotification({
+                userId: to.id,
+                title: "Convite para o Torneio: " + event.name,
+                message: from.username + " convidou você para o torneio: " + event.name,
+                link: `/event/updateInvite?token=${token}`
             })
 
             return {msg:"Invite Sent"}
@@ -51,8 +57,9 @@ class InviteModel{
         })
     }
 
-    inviteToTeam = async(to, from, team)=>{
-        
+    inviteToTeam = async(to, from, team, req)=>{
+        let fullUrl =util.getFullUrl(req)
+
         const expirationDate = dayjs().add(5, 'day')
         
         const token = jwt.sign(
@@ -66,7 +73,7 @@ class InviteModel{
                 expiresIn: "5 days"
             }
             )
-        return await this.prisma.invite.create({
+        return await prisma.invite.create({
             data:{
                 toUserId: to.id, 
                 fromUserId: from.id, 
@@ -81,7 +88,14 @@ class InviteModel{
             MailSender.sendMail({
                 to: to.email,
                 subject: "Versus - Convite para o Time: " + team.name,
-                html: `<a href="http://localhost:8080/team/updateInvite?token=${token}" >Convite </a>`
+                html: `<a href="${fullUrl}/team/updateInvite?token=${token}" >Convite </a>`
+            })
+
+            notificationService.sendNotification({
+                userId: to.id,
+                title: "Convite para o Time: " + team.name,
+                message: from.username + " convidou você para o time: " + team.name,
+                link: `/team/updateInvite?token=${token}`
             })
 
             return {msg:"Invite Sent"}
@@ -89,7 +103,7 @@ class InviteModel{
     }
 
     inviteValidation = async(token)=>{
-        const invite = await this.prisma.invite.findFirst({where: {token}, include:{
+        const invite = await prisma.invite.findFirst({where: {token}, include:{
             toUser: true, fromUser: true, event: true, team: true
         }})
         if(invite.status != "P"){
@@ -99,7 +113,7 @@ class InviteModel{
         return await jwt.verify(invite.token, process.env.INVITE_SECRET, async (err, authData)=>{
             if(err){
                 if (err.name === 'TokenExpiredError') {
-                this.prisma.invite.update({where:{token}, data:{
+                await prisma.invite.update({where:{token}, data:{
                     status: "E"
                 }})
 

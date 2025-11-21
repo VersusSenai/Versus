@@ -2,7 +2,10 @@ import userModel from "../models/UserModel.js";
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isAdmin from "../middlewares/adminMiddleware.js";
-
+import ImageService from "../services/ImageService.js";
+import multer from "multer";
+import upload from "../middlewares/uploadMiddleware.js";
+import NotAllowedException from "../exceptions/NotAllowedException.js";
 const userRoute = express.Router();
 
 /**
@@ -16,13 +19,32 @@ const userRoute = express.Router();
  * @swagger
  * /user:
  *   get:
- *     summary: Lista todos os usuários (apenas Admin)
+ *     summary: Lista todos os usuários ou busca por email/username
  *     tags: [Usuários]
  *     security:
- *       - adminAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Termo de busca para filtrar por email ou username
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Quantidade por página
  *     responses:
  *       200:
- *         description: Lista completa de usuários
+ *         description: Lista de usuários
  *         content:
  *           application/json:
  *             schema:
@@ -32,10 +54,38 @@ const userRoute = express.Router();
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.get("/", isAdmin, async (req, res,next) => {
-  await userModel.getAll(req)
-    .then(data => res.status(200).json(data))
-    .catch(e => next(e));
+userRoute.get("/", verifyToken, async (req, res, next) => {
+  await userModel
+    .getAll(req)
+    .then((data) => res.status(200).json(data))
+    .catch((e) => next(e));
+});
+
+/**
+ * @swagger
+ * /user/me:
+ *   get:
+ *     summary: Lista os dados do próprio usuário
+ *     tags: [Usuários]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista os dados do próprio usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserPublic'
+ *       403:
+ *         description: Acesso não autorizado
+ */
+userRoute.get("/me", verifyToken, async (req, res, next) => {
+  if (req.user) {
+    const { id, role, email, username, icon } = req.user;
+    res.status(200).json({ id, role, email, username, icon });
+  } else {
+    next(new NotAllowedException("User is not logged"));
+  }
 });
 
 /**
@@ -73,9 +123,10 @@ userRoute.get("/", isAdmin, async (req, res,next) => {
  *         description: Acesso não autorizado
  */
 userRoute.get("/:id", verifyToken, async (req, res, next) => {
-  await userModel.getById(req)
-    .then(data => res.status(200).json(data))
-    .catch(e => next(e));
+  await userModel
+    .getById(req)
+    .then((data) => res.status(200).json(data))
+    .catch((e) => next(e));
 });
 
 /**
@@ -111,10 +162,11 @@ userRoute.get("/:id", verifyToken, async (req, res, next) => {
  *       400:
  *         description: Erro na validação dos dados
  */
-userRoute.post("/", async (req, res,next) => {
-  await userModel.create(req)
-    .then(data => res.status(201).json(data))
-    .catch(e => next(e));
+userRoute.post("/", async (req, res, next) => {
+  await userModel
+    .create(req)
+    .then((data) => res.status(201).json(data))
+    .catch((e) => next(e));
 });
 
 /**
@@ -169,10 +221,11 @@ userRoute.post("/", async (req, res,next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.put("/:id", isAdmin, async (req, res,next) => {
-  await userModel.updateById(req)
-    .then(data => res.status(200).json(data))
-    .catch(e => next(e));
+userRoute.put("/:id", isAdmin, async (req, res, next) => {
+  await userModel
+    .updateById(req)
+    .then((data) => res.status(200).json(data))
+    .catch((e) => next(e));
 });
 
 /**
@@ -210,11 +263,17 @@ userRoute.put("/:id", isAdmin, async (req, res,next) => {
  *       400:
  *         description: Erro na atualização
  */
-userRoute.put("/", verifyToken, async (req, res,next) => {
-  await userModel.update(req)
-    .then(data => res.status(200).json(data))
-    .catch(e => next(e));
-});
+userRoute.put(
+  "/",
+  verifyToken,
+  upload.single("image"),
+  async (req, res, next) => {
+    await userModel
+      .update(req)
+      .then((data) => res.status(200).json(data))
+      .catch((e) => next(e));
+  },
+);
 
 /**
  * @swagger
@@ -230,10 +289,11 @@ userRoute.put("/", verifyToken, async (req, res,next) => {
  *       400:
  *         description: Erro ao desativar conta
  */
-userRoute.delete("/", verifyToken, async (req, res,next) => {
-  await userModel.delete(req)
-    .then(data => res.status(204).json(data))
-    .catch(e => next(e));
+userRoute.delete("/", verifyToken, async (req, res, next) => {
+  await userModel
+    .delete(req)
+    .then((data) => res.status(204).json(data))
+    .catch((e) => next(e));
 });
 
 /**
@@ -259,12 +319,12 @@ userRoute.delete("/", verifyToken, async (req, res,next) => {
  *       403:
  *         description: Acesso não autorizado
  */
-userRoute.delete("/:id", isAdmin, async (req, res,next) => {
-  await userModel.deleteById(req)
-    .then(data => res.status(204).json(data))
-    .catch(e => next(e));
+userRoute.delete("/:id", isAdmin, async (req, res, next) => {
+  await userModel
+    .deleteById(req)
+    .then((data) => res.status(204).json(data))
+    .catch((e) => next(e));
 });
-
 
 /**
  * @swagger
@@ -302,10 +362,11 @@ userRoute.delete("/:id", isAdmin, async (req, res,next) => {
  *       500:
  *         description: Erro interno do servidor
  */
-userRoute.post("/forgetPassword", async (req, res,next) => {
-  await userModel.passwordRecoverByEmail(req)
-    .then(data => res.status(200).json({msg: "Email enviado com sucesso"}))
-    .catch(e => nexteita (e));
+userRoute.post("/forgetPassword", async (req, res, next) => {
+  await userModel
+    .passwordRecoverByEmail(req)
+    .then((data) => res.status(200).json({ msg: "Email enviado com sucesso" }))
+    .catch((e) => next(e));
 });
 
 /**
@@ -350,10 +411,11 @@ userRoute.post("/forgetPassword", async (req, res,next) => {
  *       500:
  *         description: Erro interno do servidor
  */
-userRoute.patch("/recoverPassword", async (req, res,next) => {
-  await userModel.passwordRecoverByToken(req)
-    .then(data => res.status(200).json({msg: "Senha alterada com sucesso"}))
-    .catch(e => next(e));
+userRoute.patch("/recoverPassword", async (req, res, next) => {
+  await userModel
+    .passwordRecoverByToken(req)
+    .then((data) => res.status(200).json({ msg: "Senha alterada com sucesso" }))
+    .catch((e) => next(e));
 });
 
 export default userRoute;

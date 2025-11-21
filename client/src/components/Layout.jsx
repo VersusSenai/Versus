@@ -3,7 +3,7 @@ import Navbar from './navbar/Navbar';
 import Aurora from '../ui/blocks/Backgrounds/Aurora/Aurora'; // ajuste o caminho conforme necessário
 
 const Layout = ({ children }) => {
-  const [navbarWidth, setNavbarWidth] = useState(256);
+  const [navbarWidth, setNavbarWidth] = useState(320);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const Layout = ({ children }) => {
         }}
         className="transition-[margin-left,width] duration-300 relative z-10 flex justify-center"
       >
-        <div className="w-full max-w-7xl">{children}</div>
+        <div className="w-full">{children}</div>
       </main>
     </div>
   );

@@ -1,0 +1,282 @@
+[
+  {
+    "id": "1",
+    "name": "Team Alpha",
+    "description": "This is Team Alpha.",
+    "registered_date": "2023-10-01",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "2",
+    "name": "Team Beta",
+    "description": "This is Team Beta.",
+    "registered_date": "2023-11-15",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "3",
+    "name": "Team Gamma",
+    "description": "This is Team Gamma.",
+    "registered_date": "2023-12-05",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "4",
+    "name": "Team Delta",
+    "description": "This is Team Delta.",
+    "registered_date": "2024-01-10",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "5",
+    "name": "Team Epsilon",
+    "description": "This is Team Epsilon.",
+    "registered_date": "2024-02-20",
+    "private": false,
+    "status": "inactive"
+  },
+  {
+    "id": "6",
+    "name": "Team Zeta",
+    "description": "This is Team Zeta.",
+    "registered_date": "2024-03-15",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "7",
+    "name": "Team Eta",
+    "description": "This is Team Eta.",
+    "registered_date": "2024-04-01",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "8",
+    "name": "Team Theta",
+    "description": "This is Team Theta.",
+    "registered_date": "2024-04-18",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "9",
+    "name": "Team Iota",
+    "description": "This is Team Iota.",
+    "registered_date": "2024-05-05",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "10",
+    "name": "Team Kappa",
+    "description": "This is Team Kappa.",
+    "registered_date": "2024-05-20",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "11",
+    "name": "Team Lambda",
+    "description": "This is Team Lambda.",
+    "registered_date": "2024-06-01",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "12",
+    "name": "Team Mu",
+    "description": "This is Team Mu.",
+    "registered_date": "2024-06-10",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "13",
+    "name": "Team Nu",
+    "description": "This is Team Nu.",
+    "registered_date": "2024-06-15",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "14",
+    "name": "Team Xi",
+    "description": "This is Team Xi.",
+    "registered_date": "2024-06-20",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "15",
+    "name": "Team Omicron",
+    "description": "This is Team Omicron.",
+    "registered_date": "2024-06-25",
+    "private": false,
+    "status": "inactive"
+  },
+  {
+    "id": "16",
+    "name": "Team Pi",
+    "description": "This is Team Pi.",
+    "registered_date": "2024-07-01",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "17",
+    "name": "Team Rho",
+    "description": "This is Team Rho.",
+    "registered_date": "2024-07-05",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "18",
+    "name": "Team Sigma",
+    "description": "This is Team Sigma.",
+    "registered_date": "2024-07-10",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "19",
+    "name": "Team Tau",
+    "description": "This is Team Tau.",
+    "registered_date": "2024-07-15",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "20",
+    "name": "Team Upsilon",
+    "description": "This is Team Upsilon.",
+    "registered_date": "2024-07-20",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "21",
+    "name": "Team Phi",
+    "description": "This is Team Phi.",
+    "registered_date": "2024-07-25",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "22",
+    "name": "Team Chi",
+    "description": "This is Team Chi.",
+    "registered_date": "2024-08-01",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "23",
+    "name": "Team Psi",
+    "description": "This is Team Psi.",
+    "registered_date": "2024-08-05",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "24",
+    "name": "Team Omega",
+    "description": "This is Team Omega.",
+    "registered_date": "2024-08-10",
+    "private": false,
+    "status": "inactive"
+  },
+  {
+    "id": "25",
+    "name": "Team Alpha2",
+    "description": "This is Team Alpha2.",
+    "registered_date": "2024-08-15",
+    "private": true,
+    "status": "active"
+  },    
+  {
+    "id": "26",
+    "name": "Team Beta2",
+    "description": "This is Team Beta2.",
+    "registered_date": "2024-08-20",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "27",
+    "name": "Team Gamma2",
+    "description": "This is Team Gamma2.",
+    "registered_date": "2024-08-25",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "28",
+    "name": "Team Delta2",
+    "description": "This is Team Delta2.",
+    "registered_date": "2024-08-30",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "29",
+    "name": "Team Epsilon2",
+    "description": "This is Team Epsilon2.",
+    "registered_date": "2024-09-05",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "30",
+    "name": "Team Zeta2",
+    "description": "This is Team Zeta2.",
+    "registered_date": "2024-09-10",
+    "private": false,
+    "status": "inactive"
+  },
+  {
+    "id": "31",
+    "name": "Team Eta2",
+    "description": "This is Team Eta2.",
+    "registered_date": "2024-09-15",
+    "private": true,
+    "status": "active"
+  },
+  {
+    "id": "32",
+    "name": "Team Theta2",
+    "description": "This is Team Theta2.",
+    "registered_date": "2024-09-20",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "33",
+    "name": "Team Iota2",
+    "description": "This is Team Iota2.",
+    "registered_date": "2024-09-25",
+    "private": true,
+    "status": "inactive"
+  },
+  {
+    "id": "34",
+    "name": "Team Kappa2",
+    "description": "This is Team Kappa2.",
+    "registered_date": "2024-09-30",
+    "private": false,
+    "status": "active"
+  },
+  {
+    "id": "35",
+    "name": "Team Lambda2",
+    "description": "This is Team Lambda2.",
+    "registered_date": "2024-10-05",
+    "private": true,
+    "status": "active"
+  }
+]

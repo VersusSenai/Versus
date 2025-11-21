@@ -15,8 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
-import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { useDataTableContext } from '../context/useDataTableContext';
 import {
   DropdownMenu,
@@ -27,13 +27,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import {
-  ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
-  SortAsc,
-  SortDesc,
-} from 'lucide-react';
+import { ArrowUpDown, ChevronDown, MoreHorizontal, SortAsc, SortDesc } from 'lucide-react';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 
@@ -81,7 +75,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
             )}
 
             {actions.map(({ label, icon: Icon, onClick }, i) => (
-              <React.Fragment key={i}>
+              <div key={i}>
                 {i > 0 && <DropdownMenuSeparator />}
                 <DropdownMenuItem
                   onClick={() => onClick(rowData)}
@@ -90,7 +84,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                   {Icon && <Icon className="h-4 w-4" />}
                   {label}
                 </DropdownMenuItem>
-              </React.Fragment>
+              </div>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -101,19 +95,22 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
   const checkboxColumn = {
     id: 'checkbox',
     header: ({ table }) => (
-      <Checkbox
-        className="mr-4"
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Selecionar tudo"
-      />
+      <div className="w-full flex items-center justify-center">
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Selecionar tudo"
+        />
+      </div>
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Selecionar linha"
-      />
+      <div className="w-full flex items-center justify-center">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Selecionar linha"
+        />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false,
@@ -121,7 +118,6 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
 
   const columns = [checkboxColumn, ...TableColumns, actionsColumn];
 
-  // Configura o React Table com todas as funcionalidades necessárias
   const table = useReactTable({
     data,
     columns,
@@ -132,10 +128,10 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
       rowSelection,
       globalFilter,
     },
-    autoResetPageIndex: false, // resetar página ao filtrar/ordenar
-    enableColumnResizing: true, // permitir redimensionar colunas
+    autoResetPageIndex: false,
+    enableColumnResizing: true,
     initialState: {
-      pagination: { pageSize: 25 }, // tamanho da página inicial
+      pagination: { pageSize: 25 },
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -150,17 +146,14 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
       String(row.getValue(columnId)).toLowerCase().includes(filterValue.toLowerCase()),
   });
 
-  // Sincroniza o índice de página do React Table com o contexto externo
   useEffect(() => {
     table.setPageIndex(pageIndex);
   }, [pageIndex]);
 
-  // Ao montar, garante que a página comece em 0
   useEffect(() => {
     setPageIndex(0);
   }, []);
 
-  // Se o filtro global for "clear", reseta todos os filtros de coluna
   useEffect(() => {
     if (filter === 'clear') {
       table.resetColumnFilters();
@@ -200,7 +193,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
         </DropdownMenu>
       </div>
       <div className="flex-1 w-full overflow-auto">
-        <ScrollArea className="rounded-md p-1">
+        <ScrollArea className="rounded-md">
           <ScrollBar orientation="vertical" />
           <Table>
             {/* Cabeçalho da tabela */}
@@ -210,11 +203,11 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="text-gray-300 py-2 px-4 hover:bg-1/10 text-left whitespace-normal break-words cursor-pointer"
+                      className="text-gray-300"
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {header.isPlaceholder ? null : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 p-2 m-1 hover:bg-1/10 rounded-md cursor-pointer">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {header.column.getCanSort() &&
                             ({
@@ -237,7 +230,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="px-4 text-gray-100"
+                        className="text-gray-100 p-2"
                         title={
                           !['checkbox', 'acoes'].includes(cell.column.id) &&
                           (typeof cell.getValue() === 'string' ||
@@ -246,7 +239,7 @@ export default function DataTable({ data, columns: TableColumns, actions = [] })
                             : undefined
                         }
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>

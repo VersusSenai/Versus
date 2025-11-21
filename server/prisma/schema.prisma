@@ -1,14 +1,16 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"] 
 }
+
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
 model User {
   id              Int      @id @default(autoincrement())
+  icon            String?  
   username        String   @db.VarChar(100)
   email           String   @unique @db.VarChar(100)
   password        String   @db.VarChar(255)
@@ -24,6 +26,7 @@ model User {
   applicationFrom        Application[] @relation("Application_fromUser")
   passwordRecover        UserPasswordRecover[] @relation("passwordRecoverToken")
   RefreshToken        UserRefreshToken[] @relation("RefreshToken")
+  notifications      Notification[] @relation("Notification_user")
 }
 enum UserStatus {
   A
@@ -38,6 +41,7 @@ enum Role {
 model Event {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(100)
+  thumbnail   String?  
   description String  @db.VarChar(250)
   maxPlayers  Int     @db.Int
   startDate   DateTime @map("start_date")
@@ -81,6 +85,7 @@ enum TeamStatus {
 
 model Team {
   id             Int      @id @default(autoincrement())
+  icon           String?  
   name           String   @db.VarChar(100)
   description    String?  @db.VarChar(250)
   registeredDate DateTime @default(now()) @map("registered_date")
@@ -188,10 +193,10 @@ model Invite {
   fromUserId  Int
   toUserId    Int
   description String
-  token       String
+  token       String @db.VarChar(255)
   expirationDate DateTime
   status  InviteStatus
-  callback  String?
+  callback  String? @db.VarChar(255)
   teamId     Int? 
   eventId     Int? 
   toUser    User  @relation(fields: [toUserId], references: [id], name: "Invite_toUser", onDelete: Cascade)
@@ -247,4 +252,15 @@ model UserRefreshToken{
   user    User  @relation(fields: [userId], references: [id], name: "RefreshToken", onDelete: Cascade)
   status  RefreshTokenStatus 
 
+}
+
+model Notification{
+  id Int  @id @default(autoincrement())
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, name: "Notification_user")
+  title   String @db.VarChar(100)
+  message String @db.Text
+  link    String? @db.VarChar(255)
+  read    Boolean @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
 }

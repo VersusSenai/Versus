@@ -2,7 +2,7 @@ import express from "express";
 import teamModel from "../models/TeamModel.js";
 import verifyToken from "../middlewares/authMiddleware.js";
 import isAdmin from "../middlewares/adminMiddleware.js";
-
+import upload from "../middlewares/uploadMiddleware.js";
 const teamRoute = express.Router();
 
 /**
@@ -41,9 +41,15 @@ const teamRoute = express.Router();
  *       200:
  *         description: Lista de times
  */
-teamRoute.get("/",verifyToken ,async (req, res) => {
-  const teams = await teamModel.getAll(req);
-  res.json(teams);
+teamRoute.get("/",verifyToken ,async (req, res, next) => {
+  const teams = await teamModel.getAll(req).then(r=>{
+      if(r){
+        res.json(r);
+      }
+
+    }).catch(e=>{
+          next(e)
+    });
 });
 
 /**
@@ -97,7 +103,7 @@ teamRoute.get("/:id",verifyToken ,async (req, res,next) => {
  *       400:
  *         description: Erro ao criar time
  */
-teamRoute.post("/", verifyToken, async (req, res, next) => {
+teamRoute.post("/", verifyToken, upload.single('image'), async (req, res, next) => {
   try {
     const team = await teamModel.create(req);
     res.status(201).json(team);
@@ -138,7 +144,7 @@ teamRoute.post("/", verifyToken, async (req, res, next) => {
  *       403:
  *         description: Sem permissão para editar
  */
-teamRoute.put("/:id", verifyToken, async (req, res, next) => {
+teamRoute.put("/:id", verifyToken, upload.single('image'), async (req, res, next) => {
   try {
     const updated = await teamModel.update(req);
     res.status(200).json(updated);
@@ -174,36 +180,6 @@ teamRoute.delete("/:id", verifyToken, async (req, res, next) => {
   try {
     await teamModel.delete(req);
     res.status(204).end();
-  } catch (err) {
-    next(err)
-  }
-});
-
-/**
- * @swagger
- * /team/{id}/inscribe:
- *   post:
- *     summary: Inscreve o usuário logado no time
- *     tags: [Times]
- *     security:
- *       - cookieAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         description: ID do time
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Usuário inscrito no time
- *       400:
- *         description: Erro ao inscrever
- */
-teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
-  try {
-    const resp = await teamModel.inscribe(req);
-    res.status(200).json(resp);
   } catch (err) {
     next(err)
   }
@@ -401,33 +377,49 @@ teamRoute.post("/:id/invite", verifyToken, async (req, res, next) => {
 /**
  * @swagger
  * /team/updateInvite:
- *   get:
- *     summary: Responde convite
+ *   patch:
+ *     summary: Responde convite de time (aceitar/recusar)
  *     tags: [Times]
  *     security:
  *       - cookieAuth: []
-  *     requestBody:
+ *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
+ *               inviteId:
+ *                 type: integer
+ *                 description: ID do convite
+ *                 example: 123
  *               accept:
  *                 type: boolean
- *                 description: resposta do jogador
+ *                 description: Resposta do usuário (true = aceitar, false = recusar)
  *                 example: true
  *     responses:
  *       200:
- *         description: Convite aceito com sucesso
+ *         description: Convite atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
  *       400:
- *         description: Erro com o convite
+ *         description: Requisição inválida
+ *       401:
+ *         description: Não autorizado
  */
-teamRoute.post("/updateInvite", verifyToken, async (req, res, next) => {
+teamRoute.patch("/updateInvite", verifyToken, async (req, res, next) => {
   try {
     const result = await teamModel.updateInvite(req);
     res.status(200).json(result);
   } catch (err) {
-    next(err)
+    next(err);
   }
 });
 
@@ -459,5 +451,64 @@ teamRoute.post("/approveTeam/:id", isAdmin, async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+});
+
+/**
+ * @swagger
+ * /team/{id}/inscribe:
+ *   post:
+ *     summary: Inscreve o usuário logado no time
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do time
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuário inscrito no time
+ *       400:
+ *         description: Erro ao inscrever
+ */
+teamRoute.post("/:id/inscribe", verifyToken, async (req, res, next) => {
+  try {
+    const resp = await teamModel.inscribe(req);
+    res.status(200).json(resp);
+  } catch (err) {
+    next(err)
+  }
+});
+/**
+ * @swagger
+ * /team/getByUserId/{id}:
+ *   post:
+ *     summary: Busca o time por id de usuário
+ *     tags: [Times]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID do usuário
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 
+ *       400:
+ *         description: Erro ao Buscar
+ */
+teamRoute.get("/getByUserId/:id", verifyToken, async (req, res, next) => {
+  await teamModel.getByUserId(req).then(data=>{
+
+    res.status(200).json(data);
+  }).catch (err=>{
+    next(err)
+  })
 });
 export default teamRoute;

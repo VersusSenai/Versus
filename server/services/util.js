@@ -5,7 +5,9 @@ const prisma = new PrismaClient();
 
 class UtilService {
 
-
+   getFullUrl = (req) => {
+        return req.protocol + '://' + req.get('host');
+    }
     getUserByToken= async(req)=>{
         
             const {token}= req.cookies
@@ -20,7 +22,7 @@ class UtilService {
 
            return await prisma.user.findUnique({where: {id: data.id}, select:{
           
-                username:true, email:true, id:true, role:true, password: true
+                username:true, email:true, id:true, role:true, password: true, icon: true
             
            }}).catch(e =>{
                 throw Error("User does not exists")

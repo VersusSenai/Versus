@@ -1,7 +1,6 @@
 // Users.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageTransition from '../components/transition/PageTransition';
-import CustomTable from '../components/CustomTable';
 import CustomDialog from '../components/CustomDialog';
 import { RoleSelect } from '../components/RoleSelect';
 import api from '../api';
@@ -10,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import DataTable from '@/components/DataTable';
+import CustomTable from '@/components/CustomTable';
 
 const columns = [
   { accessorKey: 'id', header: 'ID', cell: (info) => info.getValue() },
   { accessorKey: 'username', header: 'Nome', cell: (info) => info.getValue() },
-  { accessorKey: 'password', header: 'Senha', cell: (info) => info.getValue() },
   { accessorKey: 'email', header: 'Email', cell: (info) => info.getValue() },
   { accessorKey: 'role', header: 'Role', cell: (info) => info.getValue() },
 ];
@@ -31,7 +31,9 @@ const Users = () => {
     api
       .get('/user')
       .then((res) => {
-        setData(res.data);
+        // O backend retorna dados paginados como array [dados, meta]
+        const userData = Array.isArray(res.data) ? res.data[0] : res.data.data || res.data;
+        setData(userData);
         setLoading(false);
       })
       .catch((err) => {
@@ -57,7 +59,11 @@ const Users = () => {
     e.preventDefault();
 
     try {
-      await api.put(`/user/${selectedUser.id}`, { ...selectedUser, userId: selectedUser.i, password: null });
+      await api.put(`/user/${selectedUser.id}`, {
+        ...selectedUser,
+        userId: selectedUser.i,
+        password: null,
+      });
       toast.success('Usuário atualizado com sucesso!');
 
       setData((oldData) => oldData.map((u) => (u.id === selectedUser.id ? selectedUser : u)));
@@ -104,7 +110,7 @@ const Users = () => {
 
   return (
     <PageTransition>
-      <CustomTable columns={columns} data={data} actions={actions} />
+      <DataTable columns={columns} data={data} actions={actions} />
 
       {selectedUser && (
         <CustomDialog

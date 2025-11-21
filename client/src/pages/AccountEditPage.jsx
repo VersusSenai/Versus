@@ -2,16 +2,19 @@ import { FaUserCircle, FaTimes } from 'react-icons/fa';
 import { VersusIconButton } from '../ui/versus/versusIconButton';
 import { VersusInput } from '../ui/versus/versusInput';
 import { VersusButton } from '../ui/versus/versusButton';
-import { useUser } from '../hooks/useUser';
 import { useUpdateUser } from '../hooks/useUpdateUser';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AvatarUpload } from '../components/ui/inputs/AvatarUpload';
+import { useSelector } from 'react-redux';
 
 export default function AccountEditPage() {
-  const { user, loading } = useUser();
+  const user = useSelector((state) => state.user.user);
   const { handleUpdate, loading: updating } = useUpdateUser();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,9 +24,24 @@ export default function AccountEditPage() {
     }
   }, [user]);
 
+  const handleImageChange = (file, previewUrl) => {
+    // Se file for "REMOVE", significa que o usuário quer remover a imagem
+    if (file === 'REMOVE') {
+      setImage('REMOVE');
+      setImagePreview(null);
+    } else {
+      setImage(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
   const handleSave = async () => {
-    const ok = await handleUpdate({ username, email });
-    if (ok) {
+    const result = await handleUpdate({
+      username,
+      email,
+      image,
+    });
+    if (result) {
       navigate('/account'); // volta para a página de conta
     }
   };
@@ -34,19 +52,22 @@ export default function AccountEditPage() {
         <h1 className="text-5xl font-bold mb-6 text-center text-white">Editar Conta</h1>
         <div className="flex items-center justify-center rounded-xl p-8 w-full max-w-md flex-col">
           <div className="mb-6">
-            <FaUserCircle className="text-[120px] text-white drop-shadow-lg" />
+            <AvatarUpload
+              currentImage={imagePreview || user?.icon}
+              onImageChange={handleImageChange}
+            />
           </div>
 
           <VersusInput
             placeholder="Nome de usuário"
-            value={loading ? 'Carregando...' : username}
+            value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <div className="mt-4 w-full">
             <VersusInput
               type="email"
               placeholder="Email"
-              value={loading ? 'Carregando...' : email}
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -56,7 +77,6 @@ export default function AccountEditPage() {
               label={updating ? 'Salvando...' : 'Salvar'}
               variant="contained"
               onClick={handleSave}
-              disabled={updating}
               fullWidth
             />
 

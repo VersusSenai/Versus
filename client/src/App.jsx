@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
-import Tournaments from './pages/Tournaments';
-import CreateTournaments from './pages/CreateTournaments';
+import Tournaments from './pages/TournamentPage';
+import CreateTournaments from './pages/CreateTournamentsPage';
+import ManageTournaments from './pages/ManageTournamentsPage';
 import Layout from './components/Layout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
@@ -16,6 +17,11 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AccountPage from './pages/AccountPage';
 import AccountEditPage from './pages/AccountEditPage';
+import { Teams } from './pages/TeamsPage';
+import { DataTableProvider } from './context/DataTableContext';
+import { NavbarProvider } from './context/NavbarContext';
+import { TeamsPageProvider } from './context/TeamsPageContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 const NotFound = () => (
   <div className="flex justify-center items-center h-screen">
@@ -32,7 +38,7 @@ const AnimatedRoutes = () => {
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/homepage" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
 
         {/* Rotas privadas */}
         <Route
@@ -41,7 +47,9 @@ const AnimatedRoutes = () => {
             <ProtectedRoute allowedRoles={['A']}>
               <Layout>
                 <PageWrapper>
-                  <Users />
+                  <DataTableProvider>
+                    <Users />
+                  </DataTableProvider>
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
@@ -68,6 +76,32 @@ const AnimatedRoutes = () => {
               <Layout>
                 <PageWrapper>
                   <CreateTournaments />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manageTournaments"
+          element={
+            <ProtectedRoute allowedRoles={['A', 'O']}>
+              <Layout>
+                <PageWrapper>
+                  <ManageTournaments />
+                </PageWrapper>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teams"
+          element={
+            <ProtectedRoute allowedRoles={['A', 'P']}>
+              <Layout>
+                <PageWrapper>
+                  <TeamsPageProvider>
+                    <Teams />
+                  </TeamsPageProvider>
                 </PageWrapper>
               </Layout>
             </ProtectedRoute>
@@ -117,20 +151,24 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
-        <AnimatedRoutes />
-      </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      <NotificationProvider>
+        <NavbarProvider>
+          <Router>
+            <AnimatedRoutes />
+          </Router>
+        </NavbarProvider>
+      </NotificationProvider>
     </Provider>
   );
 }

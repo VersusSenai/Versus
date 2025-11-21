@@ -5,9 +5,18 @@ import 'dotenv/config';
 import DataBaseException from '../exceptions/DataBaseException.js';
 import NotFoundException from '../exceptions/NotFoundException.js';
 import BadRequestException from '../exceptions/BadRequestException.js';
-
+import { OAuth2Client } from 'google-auth-library';
 
 const prisma = new PrismaClient()
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REDIRECT_URI =  (process.env.BACKEND_URL|| 'http://localhost:8080') + "/auth/google/callback";
+const oauth2Client = new OAuth2Client(
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  REDIRECT_URI
+);
 
 class Auth {
     
@@ -59,7 +68,9 @@ class Auth {
     }
 
 
-
+    getFullUrl = (req) => {
+        return req.protocol + '://' + req.get('host');
+    }
 
     generateToken = async(user)=>{
         return await jwt.sign(
@@ -86,7 +97,7 @@ class Auth {
                 }
             )
             
-        await prisma.userRefreshToken.create({
+        const tokenObj = await prisma.userRefreshToken.create({
             data: {
                 token: refreshToken,
                 userId: user.id,
@@ -96,8 +107,6 @@ class Auth {
         }).catch(e=>{
             throw new DataBaseException("Internal Server Error");
         })
-
-
         return refreshToken;
         
     }
@@ -118,7 +127,10 @@ class Auth {
         }).catch(e=>{
             throw new DataBaseException("Internal Server Error");
         })
-
+        if(!storedToken){
+            throw new BadRequestException("Refresh token is invalid");
+            
+        }
         if(!storedToken.status || storedToken.status != "A"){
             
             await prisma.userRefreshToken.updateMany({  
@@ -156,6 +168,140 @@ class Auth {
 
 
         
+    }
+
+
+    generateAuthUrl = async(req)=>{
+        return oauth2Client.generateAuthUrl({
+            access_type: "offline",
+            scope: [
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+            ],
+        });
+    
+    }
+    googleCallback = async(req)=>{
+        const code = req.query.code;
+        try {
+            const { tokens } = await oauth2Client.getToken(code);
+            oauth2Client.setCredentials(tokens);
+
+            const ticket = await oauth2Client.verifyIdToken({
+                idToken: tokens.id_token,
+                audience: GOOGLE_CLIENT_ID,
+            });
+            const payload = ticket.getPayload();
+            const { sub, email, name, picture } = payload;
+
+            let user = await this.prisma.user.findUnique({ where: { email } });
+            if (user && user.status == "D"){
+                throw new NotFoundException("User Deleted or Banned") ;
+
+            }
+        
+            
+            if (!user) {
+                const hashedPassword = bcrypt.hashSync(sub, 10);
+                user = await this.prisma.user.create({
+                    data: {
+                        email,
+                        username: name,
+                        password: hashedPassword,
+                        role: "P",
+                        status: "A",
+                        icon: picture
+                    }
+                });
+
+            }
+            
+            return {token: await this.generateToken(user), refreshToken: await this.generateRefreshToken(user) , id: user.id ,username: user.username, email: user.email, role: user.role};
+
+
+
+        } catch (error) {
+            throw new DataBaseException("Internal Server Error");
+            
+        }
+    }
+
+    discordAuthUrl = async(req)=>{
+        const clientId = process.env.DISCORD_CLIENT_ID;
+        const redirectUri = encodeURIComponent((process.env.BACKEND_URL|| 'http://localhost:8080')  +"/auth/discord/callback");
+        const scope = "identify email";
+
+
+        const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
+
+        return url;
+
+    }
+
+    discordCallback = async(req)=>{
+        const code = req.query.code;
+        const clientId = process.env.DISCORD_CLIENT_ID;
+        const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+        const url = this.getFullUrl(req);
+        const redirectUri = url+"/auth/discord/callback";
+
+        try {
+            const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    client_id: clientId,
+                    client_secret: clientSecret,
+                    grant_type: "authorization_code",
+                    code: code,
+                    redirect_uri: redirectUri,
+                }),
+            });
+            
+            const tokenData = await tokenResponse.json();
+            const userResponse = await fetch("https://discord.com/api/users/@me", {
+                headers: {
+                    Authorization: `Bearer ${tokenData.access_token}`,
+                },
+            });
+
+            const {username, email, avatar, id, global_name} = await userResponse.json();
+            let user = await this.prisma.user.findUnique({ where: { email } });
+            
+            
+            if (user && user.status == "D"){
+                throw new NotFoundException("User Deleted or Banned") ;
+
+            }
+
+
+            if (!user) {
+            let avatarUrl = null;
+            if (avatar) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=256`; 
+            }
+            
+                const hashedPassword = bcrypt.hashSync(id, 10);
+                user = await this.prisma.user.create({
+                    data: {
+                        email,
+                        username: global_name? global_name : username,
+                        password: hashedPassword,
+                        role: "P",
+                        status: "A",
+                        icon: avatarUrl
+                    }
+                });
+            }
+
+            return {token: await this.generateToken(user), refreshToken: await this.generateRefreshToken(user) , id: user.id ,username: user.username, email: user.email, role: user.role};
+
+        }catch (error) {
+            throw new DataBaseException("Internal Server Error");
+        }
+    
     }
 
 }

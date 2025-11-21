@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", // Ou "ES6" se quiser mais compatibilidade
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": true, // Permite arquivos .js serem compilados
+    "skipLibCheck": true, // Pula checagem de tipo em arquivos de definição
+    "esModuleInterop": true, // Suporte para importações de módulos comuns (CommonJS)
+    "allowSyntheticDefaultImports": true, // Permite importações default em módulos que não as exportam
+    "strict": true, // Ativa várias verificações de tipo (recomendado)
+    "forceConsistentCasingInFileNames": true, // Garante consistência entre maiúsculas/minúsculas em imports
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true, // Permite importar arquivos .json
+    "isolatedModules": true, // Necessário para projetos com Babel ou esbuild
+    "noEmit": true, // Não emite arquivos de saída
+    "jsx": "react-jsx", // Usa o novo transformador JSX do React 17+
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
