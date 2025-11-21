@@ -200,7 +200,7 @@ Agradecimentos especiais a todos que contribuíram para este projeto:
     <td align="center">
       <a href="https://github.com/Ximbeh">
         <img src="https://avatars.githubusercontent.com/u/100860445?v=4" width="100px;" alt="Enrik Paulo Lemes da Silva"/><br />
-        <sub><b>Enrik Paulo Lemes da Silva</b></sub>
+        <sub><b>Cairé de Marco Maia</b></sub>
       </a>
     </td>
     <td align="center">
