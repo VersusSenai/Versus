@@ -120,15 +120,42 @@ Siga os passos abaixo para configurar o ambiente de desenvolvimento:
    
    Crie um arquivo `.env` no diretório `./server` com as seguintes variáveis:
    ```env
-   # Configurações do Servidor
+   # Server Configuration
    PORT=8080
-   
-   # Configurações de Segurança
-   JWT_SECRET=sua_chave_secreta_aqui
+
+   # Security
    SALT_ROUNDS=10
-   
-   # Configurações do Banco de Dados
-   DATABASE_URL="mysql://usuario:senha@localhost:3306/versus"
+   JWT_SECRET=your_jwt_secret_here
+   INVITE_SECRET=your_invite_secret_here
+   PASSWORD_RECOVER_SECRET=your_password_recover_secret_here
+   REFRESH_TOKEN_SECRET=your_refresh_token_secret_here
+
+   # Database
+   DATABASE_URL=mysql://user:password@localhost:3306/database_name
+
+   # Email Configuration (SMTP)
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your_email@gmail.com
+   SMTP_PASSWORD=your_app_password_here
+
+   # OAuth - Google
+   GOOGLE_CLIENT_ID=your_google_client_id_here
+   GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+   # OAuth - Discord
+   DISCORD_CLIENT_ID=your_discord_client_id_here
+   DISCORD_CLIENT_SECRET=your_discord_client_secret_here
+
+   # Frontend
+   FRONTEND_URL=http://localhost:5173
+
+   #S3
+   BACKEND_URL=http://localhost:8080/
+   AWS_S3_ENDPOINT=https://aws.s3.com/
+   AWS_S3_BUCKET=versus
+   AWS_S3_ACCESS_ID=
+   AWS_S3_ACCESS_KEY=
    ```
    
    > ⚠️ **Importante**: Substitua `usuario` e `senha` pelas credenciais do seu MySQL
