@@ -15,15 +15,36 @@ import path from "path";
 const frontEndUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 import prisma from "../ config/prismaClient.js";
 class UserModel {
-
-
   async getAll(req) {
     const userData = req.user;
     let page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
     let limit = parseInt(req.query.limit) ? parseInt(req.query.limit) : 10;
+    const searchTerm = req.query.search;
+
+    // Se houver termo de busca, buscar por email ou username
+    const whereClause = searchTerm
+      ? {
+          status: "A",
+          OR: [
+            {
+              email: {
+                contains: searchTerm,
+              },
+            },
+            {
+              username: {
+                contains: searchTerm,
+              },
+            },
+          ],
+        }
+      : {
+          status: "A",
+        };
 
     return await prisma.user
       .paginate({
+        where: whereClause,
         select: {
           id: true,
           username: true,

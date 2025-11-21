@@ -529,6 +529,10 @@ class EventModel {
     if (!Array.isArray(role)) {
       role = [role];
     }
+
+    // Se está buscando eventos como organizador, retorna todas as inscrições do evento
+    const includeAllInscriptions = role.includes("O");
+
     return await prisma.event
       .findMany({
         where: {
@@ -541,11 +545,26 @@ class EventModel {
           },
         },
         include: {
-          eventInscriptions: {
-            where: {
-              userId: userData.id,
-            },
-          },
+          eventInscriptions: includeAllInscriptions
+            ? {
+                where: {
+                  NOT: { status: "R" },
+                },
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      username: true,
+                      email: true,
+                    },
+                  },
+                },
+              }
+            : {
+                where: {
+                  userId: userData.id,
+                },
+              },
         },
       })
       .catch((e) => {
